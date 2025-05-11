@@ -30,18 +30,18 @@ const breadcrumbs = [
 ]
 
 const form = useForm({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    birthdate: '',
-    bio: '',
-    experience: '',
-    price_per_hour: 0,
-    payment_frequency: '',
+    first_name: babysitterProfile?.value?.first_name ?? '',
+    last_name: babysitterProfile?.value?.last_name ?? '',
+    phone: babysitterProfile?.value?.phone ?? '',
+    birthdate: babysitterProfile?.value?.birthdate ?? '',
+    bio: babysitterProfile?.value?.bio ?? '',
+    experience: babysitterProfile?.value?.experience ?? '',
+    price_per_hour: Number(babysitterProfile?.value?.price_per_hour) ?? 0,
+    payment_frequency: babysitterProfile?.value?.payment_frequency ?? 'per_task',
 })
 
 function submit() {
-    form.post(route('babysitter.profile.details.update'), { preserveScroll: true })
+    form.patch(route('babysitter.profile.update'), { preserveScroll: true })
 }
 </script>
 

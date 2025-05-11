@@ -14,7 +14,7 @@ class BabysitterProfileSeeder extends Seeder
     public function run(): void
     {
         BabysitterProfile::factory()
-            ->count(3)
+            ->count(2)
             ->create();
     }
 }

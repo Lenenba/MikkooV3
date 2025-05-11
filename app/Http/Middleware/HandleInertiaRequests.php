@@ -2,13 +2,15 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Inspiring;
+use App\Http\Controllers\Traits\UtilsPhotoConverter;
 
 class HandleInertiaRequests extends Middleware
 {
+    use UtilsPhotoConverter;
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -38,6 +40,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $user = $request->user();
 
         return [
             ...parent::share($request),
@@ -45,6 +48,8 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'profilPicture' =>  $this->convertToWebp($user?->media()->isProfilePicture()->first()->file_path ?? ''),
+                'role' => $user?->isBabysitter() ? 'Babysitter' : 'Parent',
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

@@ -5,30 +5,28 @@ import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: '/settings/profile',
-    },
-    {
-        title: 'Password',
-        href: '/settings/password',
-    },
-    {
-        title: 'Appearance',
-        href: '/settings/appearance',
-    },
-    {
-        title: 'Media',
-        href: '/settings/media',
-    },
-    {
-        title: 'Details Profile',
-        href: '/settings/babysitter/profile/details',
-    }
-];
+function getSidebarNavItems(role: 'Babysitter' | 'Parent'): NavItem[] {
+    const baseDetailPath = role === 'Babysitter'
+        ? '/settings/babysitter/profile/details'
+        : '/settings/parent/profile/details'
+
+    return [
+        { title: 'Profile', href: '/settings/profile' },
+        { title: 'Details Profile', href: baseDetailPath },
+        { title: 'Password', href: '/settings/password' },
+        { title: 'Appearance', href: '/settings/appearance' },
+        { title: 'Media', href: '/settings/media' },
+    ]
+}
 
 const page = usePage();
+interface AuthProps {
+    role: 'Babysitter' | 'Parent';
+}
+
+const auth = page.props.auth as AuthProps;
+const role: 'Babysitter' | 'Parent' = auth.role;
+const sidebarNavItems = getSidebarNavItems(role)
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
 </script>

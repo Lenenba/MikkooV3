@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Settings\MediaController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\PasswordController;
+use App\Http\Controllers\Settings\ParentProfileController;
 use App\Http\Controllers\Settings\BabysitterProfileController;
 use App\Http\Controllers\Settings\SetAsProfilePhotoController;
 use App\Http\Controllers\Settings\DeleteProfilePhotoController;
@@ -30,6 +31,12 @@ Route::middleware('auth')->group(function () {
         ->name('babysitter.profile.details');
     Route::patch('settings/babysitter/profile/details', [BabysitterProfileController::class, 'update'])
         ->name('babysitter.profile.update');
+
+    // Parent profile details
+    Route::get('settings/parent/profile/details', [ParentProfileController::class, 'edit'])
+        ->name('parent.profile.details');
+    Route::patch('settings/parent/profile/details', [ParentProfileController::class, 'update'])
+        ->name('parent.profile.update');
 
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/Appearance');

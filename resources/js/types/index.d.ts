@@ -51,6 +51,14 @@ export interface BabysitterProfile {
     payment_frequency: string;
 }
 
+export interface ParentProfile {
+    id: number;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    birthdate: string;
+    user_id: User['id'];
+}
 export interface User {
     id: number;
     name: string;
