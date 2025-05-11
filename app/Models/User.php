@@ -147,6 +147,32 @@ class User extends Authenticatable
     }
 
     /**
+     * Scope a query to only include users with a given name.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|null  $name
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeMostRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Scope a query to filter users by name.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|null  $name
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeFilter($query, array $filters)
+    {
+        return $query->when($filters['name'] ?? null, function ($query, $name) {
+            $query->where('name', 'like', '%' . $name . '%');
+        });
+    }
+
+    /**
      * Check if the user has a given role name.
      *
      * @param  string  $roleName

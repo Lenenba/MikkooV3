@@ -14,6 +14,11 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
+    {
+        title: 'Babysitters',
+        href: '/search',
+        icon: BookOpen,
+    }
 ];
 </script>
 

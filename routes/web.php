@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SearchBabysitterController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -11,5 +12,9 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+Route::get('search', SearchBabysitterController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('search');
+
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
