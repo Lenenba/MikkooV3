@@ -227,4 +227,14 @@ class User extends Authenticatable
     {
         return $this->hasRole(env('BABYSITTER_ROLE_NAME'));
     }
+
+    /**
+     * Determine if the user is an Admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(env('SUPER_ADMIN_ROLE_NAME'));
+    }
 }

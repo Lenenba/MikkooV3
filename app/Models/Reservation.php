@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Http\Controllers\Traits\HasReferenceNumero;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Reservation extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasReferenceNumero;
 
     /**
      * Les attributs qui sont assignables en masse.
@@ -86,5 +88,56 @@ class Reservation extends Model
     public function details(): HasMany
     {
         return $this->hasMany(ReservationDetail::class);
+    }
+
+    /**
+     * Scope a query to only include customers of a given user.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $userId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByParent($query, int $userId): Builder
+    {
+        return $query->where('parent_id', $userId);
+    }
+
+    /**
+     * Scope a query to only include reservations for a given babysitter.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $userId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByBabysitter($query, int $userId): Builder
+    {
+        return $query->where('babysitter_id', $userId);
+    }
+
+
+    /**
+     * Scope the query to only include reservations visible by a given user.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \App\Models\User                       $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeForUser($query, User $user): Builder
+    {
+        return $query
+            // If parent → only their bookings
+            ->when($user->isParent(), fn($q) => $q->where('parent_id', $user->id))
+            // If babysitter → only bookings where they are booked
+            ->when($user->isBabysitter(), fn($q) => $q->where('babysitter_id', $user->id))
+            // If neither parent nor babysitter and not admin → no records
+            ->when(
+                !$user->isParent() && !$user->isBabysitter() && !$user->isAdmin(),
+                fn($q) => $q->whereRaw('0 = 1')
+            );
+    }
+
+    protected function getPrefixeReference(): string
+    {
+        return 'BOOK';
     }
 }

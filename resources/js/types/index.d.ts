@@ -27,6 +27,42 @@ export interface MediaItem {
     mime_type: string;
     is_profile: boolean;
 }
+export interface Reservation {
+    id: number;
+    babysitter: Babysitter;
+    parent: ParentProfile;
+    services: Services[];
+    details: Details[];
+    ref:  string;
+    notes: string;
+    total_amount: number;
+    notes: string;
+    status: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+}
+
+export interface Services {
+    id: number;
+    description: string;
+    pivot: [
+        {
+            price: number;
+            quantity: number;
+        },
+    ]
+}
+
+export interface Details {
+    id: number;
+    status: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+}
+
+
 
 export interface Preview {
     file: File;
