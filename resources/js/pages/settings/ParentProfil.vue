@@ -17,13 +17,6 @@ import { LoaderCircle, SaveIcon, CalendarDays, CalendarSync, CalendarCheck, Cloc
 const page = usePage<SharedData>()
 const babysitterProfile = computed(() => page.props.babysitterProfile as BabysitterProfile)
 const role = computed(() => page.props.role as string)
-import {
-    NumberField,
-    NumberFieldContent,
-    NumberFieldDecrement,
-    NumberFieldIncrement,
-    NumberFieldInput,
-} from '@/components/ui/number-field'
 
 const breadcrumbs = [
     { title: 'Profile Details', href: 'settings/babysitter/profile/details' },
@@ -53,26 +46,7 @@ function submit() {
             <div class="max-w-3xl mx-auto">
                 <HeadingSmall title="Profile Information" description="Update your personal details" />
                 <form @submit.prevent="submit">
-                    <div class="my-8 w-full">
-                        <Label for="first_name" class="mb-2">Payment frequencies</Label>
-                        <ToggleGroup type="single" class="w-full" v-model="form.payment_frequency" variant="outline">
-                            <ToggleGroupItem value="per_task" aria-label="Toggle bold">
-                                <Calendar1 class="h-4 w-4" /> Per task
-                            </ToggleGroupItem>
-                            <ToggleGroupItem value="daily" aria-label="Toggle italic">
-                                <Clock class="h-4 w-4" /> Daily
-                            </ToggleGroupItem>
-                            <ToggleGroupItem value="weekly" aria-label="Toggle italic">
-                                <CalendarDays class="h-4 w-4" /> Weekly
-                            </ToggleGroupItem>
-                            <ToggleGroupItem value="biweekly" aria-label="Toggle strikethrough">
-                                <CalendarCheck class="h-4 w-4" /> Biweekly
-                            </ToggleGroupItem>
-                            <ToggleGroupItem value="monthly" aria-label="Toggle underline">
-                                <CalendarSync class="h-4 w-4" /> Monthly
-                            </ToggleGroupItem>
-                        </ToggleGroup>
-                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <!-- First Name -->
                         <div>
@@ -102,33 +76,6 @@ function submit() {
                             <InputError :message="form.errors.birthdate" class="mt-1" />
                         </div>
 
-                        <NumberField class="gap-2" :min="0" :format-options="{
-                            style: 'currency',
-                            currency: 'EUR',
-                            currencyDisplay: 'code',
-                            currencySign: 'accounting',
-                        }" v-model:model-value="form.price_per_hour">
-                            <Label for="price_per_hour">Price per hour</Label>
-                            <NumberFieldContent>
-                                <NumberFieldDecrement />
-                                <NumberFieldInput v-model="form.price_per_hour" />
-                                <NumberFieldIncrement />
-                            </NumberFieldContent>
-                        </NumberField>
-
-                        <!-- experience full width -->
-                        <div class="sm:col-span-2">
-                            <Label for="experience">experience</Label>
-                            <Textarea id="experience" rows="3" v-model="form.experience" class="mt-1 w-full" />
-                            <InputError :message="form.errors.experience" class="mt-1" />
-                        </div>
-
-                        <!-- Bio full width -->
-                        <div class="sm:col-span-2">
-                            <Label for="bio">Bio</Label>
-                            <Textarea id="bio" rows="4" v-model="form.bio" class="mt-1 w-full" />
-                            <InputError :message="form.errors.bio" class="mt-1" />
-                        </div>
                         <!-- Action buttons -->
                     </div>
                     <div class="mt-8 flex flex-col">

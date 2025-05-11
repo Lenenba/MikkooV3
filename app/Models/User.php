@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -71,13 +72,23 @@ class User extends Authenticatable
     }
 
     /**
-     * The user's profile (one-to-one relation).
+     * One-to-one relation to babysitter profile.
      *
-     * @return BelongsTo
+     * @return HasOne
      */
-    public function babysitterProfile(): BelongsTo
+    public function babysitterProfile(): HasOne
     {
-        return $this->belongsTo(BabysitterProfile::class, 'id', 'user_id');
+        return $this->hasOne(BabysitterProfile::class);
+    }
+
+    /**
+     * One-to-one relation to parent profile.
+     *
+     * @return HasOne
+     */
+    public function parentProfile(): HasOne
+    {
+        return $this->hasOne(ParentProfile::class);
     }
 
     /**
