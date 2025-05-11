@@ -21,13 +21,14 @@ class SearchBabysitterController extends Controller
         $filters = $request->only([
             'name',
         ]);
-        $babySitters = User::Babysitters()
+        $babysitters = User::Babysitters()
+            ->with(['address', 'babysitterProfile', 'media'])
             ->MostRecent()
             ->Filter($filters)
             ->simplePaginate(10)
             ->withQueryString();
         return Inertia::render('search/Index', [
-            'babySitters' => $babySitters,
+            'babysitters' => $babysitters,
             'filters' => $filters,
         ]);
     }

@@ -22,6 +22,8 @@ export interface MediaItem {
     id: number;
     url: string;
     collection_name: string;
+    is_profile_picture: boolean;
+    file_path: string;
     mime_type: string;
     is_profile: boolean;
 }
@@ -61,6 +63,15 @@ export interface Address {
     postal_code: string;
     latitude: number;
     longitude: number;
+}
+// src/types/index.ts
+export interface Babysitter {
+    id: number;
+    name: string;
+    email: string;
+    address: Address;
+    babysitter_profile: BabysitterProfile;
+    media: MediaItem[];
 }
 
 export interface ParentProfile {

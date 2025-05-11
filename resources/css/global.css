@@ -1,0 +1,6 @@
+ /* Cross-browser alternative using transform */
+ .zoom-80 {
+     /* make sure the origin is top-left */
+     transform-origin: 0 0;
+     transform: scale(0.8);
+ }
