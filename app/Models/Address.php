@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Media model.
+ *
+ * @package App\Models
+ */
 class Address extends Model
 {
     /**

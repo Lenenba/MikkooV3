@@ -12,9 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * Role model.
  *
  * @package App\Models
- *
- * @property int $id
- * @property string $name
  */
 class Role extends Model
 {

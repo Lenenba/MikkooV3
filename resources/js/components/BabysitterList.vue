@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { defineProps, withDefaults } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import { type Babysitter } from '@/types';
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button';
 import MediaScrollingHorizontalV2 from '@/components/MediaScrollingHorizontal_v2.vue';
+import { SquareActivity } from 'lucide-vue-next';
 import {
     Dialog,
     DialogContent,
@@ -23,7 +25,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
 <template>
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
         <div v-if="props.babysitters.length > 0"
-            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-10 gap-x-3 sm:gap-x-5">
+            class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-10 gap-x-3 sm:gap-x-5">
             <div v-for="babysitter in props.babysitters" :key="babysitter.id"
                 class="group relative flex flex-col h-full">
 
@@ -31,7 +33,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                     <DialogTrigger as-child>
                         <!-- Category Card -->
                         <div
-                            class="flex flex-col items-center bg-white border border-gray-200 hover:border-gray-300 hover:shadow-2xs rounded-xl focus:outline-hidden focus:border-gray-300 focus:shadow-2xs dark:bg-neutral-900 dark:border-neutral-700 dark:hover:border-neutral-600 dark:focus:border-neutral-600">
+                            class="flex flex-col items-center bg-gray-50 border border-gray-200 hover:border-gray-300 hover:shadow-2xs rounded-xl focus:outline-hidden focus:border-gray-300 focus:shadow-2xs dark:bg-neutral-900 dark:border-neutral-700 dark:hover:border-neutral-600 dark:focus:border-neutral-600">
                             <div class="p-2 w-full text-center">
                                 <div class="relative shrink-0 h-72 sm:h-72 w-full">
                                     <img class="size-full absolute inset-0 object-cover object-center bg-gray-100 rounded-lg dark:bg-neutral-800"
@@ -52,7 +54,9 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                                             <s>$399</s>
                                         </span>
                                         <span class="ms-auto text-sm text-gray-500 dark:text-neutral-500">
-                                            18 sold
+                                            <Badge class="bg-emerald-500 dark:bg-emerald-600">
+                                                <SquareActivity class="h-4 w-4 animate-pulse" />
+                                            </Badge>
                                         </span>
                                     </div>
 
@@ -103,7 +107,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                         </div>
                         <!-- End Category Card -->
                     </DialogTrigger>
-                    <DialogContent class="sm:max-w-2/3">
+                    <DialogContent class="sm:max-w-3/4">
                         <DialogHeader>
                             <DialogTitle>Book me</DialogTitle>
                             <DialogDescription>
@@ -117,20 +121,22 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                                     class="absolute inset-0 w-full h-full object-cover rounded-md" />
                             </div>
                             <div class="flex flex-col w-full">
-                                <div class="flex flex-row justify-between mt-4">
+                                <div class="flex flex-row justify-between align-baseline mt-4 mr-4">
                                     <div>
-                                        <h1 class="text-xl font-semibold"> {{ babysitter.babysitter_profile.first_name
-                                        }} {{
-                                                babysitter.babysitter_profile.last_name }}</h1>
+                                        <div class="flex items-center justify-between mb-2 gap-x-2">
+                                            <h1 class="text-xl font-semibold"> {{
+                                                babysitter.babysitter_profile.first_name
+                                                }} {{
+                                                    babysitter.babysitter_profile.last_name }}</h1>
+                                            <Badge class="bg-emerald-500 dark:bg-emerald-600 ">
+                                                {{ babysitter.babysitter_profile.price_per_hour }} $
+                                            </Badge>
+                                        </div>
                                         <p class="text-xs text-gray-400 dark:text-neutral-400">
                                             {{ babysitter.babysitter_profile.bio }}
                                         </p>
                                     </div>
-                                    <div>
-                                        <Badge class="bg-emerald-500  p-1 dark:bg-emerald-600 ">
-                                            {{ babysitter.babysitter_profile.price_per_hour }} $
-                                        </Badge>
-                                    </div>
+
                                 </div>
                                 <div v-if="babysitter.address" class="mt-1">
                                     <span class="text-sm text-gray-400 dark:text-neutral-400">
@@ -139,14 +145,12 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                                 </div>
                                 <MediaScrollingHorizontalV2 :items="babysitter.media" class="mt-4" />
                                 <div class="mt-4">
-                                    <h2 class="text-sm font-semibold">Service</h2>
-                                    <p class="text-xs text-gray-400 dark:text-neutral-400">
-                                        {{ babysitter.babysitter_profile.experience }}
-                                    </p>
+                                    <Link>
+                                    <Button class="w-full mt-auto">
+                                        Book me
+                                    </Button>
+                                    </Link>
                                 </div>
-                                <Button class="w-full mt-auto">
-                                    Book me
-                                </Button>
                             </div>
                         </div>
                     </DialogContent>

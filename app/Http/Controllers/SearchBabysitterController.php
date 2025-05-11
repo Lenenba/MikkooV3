@@ -27,6 +27,7 @@ class SearchBabysitterController extends Controller
             ->Filter($filters)
             ->simplePaginate(10)
             ->withQueryString();
+
         return Inertia::render('search/Index', [
             'babysitters' => $babysitters,
             'filters' => $filters,

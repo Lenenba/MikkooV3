@@ -43,6 +43,7 @@ class MediaFactory extends Factory
             // Default collection; adjust via state() when needed
             'collection_name' => 'avatar',
             'file_name'       => $fileName,
+            'is_profile_picture' => true,
             // We store the remote URL directly
             'file_path'       => $url,
             'mime_type'       => 'image/jpeg',

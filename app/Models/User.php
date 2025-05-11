@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Address;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * User model.
+ *
+ * @package App\Models
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -163,12 +169,20 @@ class User extends Authenticatable
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string|null  $name
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
-    public function scopeFilter($query, array $filters)
+    public function scopeFilter(Builder $query, array $filters): Builder
     {
-        return $query->when($filters['name'] ?? null, function ($query, $name) {
-            $query->where('name', 'like', '%' . $name . '%');
+        return $query->when($filters['name'] ?? null, function (Builder $q, string $searchTerm) {
+            $q->where(function (Builder $subQuery) use ($searchTerm) {
+                // Filtrer par le nom de l'utilisateur
+                $subQuery->where('name', 'like', '%' . $searchTerm . '%')
+                    // OU filtrer par le prénom ou le nom de famille sur le profil lié
+                    ->orWhereHas('babysitterProfile', function (Builder $profileQuery) use ($searchTerm) {
+                        $profileQuery->where('first_name', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('last_name', 'like', '%' . $searchTerm . '%');
+                    });
+            });
         });
     }
 

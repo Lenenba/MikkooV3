@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * ParentProfile model.
+ *
+ * @package App\Models
+ */
 class BabysitterProfile extends Model
 {
     /**
