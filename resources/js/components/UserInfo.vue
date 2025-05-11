@@ -18,7 +18,6 @@ const { getInitials } = useInitials();
 
 // Compute whether we should show the avatar image
 const showAvatar = computed(() => props.profilPicture && props.profilPicture !== '');
-console.log('showAvatar', props.profilPicture);
 </script>
 
 <template>

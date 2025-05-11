@@ -51,6 +51,18 @@ export interface BabysitterProfile {
     payment_frequency: string;
 }
 
+export interface Address {
+    id: number;
+    street: string;
+    city: string;
+    provider: string;
+    state: string;
+    country: string;
+    postal_code: string;
+    latitude: number;
+    longitude: number;
+}
+
 export interface ParentProfile {
     id: number;
     first_name: string;

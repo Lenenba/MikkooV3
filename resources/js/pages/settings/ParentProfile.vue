@@ -9,10 +9,12 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import InputError from '@/components/InputError.vue'
-import { type SharedData, type ParentProfile } from '@/types'
+import { type SharedData, type ParentProfile, type Address } from '@/types'
 import { LoaderCircle, SaveIcon } from 'lucide-vue-next'
+import AddressForm from '@/components/AddressForm.vue'
 const page = usePage<SharedData>()
 const parentProfile = computed(() => page.props.parentProfile as ParentProfile)
+const address = computed(() => page.props.address as Address)
 const role = computed(() => page.props.role as string)
 
 const breadcrumbs = [
@@ -24,10 +26,17 @@ const form = useForm({
     last_name: parentProfile?.value?.last_name ?? '',
     phone: parentProfile?.value?.phone ?? '',
     birthdate: parentProfile?.value?.birthdate ?? '',
+    address: address?.value ? { ...address.value } : {
+        street: '',
+        city: '',
+        state: '',
+        country: '',
+        postal_code: '',
+    },
 })
 
 function submit() {
-    form.post(route('parent.profile.details.update'), { preserveScroll: true })
+    form.patch(route('parent.profile.update'), { preserveScroll: true })
 }
 </script>
 
@@ -70,6 +79,10 @@ function submit() {
                         </div>
 
                         <!-- Action buttons -->
+                    </div>
+                    <div key="address" class="mt-6">
+                        <Label for="address" class="mb-6">Recherche ton address</Label>
+                        <AddressForm v-model="form.address" />
                     </div>
                     <div class="mt-8 flex flex-col">
                         <Button type="submit" class="w-full my-2" :tabindex="4" :disabled="form.processing">

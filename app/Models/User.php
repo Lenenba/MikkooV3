@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Address;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -69,6 +70,16 @@ class User extends Authenticatable
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediaable');
+    }
+
+    /**
+     * One-to-one relation to address.
+     *
+     * @return MorphOne
+     */
+    public function address(): MorphOne
+    {
+        return $this->morphOne(Address::class, 'addressable');
     }
 
     /**

@@ -11,11 +11,15 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import InputError from '@/components/InputError.vue'
+import AddressForm from '@/components/AddressForm.vue'
+
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { type SharedData, type BabysitterProfile } from '@/types'
+import { type SharedData, type BabysitterProfile, type Address } from '@/types'
 import { LoaderCircle, SaveIcon, CalendarDays, CalendarSync, CalendarCheck, Clock, Calendar1 } from 'lucide-vue-next'
 const page = usePage<SharedData>()
 const babysitterProfile = computed(() => page.props.babysitterProfile as BabysitterProfile)
+const address = computed(() => page.props.address as Address)
+
 const role = computed(() => page.props.role as string)
 import {
     NumberField,
@@ -38,6 +42,13 @@ const form = useForm({
     experience: babysitterProfile?.value?.experience ?? '',
     price_per_hour: Number(babysitterProfile?.value?.price_per_hour) ?? 0,
     payment_frequency: babysitterProfile?.value?.payment_frequency ?? 'per_task',
+    address: address?.value ? { ...address.value } : {
+        street: '',
+        city: '',
+        state: '',
+        country: '',
+        postal_code: '',
+    },
 })
 
 function submit() {
@@ -130,6 +141,10 @@ function submit() {
                             <InputError :message="form.errors.bio" class="mt-1" />
                         </div>
                         <!-- Action buttons -->
+                    </div>
+                    <div key="address" class="mt-6">
+                        <Label for="address" class="mb-6">Recherche ton address</Label>
+                        <AddressForm v-model="form.address" />
                     </div>
                     <div class="mt-8 flex flex-col">
                         <Button type="submit" class="w-full my-2" :tabindex="4" :disabled="form.processing">

@@ -17,9 +17,11 @@ class BabysitterProfileController extends Controller
      */
     public function edit()
     {
+        $user = Auth::user();
         return Inertia::render('settings/BabysitterProfile', [
-            'babysitterProfile' => Auth::user()->babysitterProfile,
-            'role'  => Auth::user()->isBabysitter(),
+            'babysitterProfile' =>  $user->babysitterProfile,
+            'address' =>  $user->address,
+            'role'  =>  $user->isBabysitter(),
         ]);
     }
 
@@ -38,8 +40,19 @@ class BabysitterProfileController extends Controller
         // Get the user's profile
         $profile = $user->babysitterProfile();
         // Attempt to update: update() ne lancera le save() que s’il y a des attributs modifiés
-        $updated = $profile->update($data);
+        $updated = $profile->update([
+            'first_name' => $data['first_name'],
+            'last_name'  => $data['last_name'],
+            'birthdate'  => $data['birthdate'],
+            'phone'      => $data['phone'],
+            'bio'        => $data['bio'],
+            'experience' => $data['experience'],
+            'price_per_hour' => $data['price_per_hour'],
+            'payment_frequency' => $data['payment_frequency'],
+        ]);
 
+        /** @var Address $user */
+        $user->address()->updateOrCreate($data['address']);
         if ($updated) {
             return redirect()
                 ->back()
