@@ -143,7 +143,8 @@ function submit() {
                         <!-- Action buttons -->
                     </div>
                     <div key="address" class="mt-6">
-                        <Label for="address" class="mb-6">Recherche ton address</Label>
+                        <HeadingSmall title="Address Information" description="Update your address details"
+                            class="my-4" />
                         <AddressForm v-model="form.address" />
                     </div>
                     <div class="mt-8 flex flex-col">
