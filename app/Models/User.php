@@ -7,6 +7,7 @@ use App\Models\Address;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -119,6 +120,25 @@ class User extends Authenticatable
             ->where('collection_name', 'avatar');
     }
 
+    /**
+     * The user's profile picture (single media item in the 'profile_picture' collection).
+     *
+     * @return HasMany
+     */
+    public function babysitterReservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'babysitter_id');
+    }
+
+    /**
+     * The user's profile picture (single media item in the 'profile_picture' collection).
+     *
+     * @return HasMany
+     */
+    public function parentReservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
     /**
      * All media in the 'garde' collection (photos/vidéos de gardes effectuées).
      *

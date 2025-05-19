@@ -51,6 +51,10 @@ class HandleInertiaRequests extends Middleware
                 'profilPicture' =>  $this->convertToWebp($user?->media()->isProfilePicture()->first()->file_path ?? ''),
                 'role' => $user?->isBabysitter() ? 'Babysitter' : 'Parent',
             ],
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error')
+            ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

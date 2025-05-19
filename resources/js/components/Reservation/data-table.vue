@@ -53,7 +53,7 @@ const table = useVueTable({
 <template>
     <div>
         <div class="flex items-center py-4">
-            <Input class="max-w-sm" placeholder="Filter emails..."
+            <Input class="max-w-sm" placeholder="Filtrer par reference ..."
                 :model-value="table.getColumn('ref')?.getFilterValue() as string"
                 @update:model-value=" table.getColumn('ref')?.setFilterValue($event)" />
             <DataTableViewOptions :table="table" />

@@ -62,6 +62,17 @@ export interface Details {
     end_time: string;
 }
 
+export interface Stats {
+    current_month_revenue: number;
+    previous_month_revenue: number;
+    revenue_change_pct: number;
+    current_month_count: number;
+    previous_month_count: number;
+    count_change_pct: number;
+    avg_revenue_per_booking: number;
+    total_revenue: number;
+    total_canceled_count: number;
+}
 
 
 export interface Preview {

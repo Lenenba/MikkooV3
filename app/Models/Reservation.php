@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\Traits\HasReferenceNumero;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\GeneratesSequentialNumber;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Reservation extends Model
 {
-    use HasFactory, SoftDeletes, HasReferenceNumero;
+    use HasFactory, SoftDeletes, GeneratesSequentialNumber;
 
     /**
      * Les attributs qui sont assignables en masse.
@@ -21,6 +23,7 @@ class Reservation extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'number',
         'parent_id',
         'babysitter_id',
         'total_amount',
@@ -35,6 +38,21 @@ class Reservation extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
     ];
+
+    /**
+     * Les attributs qui devraient être cachés pour la sérialisation.
+     *
+     * @var array<int, string>
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-generate the customer number before creating
+        static::creating(function ($reservation) {
+            $reservation->number = self::generateNumber($reservation->babysitter_id, 'R');
+        });
+    }
 
     /**
      * Obtient le parent qui a fait la réservation.
@@ -78,16 +96,15 @@ class Reservation extends Model
             ->withPivot('quantity', 'price')
             ->withTimestamps();
     }
-
     /**
      * Obtient les détails (date, heure, statut) de la réservation.
      * Une réservation peut avoir plusieurs entrées de détails si cela représente des créneaux ou une historisation.
      *
-     * @return HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function details(): HasMany
+    public function details(): HasOne
     {
-        return $this->hasMany(ReservationDetail::class);
+        return $this->hasOne(ReservationDetail::class);
     }
 
     /**
@@ -114,6 +131,43 @@ class Reservation extends Model
         return $query->where('babysitter_id', $userId);
     }
 
+    /**
+     * Scope to include only confirmed reservations.
+     */
+    public function scopeConfirmed(Builder $query): Builder
+    {
+        return $query->whereHas(
+            'details',
+            fn($q) =>
+            $q->where('status', 'confirmed')
+        );
+    }
+
+
+    /**
+     * Scope to include only canceled reservations.
+     */
+    public function scopeCanceled(Builder $query): Builder
+    {
+        return $query->whereHas(
+            'details',
+            fn($q) =>
+            $q->where('status', 'canceled')
+        );
+    }
+
+    /**
+     * Scope a query to only include reservations between two dates.
+     *
+     * @param Builder $query
+     * @param Carbon  $start
+     * @param Carbon  $end
+     * @return Builder
+     */
+    public function scopeCreatedBetween(Builder $query, Carbon $start, Carbon $end): Builder
+    {
+        return $query->whereBetween('created_at', [$start, $end]);
+    }
 
     /**
      * Scope the query to only include reservations visible by a given user.
@@ -134,10 +188,5 @@ class Reservation extends Model
                 !$user->isParent() && !$user->isBabysitter() && !$user->isAdmin(),
                 fn($q) => $q->whereRaw('0 = 1')
             );
-    }
-
-    protected function getPrefixeReference(): string
-    {
-        return 'BOOK';
     }
 }

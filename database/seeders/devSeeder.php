@@ -8,17 +8,17 @@ use App\Models\Media;
 use App\Models\User;
 use App\Models\ParentProfile;
 use App\Models\BabysitterProfile;
-use App\Models\Reservation; // Assurez-vous d'importer le modèle Reservation
+use App\Models\Reservation;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Arr; // Pour Arr::random()
+use Illuminate\Support\Arr;
+use Carbon\Carbon;
+use Faker\Factory as FakerFactory;
 
 class DevSeeder extends Seeder
 {
     /**
-     * Seed the application's database with test users, profiles, and media.
-     *
-     * @return void
+     * Seed the application's database with test users, profiles, reservations, and media.
      */
     public function run(): void
     {
@@ -30,7 +30,7 @@ class DevSeeder extends Seeder
         $this->command->info('Roles created or retrieved.');
 
         /**
-         * Helper to create a user with a profile and media.
+         * Helper to create a user with the correct profile and media.
          *
          * @param string $email
          * @param string $name
@@ -48,35 +48,34 @@ class DevSeeder extends Seeder
             );
 
             // Assign the role
-            $user->roles()->syncWithoutDetaching([$role->id]); // syncWithoutDetaching est plus sûr si la seeder est relancée
+            $user->roles()->syncWithoutDetaching([$role->id]);
 
-            // Create the correct profile via factory
-            // Vérifier si un profil existe déjà pour cet utilisateur avant d'en créer un nouveau
+            // Create profile if it does not exist
             if ($role->name === 'Babysitter') {
-                if (!$user->babysitterProfile()->exists()) {
+                if (! $user->babysitterProfile()->exists()) {
                     BabysitterProfile::factory()
                         ->for($user)
                         ->create();
                 }
-            } elseif ($role->name === 'Parent' || $role->name === 'SuperAdmin') { // SuperAdmin aura un ParentProfile ici
-                if (!$user->parentProfile()->exists()) {
+            } else {
+                // Parent or SuperAdmin get a ParentProfile
+                if (! $user->parentProfile()->exists()) {
                     ParentProfile::factory()
                         ->for($user)
                         ->create();
                 }
             }
 
-
-            // Create a default avatar media via factory, if none exists
-            if (!$user->media()->where('collection_name', 'avatar')->exists()) {
+            // Create a default avatar media if none exists
+            if (! $user->media()->where('collection_name', 'avatar')->exists()) {
                 Media::factory()
                     ->for($user, 'mediaable')
                     ->state(['collection_name' => 'avatar'])
                     ->create();
             }
 
-            // Create an address via factory, if none exists
-            if (!$user->address()->exists()) {
+            // Create an address if none exists
+            if (! $user->address()->exists()) {
                 Address::factory()
                     ->for($user, 'addressable')
                     ->create();
@@ -85,51 +84,57 @@ class DevSeeder extends Seeder
             return $user;
         };
 
-        // Arrays pour stocker les utilisateurs créés
-        $createdParents = [];
-        $createdBabysitters = [];
-
-        // Seed admin and parents
+        // Seed admin and parent users
         $this->command->info('Seeding admin and parent users...');
-        $createUser('superadmin@example.com', 'Admin User', $adminRole); // L'admin aura un ParentProfile selon la logique actuelle
-        $createdParents[] = $createUser('parent1@example.com',   'Parent One',    $parentRole);
-        $createdParents[] = $createUser('parent2@example.com',   'Parent Two',    $parentRole);
-        // Ajouter plus de parents si nécessaire
+        $createUser('superadmin@example.com', 'Admin User', $adminRole);
+        $createdParents = [];
+        $createdParents[] = $createUser('parent1@example.com', 'Parent One', $parentRole);
+        $createdParents[] = $createUser('parent2@example.com', 'Parent Two', $parentRole);
         for ($i = 3; $i <= 5; $i++) {
-            $createdParents[] = $createUser('parent' . $i . '@example.com', 'Parent ' . $i, $parentRole);
+            $createdParents[] = $createUser("parent{$i}@example.com", "Parent {$i}", $parentRole);
         }
 
-
-        // Seed babysitters
+        // Seed babysitter users
         $this->command->info('Seeding babysitter users...');
+        $createdBabysitters = [];
         for ($i = 1; $i <= 10; $i++) {
-            $createdBabysitters[] = $createUser('babysitter' . $i . '@example.com', 'Babysitter ' . $i, $babysitterRole);
+            $createdBabysitters[] = $createUser("babysitter{$i}@example.com", "Babysitter {$i}", $babysitterRole);
         }
         $this->command->info(count($createdBabysitters) . ' babysitters created.');
 
-
-        // --- Logique pour créer des réservations ---
-        $this->command->info('Creating reservations...');
-
+        // Create reservations over the last 4 months
+        $this->command->info('Creating reservations over the last 4 months...');
         if (empty($createdParents) || empty($createdBabysitters)) {
-            $this->command->warn('No parents or babysitters available to create reservations. Skipping reservation seeding.');
+            $this->command->warn('No parents or babysitters available. Skipping reservation seeding.');
             return;
         }
 
+        $faker = FakerFactory::create();
+
         foreach ($createdParents as $parent) {
-            // Chaque parent fait 3 réservations
-            $reservationsToCreate = 3;
-            for ($j = 0; $j < $reservationsToCreate; $j++) {
-                if (empty($createdBabysitters)) continue;
+            // 3 reservations per month for each of the last 4 months
+            for ($monthOffset = 0; $monthOffset < 4; $monthOffset++) {
+                $period = Carbon::now()->subMonths($monthOffset);
+                $start  = $period->copy()->startOfMonth();
+                $end    = $period->copy()->endOfMonth();
 
-                $randomBabysitter = Arr::random($createdBabysitters);
+                for ($j = 0; $j < 3; $j++) {
+                    $randomBabysitter = Arr::random($createdBabysitters);
+                    $randomDate       = $faker->dateTimeBetween($start, $end);
 
-                Reservation::factory()->create([
-                    'parent_id'     => $parent->id,
-                    'babysitter_id' => $randomBabysitter->id,
-                ]);
+                    Reservation::factory()
+                        ->state([
+                            'parent_id'     => $parent->id,
+                            'babysitter_id' => $randomBabysitter->id,
+                            // Override timestamps to test monthly stats
+                            'created_at'    => $randomDate,
+                            'updated_at'    => $randomDate,
+                        ])
+                        ->create();
+                }
             }
-            $this->command->info("Successfully created {$reservationsToCreate} reservations for parent: {$parent->name} (ID: {$parent->id})");
+
+            $this->command->info("Created 12 reservations for parent: {$parent->name}");
         }
 
         $this->command->info('Reservations seeding completed successfully!');

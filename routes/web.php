@@ -4,6 +4,8 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\SearchBabysitterController;
+use App\Http\Controllers\AcceptReservationController;
+use App\Http\Controllers\CancelReservationController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -21,6 +23,13 @@ Route::middleware('auth')->group(
             ->name('search.babysitter');
         Route::get('/reservations', [ReservationController::class, 'index'])
             ->name('reservations.index');
+
+        Route::post('/reservations/{reservationId}/accept', AcceptReservationController::class)
+            ->name('reservations.accept');
+        Route::post('/reservations/{reservationId}/cancel', CancelReservationController::class)
+            ->name('reservations.cancel');
+        Route::get('/reservations/{id}/create', [ReservationController::class, 'create'])
+            ->name('reservations.create');
     }
 );
 
