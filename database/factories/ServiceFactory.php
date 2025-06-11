@@ -25,11 +25,23 @@ class ServiceFactory extends Factory
                 'Meal Preparation',
                 'Homework Help',
                 'Overnight Care',
+                'Pet Care',
+                'House Cleaning',
+                'Laundry Service',
+                'Grocery Shopping',
+                'Errand Running',
+                'Tutoring',
+                'Transportation',
+                'Event Planning',
+                'Personal Shopping',
+                'Senior Care',
+                'Companionship',
+                'House Sitting',
             ]),
             // Description text
             'description' => $this->faker->paragraph(),
-            // Additional details or instructions
-            'details'     => $this->faker->optional()->sentence(),
+            // Price of the service
+            'price'       => $this->faker->randomFloat(2, 10, 500),
         ];
     }
 }

@@ -1,10 +1,23 @@
 <script setup lang="ts">
 import { Head, usePage, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Input } from '@/components/ui/input';
+import { computed, watch, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
 import { Star, Trash } from 'lucide-vue-next';
+
+import { Label } from '@/components/ui/label'
+import {
+    NumberField,
+    NumberFieldContent,
+    NumberFieldDecrement,
+    NumberFieldIncrement,
+    NumberFieldInput,
+} from '@/components/ui/number-field'
+
+import axios from 'axios';
+
 const page = usePage();
 // Shared page props
 const Babysitter = computed(
@@ -30,6 +43,12 @@ const form = useForm({
     end_date: '',
     note: '',
     status: 'draft',
+    subtotal: 0,
+    discount: 0,
+    tax: 0,
+    total: 0,
+    deposit: 0,
+    payment_method: '',
 });
 
 // Ajouter une nouvelle ligne de produit
@@ -43,6 +62,47 @@ const removeLine = index => {
         form.service.splice(index, 1);
     }
 };
+// Gestion de la recherche de produits
+const searchResults = ref([]);
+const searchServices = async (query, index) => {
+    if (query.length > 0) {
+        try {
+            const response = await axios.get(route('service.search'), { params: { query } });
+            searchResults.value[index] = response.data;
+        } catch (error) {
+            console.error('Error fetching Services:', error);
+        }
+    } else {
+        searchResults.value[index] = [];
+    }
+};
+
+// Sélectionner un produit
+const selectService = (service: any, index: number) => {
+    form.service[index] = {
+        id: service.id,
+        name: service.name,
+        quantity: 1,
+        price: service.price,
+        total: service.price,
+    };
+    searchResults.value[index] = [];
+};
+
+// Watch pour recalculer les totaux
+watch(
+    () => form.service,
+    (newServices: Array<{ id: number | null; name: string; quantity: number; price: number; total: number }>) => {
+        // Mise à jour des totaux par produit
+        newServices.forEach(service => {
+            service.total = service.quantity * service.price;
+        });
+
+        // Calcul du sous-total
+        form.subtotal = newServices.reduce((acc, service) => acc + service.total, 0);
+    },
+    { deep: true }
+);
 </script>
 
 <template>
@@ -76,7 +136,7 @@ const removeLine = index => {
                         <!-- Left side (2/3) -->
                         <div class="col-span-2 space-y-4">
                             <!-- Job title input -->
-                            <input type="text" placeholder="Job title"
+                            <Input type="date" placeholder="Job title"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500" />
 
                             <!-- Address & contact -->
@@ -160,7 +220,7 @@ const removeLine = index => {
                                     <th scope="col">
                                         <div
                                             class="px-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
-                                            Unit cost
+                                            Unit price
                                         </div>
                                     </th>
 
@@ -180,23 +240,61 @@ const removeLine = index => {
                             </thead>
 
                             <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                                <tr>
+                                <!-- Ligne de service -->
+                                <tr v-for="(service, index) in form.service" :key="index">
                                     <td class="size-px whitespace-nowrap px-4 py-3">
-
+                                        <span class="text-sm text-gray-600 dark:text-neutral-400">
+                                            <div class="relative">
+                                                <Input autofocus v-model="form.service[index].name" label="Name"
+                                                    @input="searchServices(form.service[index].name, index)" />
+                                            </div>
+                                            <div class="relative w-full">
+                                                <ul v-if="searchResults[index]?.length"
+                                                    class="absolute left-0 top-full z-50 w-full max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg dark:bg-neutral-800 dark:border-neutral-700">
+                                                    <li v-for="result in searchResults[index]" :key="result.id"
+                                                        @click="selectService(result, index)"
+                                                        class="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-700 text-gray-800 dark:text-neutral-200">
+                                                        {{ result.name }}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </span>
                                     </td>
                                     <td class="size-px whitespace-nowrap px-4 py-3">
+                                        <NumberField id="quantity" :min="1" :max="10"
+                                            v-model="form.service[index].quantity">
+                                            <NumberFieldContent>
+                                                <NumberFieldDecrement />
+                                                <NumberFieldInput />
+                                                <NumberFieldIncrement />
+                                            </NumberFieldContent>
+                                        </NumberField>
                                     </td>
                                     <td class="size-px whitespace-nowrap px-4 py-3">
-
+                                        <NumberField id="Unit Price" :min="1" :max="10"
+                                            v-model="form.service[index].price">
+                                            <NumberFieldContent>
+                                                <NumberFieldDecrement />
+                                                <NumberFieldInput />
+                                                <NumberFieldIncrement />
+                                            </NumberFieldContent>
+                                        </NumberField>
                                     </td>
                                     <td class="size-px whitespace-nowrap px-4 py-3">
-                                        <input type="text" name="" id="">
+                                        <NumberField id="Total" :min="1" :max="10" v-model="form.service[index].total">
+                                            <NumberFieldContent>
+                                                <NumberFieldDecrement />
+                                                <NumberFieldInput />
+                                                <NumberFieldIncrement />
+                                            </NumberFieldContent>
+                                        </NumberField>
                                     </td>
                                     <td>
-                                        <Button variant="outline" size="icon"
+                                        <Button variant="outline" size="icon" v-if="form.service.length > 1"
+                                            @click="removeLine(index)"
                                             class="px-4 py-4 inline-flex items-center gap-x-2 text-sm font-medium text-red-800  hover:text-red-600 disabled:opacity-50 disabled:pointer-events-none focus:outline-none   dark:text-red-300 ">
                                             <Trash class="h-4 w-4" />
-                                        </Button>
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -206,7 +304,7 @@ const removeLine = index => {
                 </div>
                 <!-- End Table Section -->
                 <div class="text-xs text-gray-600 flex justify-between mt-5">
-                    <Button>
+                    <Button @click="addNewLine">
                         Add new service line
                     </Button>
                 </div>
@@ -226,11 +324,9 @@ const removeLine = index => {
                             </p>
                         </div>
                         <div class="col-span-1 flex justify-end">
-                            <p>
-                                <a class="text-sm text-green-600 decoration-2 hover:underline font-medium focus:outline-none focus:underline dark:text-green-400 dark:hover:text-green-500"
-                                    href="#">
-
-                                </a>
+                            <p class="text-sm text-green-600 decoration-2 hover:underline font-medium focus:outline-none focus:underline dark:text-green-400 dark:hover:text-green-500"
+                                href="#">
+                                $ {{ form.subtotal }}
                             </p>
                         </div>
                     </div>

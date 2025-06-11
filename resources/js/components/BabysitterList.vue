@@ -126,7 +126,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                                         <div class="flex items-center justify-between mb-2 gap-x-2">
                                             <h1 class="text-xl font-semibold"> {{
                                                 babysitter.babysitter_profile.first_name
-                                            }} {{
+                                                }} {{
                                                     babysitter.babysitter_profile.last_name }}</h1>
                                             <Badge class="bg-emerald-500 dark:bg-emerald-600 ">
                                                 {{ babysitter.babysitter_profile.price_per_hour }} $
@@ -145,7 +145,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                                 </div>
                                 <MediaScrollingHorizontalV2 :items="babysitter.media" class="mt-4" />
                                 <div class="mt-4">
-                                    <Link key="book" :href="route('reservations.create', { user: babysitter })">
+                                    <Link key="book" :href="route('reservations.create', { id: babysitter.id })">
                                     <Button class="w-full mt-auto">
                                         Book me
                                     </Button>

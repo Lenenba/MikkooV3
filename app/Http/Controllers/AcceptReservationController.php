@@ -46,7 +46,7 @@ class AcceptReservationController extends Controller
         );
 
         // English comment: notify the parent via the Notification system
-        $reservation->user->notify(
+        $reservation->babysitter->notify(
             new ReservationNotification($reservation)
         );
 

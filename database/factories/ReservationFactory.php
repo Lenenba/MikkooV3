@@ -53,7 +53,7 @@ class ReservationFactory extends Factory
             // Ensure there are services to attach
             $serviceIds = Service::pluck('id')->toArray();
             if (empty($serviceIds)) {
-                Service::factory()->count(mt_rand(2, 5))->create();
+                Service::factory()->count(mt_rand(2, 8))->create();
                 $serviceIds = Service::pluck('id')->toArray();
             }
 
@@ -73,7 +73,7 @@ class ReservationFactory extends Factory
                     'reservation_id' => $reservation->id,
                     'service_id'     => $serviceId,
                     'quantity'       => $quantity,
-                    'price'          => $pricePerUnit,
+                    'total'          => $calculatedTotal,
                 ];
             }
 

@@ -3,6 +3,7 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ServicesSearchController;
 use App\Http\Controllers\SearchBabysitterController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
@@ -30,6 +31,8 @@ Route::middleware('auth')->group(
             ->name('reservations.cancel');
         Route::get('/reservations/{id}/create', [ReservationController::class, 'create'])
             ->name('reservations.create');
+        Route::get('/service/search', ServicesSearchController::class)
+            ->name('service.search');
     }
 );
 

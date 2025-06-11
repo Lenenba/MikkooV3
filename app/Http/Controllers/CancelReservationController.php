@@ -33,9 +33,9 @@ class CancelReservationController extends Controller
         ]);
 
         // English comment: Notify the parent user
-        // $reservation->parent->notify(
-        //     new ReservationNotification($reservation)
-        // );
+        $reservation->parent->notify(
+            new ReservationNotification($reservation)
+        );
 
         // Redirect back with a success message
         return back()->with('success', 'Reservation canceled successfully!');

@@ -14,10 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Address extends Model
 {
-    /**
-     * @use HasFactory<\Database\Factories\AddressFactory>
-     * @use SoftDeletes<\Illuminate\Database\Eloquent\SoftDeletes>
-     */
     use HasFactory, SoftDeletes;
 
     /**
