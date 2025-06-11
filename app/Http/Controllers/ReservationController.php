@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Reservation;
+use App\Http\Requests\ReservationRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Services\ReservationStatsService;
 use App\Models\Traits\GeneratesSequentialNumber;
@@ -87,5 +88,40 @@ class ReservationController extends Controller
             'myReservations' => $myReservations,
             'numero'    => Reservation::generateNextNumber($user->babysitterReservations->last()->number ?? null),
         ]);
+    }
+
+    /**
+     * Store a newly created reservation.
+     */
+    public function store(ReservationRequest $request)
+    {
+        $validated = $request->validated();
+
+        $reservation = Reservation::create([
+            'parent_id'     => Auth::id(),
+            'babysitter_id' => $validated['babysitter_id'],
+            'notes'         => $validated['notes'] ?? null,
+        ]);
+
+        $reservation->details()->create([
+            'date'       => $validated['date'],
+            'start_time' => $validated['start_time'],
+            'end_time'   => $validated['end_time'],
+        ]);
+
+        $total = 0;
+        foreach ($validated['services'] as $service) {
+            $reservation->reservationServices()->create([
+                'service_id' => $service['service_id'],
+                'quantity'   => $service['quantity'],
+                'price'      => $service['price'],
+            ]);
+
+            $total += $service['quantity'] * $service['price'];
+        }
+
+        $reservation->update(['total_amount' => $total]);
+
+        return redirect()->route('reservations.index')->with('success', 'Reservation created successfully.');
     }
 }
