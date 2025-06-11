@@ -16,7 +16,7 @@ const Numero = computed(
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'New reservation',
-        href: '/reservations/create',
+        href: route('reservations.create', { id: Babysitter.value.id }),
     },
 ];
 
@@ -31,6 +31,17 @@ const form = useForm({
     note: '',
     status: 'draft',
 });
+
+const subTotal = computed(() =>
+    form.service.reduce(
+        (sum, item) => sum + Number(item.quantity) * Number(item.price),
+        0,
+    ),
+);
+const tps = computed(() => subTotal.value * 0.05);
+const tvq = computed(() => subTotal.value * 0.09975);
+const totalTaxes = computed(() => tps.value + tvq.value);
+const totalAmount = computed(() => subTotal.value + totalTaxes.value);
 
 // Ajouter une nouvelle ligne de produit
 const addNewLine = () => {
@@ -133,8 +144,9 @@ const removeLine = index => {
                     </div>
                 </div>
             </div>
-            <div
-                class="p-5 space-y-3 flex flex-col bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
+            <form @submit.prevent="form.post(route('reservations.store'))">
+                <div
+                    class="p-5 space-y-3 flex flex-col bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
                 <!-- Table Section -->
                 <div
                     class="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -180,21 +192,42 @@ const removeLine = index => {
                             </thead>
 
                             <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                                <tr>
-                                    <td class="size-px whitespace-nowrap px-4 py-3">
-
+                                <tr v-for="(item, index) in form.service" :key="index">
+                                    <td class="whitespace-nowrap px-4 py-3">
+                                        <input
+                                            class="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500"
+                                            v-model="item.name"
+                                            type="text"
+                                        />
                                     </td>
-                                    <td class="size-px whitespace-nowrap px-4 py-3">
+                                    <td class="whitespace-nowrap px-4 py-3">
+                                        <input
+                                            type="number"
+                                            class="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500"
+                                            v-model.number="item.quantity"
+                                            min="1"
+                                        />
                                     </td>
-                                    <td class="size-px whitespace-nowrap px-4 py-3">
-
+                                    <td class="whitespace-nowrap px-4 py-3">
+                                        <input
+                                            type="number"
+                                            class="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500"
+                                            v-model.number="item.price"
+                                            min="0"
+                                            step="0.01"
+                                        />
                                     </td>
-                                    <td class="size-px whitespace-nowrap px-4 py-3">
-                                        <input type="text" name="" id="">
+                                    <td class="whitespace-nowrap px-4 py-3">
+                                        {{ Number(item.quantity) * Number(item.price) }}
                                     </td>
                                     <td>
-                                        <Button variant="outline" size="icon"
-                                            class="px-4 py-4 inline-flex items-center gap-x-2 text-sm font-medium text-red-800  hover:text-red-600 disabled:opacity-50 disabled:pointer-events-none focus:outline-none   dark:text-red-300 ">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            class="px-4 py-4 inline-flex items-center gap-x-2 text-sm font-medium text-red-800 hover:text-red-600 disabled:opacity-50 disabled:pointer-events-none focus:outline-none dark:text-red-300"
+                                            @click="removeLine(index)"
+                                        >
                                             <Trash class="h-4 w-4" />
                                         </Button>
                                     </td>
@@ -206,7 +239,7 @@ const removeLine = index => {
                 </div>
                 <!-- End Table Section -->
                 <div class="text-xs text-gray-600 flex justify-between mt-5">
-                    <Button>
+                    <Button type="button" @click="addNewLine">
                         Add new service line
                     </Button>
                 </div>
@@ -226,11 +259,8 @@ const removeLine = index => {
                             </p>
                         </div>
                         <div class="col-span-1 flex justify-end">
-                            <p>
-                                <a class="text-sm text-green-600 decoration-2 hover:underline font-medium focus:outline-none focus:underline dark:text-green-400 dark:hover:text-green-500"
-                                    href="#">
-
-                                </a>
+                            <p class="text-sm text-gray-800 dark:text-neutral-200">
+                                {{ subTotal }}
                             </p>
                         </div>
                     </div>
@@ -272,15 +302,15 @@ const removeLine = index => {
                     <div class="space-y-2 py-4 border-t border-gray-200 dark:border-neutral-700">
                         <div class="flex justify-between">
                             <p class="text-sm text-gray-500 dark:text-neutral-500">TPS (5%) :</p>
-                            <p class="text-sm text-gray-800 dark:text-neutral-200"> </p>
+                            <p class="text-sm text-gray-800 dark:text-neutral-200">{{ tps.toFixed(2) }}</p>
                         </div>
                         <div class="flex justify-between">
                             <p class="text-sm text-gray-500 dark:text-neutral-500">TVQ (9.975%) :</p>
-                            <p class="text-sm text-gray-800 dark:text-neutral-200"> </p>
+                            <p class="text-sm text-gray-800 dark:text-neutral-200">{{ tvq.toFixed(2) }}</p>
                         </div>
                         <div class="flex justify-between font-bold">
                             <p class="text-sm text-gray-800 dark:text-neutral-200">Total taxes :</p>
-                            <p class="text-sm text-gray-800 dark:text-neutral-200"> </p>
+                            <p class="text-sm text-gray-800 dark:text-neutral-200">{{ totalTaxes.toFixed(2) }}</p>
                         </div>
                     </div>
                     <!-- End List Item -->
@@ -294,7 +324,7 @@ const removeLine = index => {
                         </div>
                         <div class="flex justify-end">
                             <p class="text-sm text-gray-800 font-bold dark:text-neutral-200">
-
+                                {{ totalAmount.toFixed(2) }}
                             </p>
                         </div>
                     </div>
@@ -332,6 +362,7 @@ const removeLine = index => {
                     </div>
                 </div>
             </div>
+            </form>
         </div>
     </AppLayout>
 </template>
