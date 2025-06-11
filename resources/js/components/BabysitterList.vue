@@ -145,7 +145,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
                                 </div>
                                 <MediaScrollingHorizontalV2 :items="babysitter.media" class="mt-4" />
                                 <div class="mt-4">
-                                    <Link key="book" :href="route('reservations.create', { user: babysitter })">
+                                    <Link key="book" :href="route('reservations.create', { id: babysitter.id })">
                                     <Button class="w-full mt-auto">
                                         Book me
                                     </Button>
