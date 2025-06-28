@@ -2,7 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import type { BreadcrumbItem, MediaItem } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/layout.vue';
+import SettingsLayout from '@/layouts/settings/Layout.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import MediaUploadForm from '@/components/MediaUploadForm.vue';
 import MediaScrollingHorizontal from '@/components/MediaScrollingHorizontal.vue';
