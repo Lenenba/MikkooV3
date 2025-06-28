@@ -13,7 +13,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Arr;
 use Carbon\Carbon;
-use Faker\Factory as FakerFactory;
 
 class DevSeeder extends Seeder
 {
@@ -109,7 +108,6 @@ class DevSeeder extends Seeder
             return;
         }
 
-        $faker = FakerFactory::create();
 
         foreach ($createdParents as $parent) {
             // 3 reservations per month for each of the last 4 months
@@ -120,7 +118,7 @@ class DevSeeder extends Seeder
 
                 for ($j = 0; $j < 3; $j++) {
                     $randomBabysitter = Arr::random($createdBabysitters);
-                    $randomDate       = $faker->dateTimeBetween($start, $end);
+                    $randomDate       = fake()->dateTimeBetween($start, $end);
 
                     Reservation::factory()
                         ->state([
