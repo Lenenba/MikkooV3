@@ -117,7 +117,8 @@ class ProdSeeder extends Seeder
 
                 for ($j = 0; $j < 3; $j++) {
                     $randomBabysitter = Arr::random($createdBabysitters);
-                    $randomDate       = fake()->dateTimeBetween($start, $end);
+                    $randomTimestamp = rand($start->timestamp, $end->timestamp);
+                    $randomDate = Carbon::createFromTimestamp($randomTimestamp);
 
                     Reservation::factory()
                         ->state([
