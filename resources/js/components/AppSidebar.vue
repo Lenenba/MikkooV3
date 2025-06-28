@@ -18,7 +18,12 @@ const mainNavItems: NavItem[] = [
         title: 'Babysitters',
         href: '/search',
         icon: BookOpen,
-    }, { title: 'Mes réservations', href: '/reservations', icon: Calendar },
+    },
+    {
+        title: 'Mes réservations',
+        href: '/reservations',
+        icon: Calendar
+    },
 ];
 </script>
 

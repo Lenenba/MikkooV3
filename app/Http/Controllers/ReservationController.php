@@ -6,8 +6,8 @@ use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\ReservationRequest;
 use App\Services\ReservationStatsService;
-use App\Models\Traits\GeneratesSequentialNumber;
 
 class ReservationController extends Controller
 {
@@ -67,6 +67,30 @@ class ReservationController extends Controller
     }
 
     /**
+     * Display the details of a specific reservation.
+     *
+     * @param  int  $id
+     * @return \Inertia\Response
+     */
+    public function show(int $id)
+    {
+        $reservation = Reservation::with([
+            'parent',
+            'babysitter',
+            'babysitter.babysitterProfile',
+            'babysitter.media',
+            'babysitter.address',
+            'services',
+            'details'
+        ])
+            ->findOrFail($id);
+
+        return Inertia::render('reservation/Show', [
+            'reservation' => $reservation,
+        ]);
+    }
+
+    /**
      * Show the form for booking a babysitter.
      */
     public function create(int $id)
@@ -87,5 +111,42 @@ class ReservationController extends Controller
             'myReservations' => $myReservations,
             'numero'    => Reservation::generateNextNumber($user->babysitterReservations->last()->number ?? null),
         ]);
+    }
+
+    /**
+     * Store a new reservation.
+     *
+     * @param  \App\Http\Requests\ReservationRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store(ReservationRequest $request)
+    {
+        // Validate and extract request data
+        $data = $request->validated();
+
+        // Associate the reservation with the authenticated parent user
+        $data['parent_id'] = Auth::id();
+
+        // Create the reservation
+        $reservation = Reservation::create($data);
+
+        // Attach selected services if provided
+        if (!empty($data['services']) && is_array($data['services'])) {
+            $serviceIds = array_column($data['services'], 'id');
+            $reservation->services()->attach($serviceIds);
+        }
+
+        // Create reservation details
+        $reservation->details()->create([
+            'date'          => $data['start_date'],
+            'start_time'    => $data['start_time'],
+            'end_time'      => $data['end_time'],
+            'status'        => 'pending', // Default status
+        ]);
+
+        // Redirect back with a success message
+        return redirect()
+            ->route('reservations.index')
+            ->with('success', __('Reservation created successfully.'));
     }
 }

@@ -20,9 +20,9 @@ function actionReservation(id: string, event: string) {
     if (event === 'cancel') {
         router.post(`/reservations/${id}/cancel`)
     }
-    // if (event === 'view') {
-    //     router.get(`/reservations/${id}/show`)
-    // }
+    if (event === 'view') {
+        router.get(`/reservations/${id}/show`)
+    }
 }
 
 </script>
@@ -44,7 +44,9 @@ function actionReservation(id: string, event: string) {
                 Cancel reservation
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem @click="actionReservation(reservation.id, 'view')">
+                View reservation details
+            </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
 </template>

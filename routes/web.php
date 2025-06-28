@@ -12,7 +12,7 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('dashboard', function () {
+Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -24,6 +24,10 @@ Route::middleware('auth')->group(
             ->name('search.babysitter');
         Route::get('/reservations', [ReservationController::class, 'index'])
             ->name('reservations.index');
+        Route::post('/reservations', [ReservationController::class, 'store'])
+            ->name('reservations.store');
+        Route::get('/reservations/{id}/show', [ReservationController::class, 'show'])
+            ->name('reservations.show');
 
         Route::post('/reservations/{reservationId}/accept', AcceptReservationController::class)
             ->name('reservations.accept');

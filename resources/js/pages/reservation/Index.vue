@@ -165,7 +165,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                 <p class="font-medium text-gray-900">{{ selectedBabysitter.name }}</p>
                                                 <p class="text-sm text-gray-500">{{ selectedBabysitter.email }}</p>
                                                 <p class="text-lg semi-bold mt-4 text-indigo-500">
-                                                    $ {{ selectedBabysitter.price_per_hour }}
+                                                    $ {{ selectedBabysitter.price_per_hour }} / h
                                                 </p>
                                             </div>
                                         </div>

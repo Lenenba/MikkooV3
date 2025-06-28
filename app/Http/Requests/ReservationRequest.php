@@ -22,15 +22,18 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'babysitter_id' => ['required', 'integer', 'exists:users,id'],
-            'date'          => ['required', 'date'],
-            'start_time'    => ['required', 'date_format:H:i'],
-            'end_time'      => ['required', 'date_format:H:i', 'after:start_time'],
-            'services'      => ['required', 'array', 'min:1'],
-            'services.*.service_id' => ['required', 'integer', 'exists:services,id'],
+            'number'                => ['required', 'string', 'max:255'],
+            'babysitter_id'         => ['required', 'integer', 'exists:users,id'],
+            'start_date'            => ['required', 'date'],
+            'start_time'            => ['required', 'date_format:H:i'],
+            'end_time'              => ['required', 'date_format:H:i', 'after:start_time'],
+            'services'              => ['required', 'array', 'min:1'],
+            'services.*.id'         => ['required', 'integer', 'exists:services,id'],
             'services.*.quantity'   => ['required', 'integer', 'min:1'],
             'services.*.price'      => ['required', 'numeric', 'min:0'],
-            'notes'         => ['nullable', 'string'],
+            'notes'                 => ['nullable', 'string'],
+            'subtotal'              => ['required', 'numeric', 'min:0'],
+            'total_amount'          => ['required', 'numeric', 'min:0'],
         ];
     }
 }

@@ -37,7 +37,7 @@ class Service extends Model
     public function reservations(): BelongsToMany
     {
         return $this->belongsToMany(Reservation::class, 'reservation_services')
-            ->withPivot('quantity', 'price')
+            ->withPivot('quantity')
             ->withTimestamps();
     }
 }

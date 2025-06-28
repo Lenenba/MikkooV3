@@ -26,16 +26,6 @@ class ReservationService extends Model
         'reservation_id',
         'service_id',
         'quantity',
-        'price',
-    ];
-
-    /**
-     * Les attributs qui devraient être castés.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'price' => 'decimal:2',
     ];
 
     /**
