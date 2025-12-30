@@ -5,7 +5,7 @@ import { MoreHorizontal } from 'lucide-vue-next'
 import { router } from '@inertiajs/vue3'
 defineProps<{
     reservation: {
-        id: string
+        id: number | string
     }
 }>()
 
@@ -13,7 +13,7 @@ defineProps<{
  * Trigger a POST request via Inertia to accept the reservation.
  * @param id Reservation ID
  */
-function actionReservation(id: string, event: string) {
+function actionReservation(id: number | string, event: string) {
     if (event === 'accept') {
         router.post(`/reservations/${id}/accept`)
     }

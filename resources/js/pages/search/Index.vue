@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { ref, watch, computed } from 'vue';
+import { watch, computed, onBeforeUnmount } from 'vue';
 import { type BreadcrumbItem, type Babysitter, type SharedData, } from '@/types';
 import { Head, usePage, useForm } from '@inertiajs/vue3';
 import BabysitterList from '@/components/BabysitterList.vue'
@@ -14,13 +14,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const page = usePage<SharedData>();
-const babysitters = computed(() => page.props.babysitters.data as Babysitter);
+const babysitters = computed<Babysitter[]>(() => page.props.babysitters?.data ?? []);
 
 const filterForm = useForm({
-    name: page.props.filters.name ?? "",
+    name: page.props.filters?.name ?? "",
 });
 
-let filterTimeout: NodeJS.Timeout | null = null;
+let filterTimeout: ReturnType<typeof setTimeout> | null = null;
 const autoFilter = (routeName: string) => {
     if (filterTimeout) {
         clearTimeout(filterTimeout);
@@ -30,14 +30,20 @@ const autoFilter = (routeName: string) => {
             preserveState: true,
             preserveScroll: true,
         });
-    }, 300); // Délai de 300ms pour éviter les appels excessifs
+    }, 300); // Delay 300ms to avoid excessive calls.
 };
 
-// Réinitialiser le formulaire lorsque la recherche est vide
+// Reset the form when the search is empty.
 watch(() => filterForm.name, (newValue: string) => {
     if (!newValue) {
         filterForm.name = "";
         autoFilter('search.babysitter');
+    }
+});
+
+onBeforeUnmount(() => {
+    if (filterTimeout) {
+        clearTimeout(filterTimeout);
     }
 });
 
@@ -63,3 +69,4 @@ watch(() => filterForm.name, (newValue: string) => {
         </div>
     </AppLayout>
 </template>
+

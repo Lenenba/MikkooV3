@@ -1,16 +1,167 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Label } from '@/components/ui/label'
+import { computed } from 'vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Head, usePage, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type SharedData, type BreadcrumbItem } from '@/types';
+import { type SharedData, type BreadcrumbItem, type Reservation, type Details, type Services, type Babysitter, type Address } from '@/types';
 import { Star } from 'lucide-vue-next';
-import { ca } from 'date-fns/locale';
 
 const page = usePage<SharedData>();
-const reservation = computed<any>(
-    () => page.props.reservation
+
+type ReservationShow = Reservation & {
+    number?: string;
+    babysitter?: Babysitter | null;
+    details?: Details | Details[] | null;
+    services?: Services[];
+    total_amount?: number;
+};
+
+const reservation = computed<ReservationShow | null>(() => page.props.reservation ?? null);
+const reservationId = computed(() => reservation.value?.id ?? null);
+const details = computed<Details | null>(() => {
+    const raw = reservation.value?.details ?? null;
+    return Array.isArray(raw) ? raw[0] ?? null : raw;
+});
+const services = computed<Services[]>(() => reservation.value?.services ?? []);
+const babysitter = computed<Babysitter | null>(() => reservation.value?.babysitter ?? null);
+const profile = computed(() => babysitter.value?.babysitter_profile ?? null);
+const address = computed<Address | null>(() => babysitter.value?.address ?? null);
+
+const reservationNumber = computed(() =>
+    reservation.value?.number ?? reservation.value?.ref ?? reservation.value?.id ?? '-'
 );
+
+const status = computed(() =>
+    (details.value?.status ?? reservation.value?.status ?? 'unknown').toString().toLowerCase()
+);
+
+const statusMeta = computed(() => {
+    const current = status.value;
+    if (current === 'confirmed') {
+        return { label: 'Confirmee', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    }
+    if (current === 'pending') {
+        return { label: 'En attente', className: 'bg-amber-50 text-amber-700 border-amber-200' };
+    }
+    if (current === 'canceled' || current === 'cancelled') {
+        return { label: 'Annulee', className: 'bg-red-50 text-red-700 border-red-200' };
+    }
+    return { label: 'Inconnu', className: 'bg-gray-100 text-gray-600 border-gray-200' };
+});
+
+const canCancel = computed(() => {
+    const current = status.value;
+    return current !== 'canceled' && current !== 'cancelled';
+});
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+});
+
+const toNumber = (value: number | string | null | undefined) => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+};
+
+const formatCurrency = (value: number | string | null | undefined) =>
+    currencyFormatter.format(toNumber(value));
+
+const formatDate = (value: string | null | undefined) => {
+    if (!value) {
+        return '-';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(parsed);
+};
+
+const formatTime = (value: string | null | undefined) => {
+    if (!value) {
+        return '-';
+    }
+    const [hours, minutes] = value.split(':');
+    if (!hours || !minutes) {
+        return value;
+    }
+    return `${hours}:${minutes}`;
+};
+
+const getServiceLabel = (service: Services) =>
+    service.description ?? (service as { name?: string }).name ?? 'Service';
+
+const getServicePivot = (service: Services) => {
+    const pivot = (service as { pivot?: { price?: number; quantity?: number } | Array<{ price?: number; quantity?: number }> }).pivot;
+    if (Array.isArray(pivot)) {
+        return pivot[0] ?? {};
+    }
+    return pivot ?? {};
+};
+
+const getServiceUnitPrice = (service: Services) => {
+    const pivot = getServicePivot(service);
+    return toNumber((service as { price?: number | string }).price ?? pivot.price);
+};
+
+const getServiceQuantity = (service: Services) => {
+    const pivot = getServicePivot(service);
+    return toNumber(pivot.quantity);
+};
+
+const getServiceTotal = (service: Services) =>
+    getServiceUnitPrice(service) * getServiceQuantity(service);
+
+const caculSubtotal = computed(() =>
+    services.value.reduce((total, service) => total + getServiceTotal(service), 0)
+);
+
+const calculTax = computed(() => {
+    const TAX_RATE = 0.14975;
+    return Number((caculSubtotal.value * TAX_RATE).toFixed(2));
+});
+
+const totalAmount = computed(() =>
+    toNumber(reservation.value?.total_amount ?? caculSubtotal.value + calculTax.value)
+);
+
+const babysitterPhoto = computed(() => {
+    const media = babysitter.value?.media ?? [];
+    return media.find(item => item.is_profile_picture)?.file_path ?? media[0]?.file_path ?? '';
+});
+
+const babysitterName = computed(() => {
+    const fullName = [profile.value?.first_name, profile.value?.last_name].filter(Boolean).join(' ').trim();
+    return fullName || babysitter.value?.name || 'Babysitter';
+});
+
+const addressState = computed(() => {
+    const fallback = address.value as { province?: string } | null;
+    return address.value?.state ?? fallback?.province ?? '';
+});
+
+const addressLine1 = computed(() =>
+    [address.value?.street, addressState.value].filter(Boolean).join(' ')
+);
+
+const addressLine2 = computed(() =>
+    [address.value?.city, address.value?.postal_code].filter(Boolean).join(' ')
+);
+
+const addressLine3 = computed(() => address.value?.country ?? '');
+
+const contactEmail = computed(() => babysitter.value?.email ?? '');
+const contactPhone = computed(() => profile.value?.phone ?? '');
+const birthdateLabel = computed(() => formatDate(profile.value?.birthdate));
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -19,21 +170,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Ma reservation',
-        href: '/reservation/' + reservation.value.id + '/show',
+        href: `/reservations/${reservation.value?.id ?? ''}/show`,
     },
 ];
-
-const caculSubtotal = computed(() => {
-    return reservation.value.services.reduce((total: number, service: any) => {
-        return parseFloat((total + (service.price * service.pivot.quantity)).toFixed(2));
-    }, 0);
-});
-
-const calculTax = computed(() => {
-    // Calculate taxes, total, and deposit
-    const TAX_RATE = 0.14975;
-    return parseFloat((caculSubtotal.value * TAX_RATE).toFixed(2));
-});
 </script>
 
 <template>
@@ -41,24 +180,45 @@ const calculTax = computed(() => {
     <Head title="reservation" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="mx-auto w-full lg:w-3/4">
+        <div v-if="reservation" class="mx-auto w-full lg:w-3/4">
             <div
                 class="p-5 space-y-4 flex flex-col lg:flex-row bg-gray-100 border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
                 <!-- Left: profile image -->
                 <div class="lg:w-1/4 mb-4 lg:mb-0">
-                    <img :src="reservation.babysitter.media.find(p => p.is_profile_picture)?.file_path"
-                        alt="Profile picture" class="w-full" />
+                    <div class="w-full overflow-hidden rounded-sm bg-gray-100">
+                        <img v-if="babysitterPhoto" :src="babysitterPhoto" :alt="babysitterName"
+                            class="w-full object-cover" />
+                        <div v-else class="flex h-40 w-full items-center justify-center text-xs text-gray-400">
+                            Aucune photo
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Right: content -->
                 <div class="flex-1 space-y-6 ml-4">
                     <!-- Header -->
-                    <div class="flex justify-between items-center">
-                        <h1 class="text-xl font-semibold text-gray-800 dark:text-green-100">
-                            Reservation For
-                            {{ reservation.babysitter.babysitter_profile.first_name }}
-                            {{ reservation.babysitter.babysitter_profile.last_name }}
-                        </h1>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-800 dark:text-green-100">
+                                Reservation pour {{ babysitterName }}
+                            </h1>
+                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" :class="statusMeta.className">
+                                    {{ statusMeta.label }}
+                                </Badge>
+                                <span class="text-xs text-gray-500">Ref: {{ reservationNumber }}</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <Button asChild variant="outline" size="sm">
+                                <Link :href="route('reservations.index')">Retour</Link>
+                            </Button>
+                            <Button v-if="canCancel && reservationId" asChild variant="destructive" size="sm">
+                                <Link :href="route('reservations.cancel', { reservationId })" method="post">
+                                    Annuler
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
 
                     <!-- Main grid -->
@@ -70,7 +230,7 @@ const calculTax = computed(() => {
                                 <div class="mb-8">
                                     <Label for="note" class="font-semibold text-gray-700 mb-2">Notes pour la
                                         reservation :</Label>
-                                    <p>{{ reservation.notes }}</p>
+                                    <p>{{ reservation.notes ?? '-' }}</p>
                                 </div>
                                 <!-- Address & contact -->
                                 <div class="flex flex-col lg:flex-row lg:space-x-6">
@@ -78,26 +238,24 @@ const calculTax = computed(() => {
                                     <div class="flex-1">
                                         <p class="font-semibold text-gray-700">Property address</p>
                                         <p class="text-xs text-gray-600">
-                                            {{ reservation.babysitter.address.street }} {{
-                                                reservation.babysitter.address.province }}
+                                            {{ addressLine1 || '-' }}
                                         </p>
                                         <p class="text-xs text-gray-600">
-                                            {{ reservation.babysitter.address.city }} {{
-                                                reservation.babysitter.address.postal_code }}
+                                            {{ addressLine2 || '-' }}
                                         </p>
                                         <p class="text-xs text-gray-600">
-                                            {{ reservation.babysitter.address.country }}
+                                            {{ addressLine3 || '-' }}
                                         </p>
                                     </div>
                                     <!-- Contact details -->
                                     <div class="flex-1">
                                         <p class="font-semibold text-gray-700">Contact details</p>
-                                        <p class="text-xs text-gray-600">{{ reservation.babysitter.email }}</p>
+                                        <p class="text-xs text-gray-600">{{ contactEmail || '-' }}</p>
                                         <p class="text-xs text-gray-600">
-                                            {{ reservation.babysitter.babysitter_profile.birthdate }}
+                                            {{ birthdateLabel }}
                                         </p>
                                         <p class="text-xs text-gray-600">
-                                            {{ reservation.babysitter.babysitter_profile.phone }}
+                                            {{ contactPhone || '-' }}
                                         </p>
                                     </div>
                                 </div>
@@ -109,20 +267,20 @@ const calculTax = computed(() => {
                             <p class="font-semibold text-gray-700 mb-2">Reservation details</p>
                             <div class="text-xs text-gray-600 flex justify-between">
                                 <span>Numero :</span>
-                                <span>{{ reservation.number }}</span>
+                                <span>{{ reservationNumber }}</span>
                             </div>
 
                             <div class="my-2 flex flex-row justify-between">
                                 <p class="text-xs text-gray-600 mb-1">Reservation date</p>
-                                <p class="text-xs text-gray-600 mb-1">{{ reservation.details.date }}</p>
+                                <p class="text-xs text-gray-600 mb-1">{{ formatDate(details?.date) }}</p>
                             </div>
                             <div class="my-2 flex flex-row justify-between">
                                 <p class="text-xs text-gray-600 mb-1">Reservation heure de debut</p>
-                                <p class="text-xs text-gray-600 mb-1">{{ reservation.details.start_time }}</p>
+                                <p class="text-xs text-gray-600 mb-1">{{ formatTime(details?.start_time) }}</p>
                             </div>
                             <div class="my-2 flex flex-row justify-between">
                                 <p class="text-xs text-gray-600 mb-1">Reservation heure de fin</p>
-                                <p class="text-xs text-gray-600 mb-1">{{ reservation.details.end_time }}</p>
+                                <p class="text-xs text-gray-600 mb-1">{{ formatTime(details?.end_time) }}</p>
                             </div>
                             <div class="text-xs text-gray-600 flex justify-between mt-2">
                                 <span>Rate :</span>
@@ -180,18 +338,18 @@ const calculTax = computed(() => {
 
                             <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                                 <!-- Ligne de service -->
-                                <tr v-for="service in reservation.services" :key="service.id">
+                                <tr v-for="service in services" :key="service.id">
                                     <td class="size-px whitespace-nowrap px-4 py-3 ">
-                                        {{ service.name }}
+                                        {{ getServiceLabel(service) }}
                                     </td>
                                     <td class="size-px whitespace-nowrap px-4 py-3">
-                                        {{ service.pivot.quantity }}
+                                        {{ getServiceQuantity(service) }}
                                     </td>
                                     <td class="size-px whitespace-nowrap px-4 py-3">
-                                        {{ service.price }}
+                                        {{ formatCurrency(getServiceUnitPrice(service)) }}
                                     </td>
                                     <td class="size-px whitespace-nowrap px-4 py-3">
-                                        {{ service.price * service.pivot.quantity }}
+                                        {{ formatCurrency(getServiceTotal(service)) }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -217,7 +375,7 @@ const calculTax = computed(() => {
                         <div class="col-span-1 flex justify-end">
                             <p class="text-sm text-green-600 decoration-2 hover:underline font-medium focus:outline-none focus:underline dark:text-green-400 dark:hover:text-green-500"
                                 href="#">
-                                $ {{ caculSubtotal }}
+                                {{ formatCurrency(caculSubtotal) }}
                             </p>
                         </div>
                     </div>
@@ -225,7 +383,9 @@ const calculTax = computed(() => {
                     <div class="space-y-2 py-4 border-t border-gray-200 dark:border-neutral-700">
                         <div class="flex justify-between font-bold">
                             <p class="text-sm text-gray-800 dark:text-neutral-200">Total taxes :</p>
-                            <p class="text-sm text-gray-800 dark:text-neutral-200"> $ {{ calculTax }}</p>
+                             <p class="text-sm text-gray-800 dark:text-neutral-200">
+                                 {{ formatCurrency(calculTax) }}
+                             </p>
                         </div>
                     </div>
                     <!-- End List Item -->
@@ -239,12 +399,15 @@ const calculTax = computed(() => {
                         </div>
                         <div class="flex justify-end">
                             <p class="text-sm text-gray-800 font-bold dark:text-neutral-200">
-                                $ {{ reservation.total_amount }}
+                                {{ formatCurrency(totalAmount) }}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+        <div v-else class="mx-auto w-full lg:w-3/4 rounded-sm border border-gray-100 bg-white p-6 text-sm text-gray-500">
+            Reservation introuvable.
         </div>
     </AppLayout>
 </template>

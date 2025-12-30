@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
-
 use App\Notifications\ReservationNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 

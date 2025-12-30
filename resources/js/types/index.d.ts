@@ -29,18 +29,18 @@ export interface MediaItem {
 }
 export interface Reservation {
     id: number;
-    babysitter: Babysitter;
-    parent: ParentProfile;
+    babysitter: Babysitter | User;
+    parent: ParentProfile | User;
     services: Services[];
-    details: Details[];
-    ref:  string;
-    notes: string;
+    details: Details | Details[];
+    ref?: string;
+    created_at?: string;
+    notes?: string;
     total_amount: number;
-    notes: string;
-    status: string;
-    date: string;
-    start_time: string;
-    end_time: string;
+    status?: string;
+    date?: string;
+    start_time?: string;
+    end_time?: string;
 }
 
 export interface Services {
@@ -65,12 +65,13 @@ export interface Details {
 export interface Stats {
     current_month_revenue: number;
     previous_month_revenue: number;
-    revenue_change_pct: number;
+    revenue_change_pct: number | null;
     current_month_count: number;
     previous_month_count: number;
-    count_change_pct: number;
-    avg_revenue_per_booking: number;
+    count_change_pct: number | null;
+    avg_revenue_per_booking: number | null;
     total_revenue: number;
+    total_count?: number;
     total_canceled_count: number;
 }
 

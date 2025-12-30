@@ -6,7 +6,6 @@ use App\Models\Address;
 use App\Models\ParentProfile;
 use Illuminate\Database\Seeder;
 use App\Models\BabysitterProfile;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class AddressSeeder extends Seeder
 {

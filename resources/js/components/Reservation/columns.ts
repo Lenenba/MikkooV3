@@ -1,113 +1,159 @@
 import { h } from 'vue'
 import DropdownAction from '@/components/Reservation/data-table-dropdown.vue'
-import { ColumnDef } from '@tanstack/vue-table'
-import { Reservation } from '@/types'
-import { Checkbox } from '@/components/ui/checkbox'
+import type { ColumnDef } from '@tanstack/vue-table'
+import type { Reservation } from '@/types'
 import DataTableColumnHeader from '@/components/columnHeader.vue'
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
+const headerClass = 'text-xs font-semibold uppercase tracking-wide text-gray-500'
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+})
+
+const formatCurrency = (value: number | string | null | undefined) => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return currencyFormatter.format(value)
+    }
+    if (typeof value === 'string') {
+        const parsed = Number(value)
+        return Number.isFinite(parsed) ? currencyFormatter.format(parsed) : currencyFormatter.format(0)
+    }
+    return currencyFormatter.format(0)
+}
+
+type PersonWithMedia = {
+    name?: string
+    email?: string
+    first_name?: string
+    last_name?: string
+    avatar?: string
+    profile_picture?: string
+    media?: Array<{ is_profile_picture?: boolean; file_path?: string }>
+}
+
+const resolvePersonName = (person?: PersonWithMedia) => {
+    const fullName = [person?.first_name, person?.last_name].filter(Boolean).join(' ').trim()
+    return person?.name ?? (fullName || 'Unknown')
+}
+
+const resolvePersonImage = (person?: PersonWithMedia) => {
+    if (!person) {
+        return ''
+    }
+    const media = person.media ?? []
+    return person.profile_picture
+        ?? person.avatar
+        ?? media.find(item => item.is_profile_picture)?.file_path
+        ?? media[0]?.file_path
+        ?? ''
+}
+
+const renderPersonCell = (person?: PersonWithMedia, withAvatar = false) => {
+    const nameLabel = resolvePersonName(person)
+    const imageUrl = resolvePersonImage(person)
+    const initial = nameLabel.trim().charAt(0).toUpperCase() || '?'
+
+    if (!withAvatar) {
+        return h('div', { class: 'flex flex-col' }, [
+            h('span', { class: 'text-sm font-medium text-gray-900' }, nameLabel),
+            h('span', { class: 'text-xs text-gray-500' }, person?.email ?? '-'),
+        ])
+    }
+
+    return h('div', { class: 'flex items-center gap-3' }, [
+        h('div', { class: 'h-9 w-9 shrink-0 overflow-hidden rounded-sm bg-gray-100' }, [
+            imageUrl
+                ? h('img', {
+                    src: imageUrl,
+                    alt: nameLabel,
+                    class: 'h-full w-full object-cover',
+                })
+                : h('div', { class: 'flex h-full w-full items-center justify-center text-xs font-semibold text-gray-500' }, initial),
+        ]),
+        h('div', { class: 'flex flex-col' }, [
+            h('span', { class: 'text-sm font-medium text-gray-900' }, nameLabel),
+            h('span', { class: 'text-xs text-gray-500' }, person?.email ?? '-'),
+        ]),
+    ])
+}
+
+const renderDateCell = (details?: { date?: string; start_time?: string; end_time?: string } | Array<{ date?: string; start_time?: string; end_time?: string }>) => {
+    const resolved = Array.isArray(details) ? details[0] : details
+    const dateLabel = resolved?.date ?? '-'
+    const timeLabel = resolved?.start_time && resolved?.end_time
+        ? `${resolved.start_time} - ${resolved.end_time}`
+        : '-'
+
+    return h('div', { class: 'flex flex-col' }, [
+        h('span', { class: 'text-sm text-gray-900' }, dateLabel),
+        h('span', { class: 'text-xs text-gray-500' }, timeLabel),
+    ])
+}
 
 export const columns: ColumnDef<Reservation>[] = [
     {
-        id: 'select',
-        header: ({ table }) => h(Checkbox, {
-            'modelValue': table.getIsAllPageRowsSelected(),
-            'onUpdate:modelValue': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
-            'ariaLabel': 'Select all',
-        }),
-        cell: ({ row }) => h(Checkbox, {
-            'modelValue': row.getIsSelected(),
-            'onUpdate:modelValue': (value: boolean) => row.toggleSelected(!!value),
-            'ariaLabel': 'Select row',
-        }),
-        enableSorting: false,
-        enableHiding: false,
-    },
-    {
         accessorKey: 'ref',
-        header: ({ column }) => (
-            h(DataTableColumnHeader, {
-                column: column,
-                title: 'Ref'
-            })
-        ),
-    },
-    {
-        accessorKey: 'notes',
-        header: ({ column }) => (
-            h(DataTableColumnHeader, {
-                column: column,
-                title: 'Notes'
-            })
-        ),
-    },
-    {
-        accessorKey: 'created_at',
-        header: ({ column }) =>
-            h(DataTableColumnHeader, { column, title: 'Cree le' }),
-    },
-    {
-        accessorKey: 'status',
-        header: ({ column }) =>
-            h(DataTableColumnHeader, {
-                column,
-                title: 'Status',
-            }),
+        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Reference', class: headerClass }),
         cell: ({ row }) => {
-            // English comment: Map each status to its display text and CSS classes
-            const status = row.getValue<string>('status');
-            const statusMap: Record<string, { text: string; classes: string }> = {
-                pending: {
-                    text: 'Pending',
-                    classes: 'bg-yellow-100 text-yellow-800',
-                },
-                confirmed: {
-                    text: 'Confirmed',
-                    classes: 'bg-green-100 text-green-800',
-                },
-                cancelled: {
-                    text: 'Cancelled',
-                    classes: 'bg-red-100 text-red-800',
-                },
-                // add other statuses as needed
-            };
-
-            // English comment: Fallback for unknown statuses
-            const { text, classes } =
-                statusMap[status] ?? { text: status, classes: 'bg-gray-100 text-gray-800' };
-
-            // English comment: Render a pill-shaped badge
-            return h(
-                'span',
-                {
-                    class: `inline-block px-2 py-1 rounded-xs text-sm font-semibold ${classes}`,
-                },
-                text
-            );
+            const refValue = row.getValue('ref') ?? row.original.id
+            return h('span', { class: 'text-sm font-semibold text-gray-900' }, `#${refValue ?? '-'}`)
         },
+    },
+    {
+        id: 'babysitter',
+        header: () => h('span', { class: headerClass }, 'Babysitter'),
+        cell: ({ row }) => renderPersonCell(row.original.babysitter as PersonWithMedia, true),
+        enableSorting: false,
+    },
+    {
+        id: 'details',
+        header: () => h('span', { class: headerClass }, 'Date'),
+        cell: ({ row }) => renderDateCell(row.original.details as { date?: string; start_time?: string; end_time?: string }),
+        enableSorting: false,
     },
     {
         accessorKey: 'total_amount',
-        header: () => h('div', { class: 'text-right' }, 'Montant total'),
+        header: () => h('span', { class: headerClass }, 'Total'),
+        cell: ({ row }) =>
+            h('span', { class: 'text-sm font-semibold text-gray-900' }, formatCurrency(row.getValue('total_amount'))),
+    },
+    {
+        accessorKey: 'status',
+        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
         cell: ({ row }) => {
-            const amount = Number.parseFloat(row.getValue('total_amount'))
-            const formatted = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-            }).format(amount)
+            const status = row.getValue<string>('status')
+            const statusMap: Record<string, { text: string; classes: string }> = {
+                pending: {
+                    text: 'En attente',
+                    classes: 'bg-amber-50 text-amber-700',
+                },
+                confirmed: {
+                    text: 'Confirmee',
+                    classes: 'bg-emerald-50 text-emerald-700',
+                },
+                canceled: {
+                    text: 'Annulee',
+                    classes: 'bg-red-50 text-red-700',
+                },
+            }
 
-            return h('div', { class: 'text-right font-medium' }, formatted)
+            const mapped = statusMap[status] ?? {
+                text: status ?? 'Inconnu',
+                classes: 'bg-gray-100 text-gray-700',
+            }
+
+            return h('span', { class: `rounded-full px-2.5 py-1 text-xs font-semibold ${mapped.classes}` }, mapped.text)
         },
+    },
+    {
+        accessorKey: 'created_at',
+        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
+        cell: ({ row }) => h('span', { class: 'text-sm text-gray-600' }, row.getValue('created_at') ?? '-'),
     },
     {
         id: 'actions',
         enableHiding: false,
-        cell: ({ row }) => {
-            const reservation = row.original
-
-            return h('div', { class: 'relative' }, h(DropdownAction, {
-                reservation,
-            }))
-        },
-      },
+        cell: ({ row }) => h('div', { class: 'flex justify-end' }, h(DropdownAction, { reservation: row.original })),
+    },
 ]
