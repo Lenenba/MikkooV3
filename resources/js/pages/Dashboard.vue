@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import { computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -10,27 +10,622 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
 ];
+
+const welcome = {
+    name: 'Charlie',
+    title: 'Welcome Back',
+    summary: "Here is a quick look at your store's performance today. Stay on top of your sales, orders, and customers.",
+    monthlySales: '$25.56k',
+    growth: '5.2%',
+};
+
+const monthlyBars = [
+    { label: 'Jan', value: 3.4 },
+    { label: 'Feb', value: 5.2 },
+    { label: 'Mar', value: 8.0 },
+    { label: 'Apr', value: 11.1 },
+    { label: 'May', value: 7.0 },
+    { label: 'Jun', value: 5.7 },
+    { label: 'Jul', value: 4.3 },
+    { label: 'Aug', value: 3.4 },
+    { label: 'Sep', value: 2.5 },
+    { label: 'Oct', value: 1.5 },
+    { label: 'Nov', value: 1.0 },
+    { label: 'Dec', value: 0.7 },
+];
+
+const maxMonthly = Math.max(...monthlyBars.map((bar) => bar.value));
+
+const kpis = [
+    {
+        title: 'Total Sales',
+        value: '$17,353',
+        change: '8.5%',
+        trend: 'up',
+        period: 'vs last week',
+        icon: 'TS',
+        iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
+    },
+    {
+        title: 'Revenue',
+        value: '$1,192',
+        change: '5.7%',
+        trend: 'up',
+        period: 'vs last week',
+        icon: 'RV',
+        iconClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
+    },
+    {
+        title: 'Total Orders',
+        value: '604',
+        change: '2.1%',
+        trend: 'down',
+        period: 'vs last week',
+        icon: 'TO',
+        iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+    },
+    {
+        title: 'New Customers',
+        value: '154',
+        change: '12%',
+        trend: 'up',
+        period: 'vs last week',
+        icon: 'NC',
+        iconClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
+    },
+];
+
+const platforms = [
+    {
+        name: 'Amazon',
+        orders: '12.43k Orders',
+        progress: 45,
+        badge: 'Top Seller',
+        badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
+        barClass: 'bg-emerald-500',
+        iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
+        icon: 'A',
+    },
+    {
+        name: 'eBay',
+        orders: '8.92k Orders',
+        progress: 32,
+        badge: 'Trending',
+        badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
+        barClass: 'bg-sky-500',
+        iconClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
+        icon: 'E',
+    },
+    {
+        name: 'Shopify',
+        orders: '6.14k Orders',
+        progress: 25,
+        badge: 'Fast Growth',
+        badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+        barClass: 'bg-amber-500',
+        iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+        icon: 'S',
+    },
+    {
+        name: 'Flipkart',
+        orders: '4.85k Orders',
+        progress: 18,
+        badge: 'Growing',
+        badgeClass: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
+        barClass: 'bg-lime-500',
+        iconClass: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
+        icon: 'F',
+    },
+    {
+        name: 'Walmart',
+        orders: '7.56k Orders',
+        progress: 28,
+        badge: 'Low Stock',
+        badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
+        barClass: 'bg-rose-500',
+        iconClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
+        icon: 'W',
+    },
+];
+
+const countries = [
+    { name: 'United States', share: 65, code: 'US', barClass: 'bg-sky-500' },
+    { name: 'India', share: 45, code: 'IN', barClass: 'bg-amber-500' },
+    { name: 'Canada', share: 74, code: 'CA', barClass: 'bg-rose-500' },
+    { name: 'Australia', share: 56, code: 'AU', barClass: 'bg-cyan-500' },
+    { name: 'Germany', share: 48, code: 'DE', barClass: 'bg-emerald-500' },
+];
+
+const products = [
+    {
+        name: 'Wireless Earbuds',
+        category: 'Electronics',
+        units: '1,240 Units Sold',
+        revenue: '$24,800',
+        badge: 'WE',
+        badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+    },
+    {
+        name: 'Organic Honey',
+        category: 'Grocery',
+        units: '1,520 Units Sold',
+        revenue: '$91,200',
+        badge: 'OH',
+        badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+    },
+    {
+        name: 'Gaming Laptop',
+        category: 'Electronics',
+        units: '750 Units Sold',
+        revenue: '$375,000',
+        badge: 'GL',
+        badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
+    },
+    {
+        name: 'Leather Jacket',
+        category: 'Clothing',
+        units: '1,100 Units Sold',
+        revenue: '$1,320,000',
+        badge: 'LJ',
+        badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
+    },
+];
+
+const customers = [
+    {
+        name: 'Alice Johnson',
+        type: 'Premium Customer',
+        orders: '45 Orders',
+        spend: '$12,500',
+        badge: 'AJ',
+        badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
+    },
+    {
+        name: 'Daniel Carter',
+        type: 'Regular Customer',
+        orders: '32 Orders',
+        spend: '$8,200',
+        badge: 'DC',
+        badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
+    },
+    {
+        name: 'Emma Wilson',
+        type: 'Premium Customer',
+        orders: '28 Orders',
+        spend: '$9,750',
+        badge: 'EW',
+        badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+    },
+    {
+        name: 'Liam Johnson',
+        type: 'Regular Customer',
+        orders: '20 Orders',
+        spend: '$5,400',
+        badge: 'LJ',
+        badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-200',
+    },
+];
+
+const quickTeam = [
+    { initials: 'MP', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200' },
+    { initials: 'RM', class: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200' },
+    { initials: 'SA', class: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200' },
+    { initials: 'KT', class: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200' },
+];
+
+const orderTrend = [18, 22, 16, 26, 14, 28, 20, 30, 18, 26];
+const chartSize = { width: 120, height: 56, padding: 6 };
+
+const orderTrendPoints = computed(() => {
+    const maxValue = Math.max(...orderTrend);
+    const minValue = Math.min(...orderTrend);
+    const range = maxValue - minValue || 1;
+
+    return orderTrend.map((value, index) => {
+        const x = (index / (orderTrend.length - 1)) * (chartSize.width - chartSize.padding * 2) + chartSize.padding;
+        const y =
+            chartSize.height -
+            chartSize.padding -
+            ((value - minValue) / range) * (chartSize.height - chartSize.padding * 2);
+
+        return { x, y };
+    });
+});
+
+const orderTrendLine = computed(() => orderTrendPoints.value.map((point) => `${point.x},${point.y}`).join(' '));
+
+const orderTrendArea = computed(() => {
+    const points = orderTrendPoints.value;
+    if (!points.length) {
+        return '';
+    }
+
+    const first = points[0];
+    const last = points[points.length - 1];
+    const path = points.map((point) => `${point.x},${point.y}`).join(' ');
+
+    return `M ${first.x},${chartSize.height} L ${path} L ${last.x},${chartSize.height} Z`;
+});
 </script>
 
 <template>
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
+        <div class="relative overflow-hidden">
+            <div class="pointer-events-none absolute inset-0">
+                <div
+                    class="absolute -left-20 -top-24 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-500/15"
+                />
+                <div
+                    class="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/15"
+                />
+                <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.8),_transparent_55%)] dark:bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.6),_transparent_55%)]"
+                />
             </div>
-            <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
-                <PlaceholderPattern />
+
+            <div class="relative z-10 flex flex-col gap-6 p-4 lg:p-6">
+                <section class="grid gap-6 lg:grid-cols-12">
+                    <div
+                        class="dashboard-card relative flex flex-col gap-5 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-4"
+                        style="animation-delay: 0ms"
+                    >
+                        <div class="flex flex-col gap-2">
+                            <p class="text-sm font-medium text-muted-foreground">{{ welcome.title }}</p>
+                            <h1 class="text-2xl font-semibold tracking-tight">
+                                {{ welcome.name }}!
+                            </h1>
+                            <p class="text-sm text-muted-foreground">
+                                {{ welcome.summary }}
+                            </p>
+                        </div>
+
+                        <div class="mt-2 flex items-end justify-between gap-4">
+                            <div>
+                                <p class="text-3xl font-semibold">{{ welcome.monthlySales }}</p>
+                                <div class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                                    <span>Monthly Sales</span>
+                                    <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
+                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path
+                                                d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z"
+                                            />
+                                        </svg>
+                                        {{ welcome.growth }}
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                class="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+                                type="button"
+                            >
+                                View Reports
+                            </button>
+                        </div>
+
+                        <div
+                            class="pointer-events-none absolute -bottom-6 right-4 hidden w-40 opacity-90 lg:block"
+                        >
+                            <svg viewBox="0 0 160 120" fill="none">
+                                <circle cx="24" cy="34" r="16" fill="#38BDF8" opacity="0.2" />
+                                <circle cx="52" cy="28" r="12" fill="#F59E0B" opacity="0.25" />
+                                <circle cx="92" cy="36" r="10" fill="#FB7185" opacity="0.25" />
+                                <rect x="18" y="56" width="28" height="40" rx="12" fill="#0F172A" opacity="0.05" />
+                                <rect x="50" y="54" width="30" height="44" rx="12" fill="#0F172A" opacity="0.06" />
+                                <rect x="86" y="58" width="26" height="38" rx="12" fill="#0F172A" opacity="0.04" />
+                                <circle cx="32" cy="60" r="10" fill="#FBBF24" opacity="0.4" />
+                                <circle cx="64" cy="58" r="10" fill="#38BDF8" opacity="0.4" />
+                                <circle cx="98" cy="62" r="10" fill="#FB7185" opacity="0.4" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div
+                        class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-5"
+                        style="animation-delay: 80ms"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-lg font-semibold">Sales Summary</h2>
+                                <p class="text-sm text-muted-foreground">Monthly performance overview</p>
+                            </div>
+                            <button
+                                class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                                type="button"
+                            >
+                                Monthly
+                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path
+                                        d="M5.5 7.5a1 1 0 0 1 1.5-1.34l3 2.6 3-2.6a1 1 0 1 1 1.32 1.5l-3.66 3.2a1 1 0 0 1-1.32 0l-3.84-3.36Z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-12 gap-3">
+                            <div
+                                v-for="bar in monthlyBars"
+                                :key="bar.label"
+                                class="group flex flex-col items-center gap-2 text-xs text-muted-foreground"
+                            >
+                                <span class="font-medium text-foreground/80">${{ bar.value }}k</span>
+                                <div class="flex h-28 w-full items-end justify-center">
+                                    <div
+                                        class="w-3 rounded-full bg-muted/60"
+                                    >
+                                        <div
+                                            class="w-3 rounded-full bg-gradient-to-t from-emerald-500 to-sky-400 shadow-sm transition-all duration-300 group-hover:scale-110"
+                                            :style="{ height: `${Math.max(12, (bar.value / maxMonthly) * 100)}%` }"
+                                        />
+                                    </div>
+                                </div>
+                                <span>{{ bar.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-3"
+                        style="animation-delay: 140ms"
+                    >
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold">Platforms</h2>
+                            <span class="text-xs text-muted-foreground">Last 30 days</span>
+                        </div>
+
+                        <div class="mt-5 flex flex-col gap-4">
+                            <div
+                                v-for="platform in platforms"
+                                :key="platform.name"
+                                class="flex items-center gap-3"
+                            >
+                                <div
+                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold"
+                                    :class="platform.iconClass"
+                                >
+                                    {{ platform.icon }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-semibold">{{ platform.name }}</p>
+                                        <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="platform.badgeClass">
+                                            {{ platform.badge }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">{{ platform.orders }}</p>
+                                    <div class="mt-2 h-1.5 w-full rounded-full bg-muted">
+                                        <div
+                                            class="h-1.5 rounded-full"
+                                            :class="platform.barClass"
+                                            :style="{ width: `${platform.progress}%` }"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div
+                        v-for="(kpi, index) in kpis"
+                        :key="kpi.title"
+                        class="dashboard-card flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-5 shadow-sm backdrop-blur"
+                        :style="{ animationDelay: `${200 + index * 70}ms` }"
+                    >
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">{{ kpi.title }}</p>
+                                <p class="mt-3 text-2xl font-semibold">{{ kpi.value }}</p>
+                            </div>
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl text-xs font-semibold" :class="kpi.iconClass">
+                                {{ kpi.icon }}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
+                                :class="kpi.trend === 'up'
+                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
+                                    : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200'"
+                            >
+                                <svg
+                                    class="h-3.5 w-3.5"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    :class="kpi.trend === 'down' ? 'rotate-180' : ''"
+                                >
+                                    <path
+                                        d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z"
+                                    />
+                                </svg>
+                                {{ kpi.change }}
+                            </span>
+                            <span class="text-xs text-muted-foreground">{{ kpi.period }}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid gap-6 lg:grid-cols-12">
+                    <div class="lg:col-span-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        <div
+                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 460ms"
+                        >
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold">Sales by Country</h2>
+                                <button class="text-sm font-medium text-muted-foreground transition hover:text-foreground" type="button">
+                                    See All
+                                </button>
+                            </div>
+                            <div class="mt-5 flex flex-col gap-4">
+                                <div v-for="country in countries" :key="country.name" class="flex items-center gap-3">
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-xs font-semibold">
+                                        {{ country.code }}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between text-sm font-medium">
+                                            <span>{{ country.name }}</span>
+                                            <span class="text-muted-foreground">{{ country.share }}%</span>
+                                        </div>
+                                        <div class="mt-2 h-1.5 w-full rounded-full bg-muted">
+                                            <div
+                                                class="h-1.5 rounded-full"
+                                                :class="country.barClass"
+                                                :style="{ width: `${country.share}%` }"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 520ms"
+                        >
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold">Top Products</h2>
+                                <span class="text-xs text-muted-foreground">Weekly</span>
+                            </div>
+                            <div class="mt-5 flex flex-col gap-4">
+                                <div v-for="product in products" :key="product.name" class="flex items-center gap-3">
+                                    <div
+                                        class="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-semibold"
+                                        :class="product.badgeClass"
+                                    >
+                                        {{ product.badge }}
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold">{{ product.name }}</p>
+                                        <p class="text-xs text-muted-foreground">
+                                            {{ product.category }} - {{ product.units }}
+                                        </p>
+                                    </div>
+                                    <span class="text-sm font-semibold">{{ product.revenue }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 580ms"
+                        >
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold">Top Customers</h2>
+                                <span class="text-xs text-muted-foreground">This month</span>
+                            </div>
+                            <div class="mt-5 flex flex-col gap-4">
+                                <div v-for="customer in customers" :key="customer.name" class="flex items-center gap-3">
+                                    <div
+                                        class="flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold"
+                                        :class="customer.badgeClass"
+                                    >
+                                        {{ customer.badge }}
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold">{{ customer.name }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ customer.type }} - {{ customer.orders }}</p>
+                                    </div>
+                                    <span class="text-sm font-semibold">{{ customer.spend }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 grid gap-6">
+                        <div
+                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 640ms"
+                        >
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-lg font-semibold">Order Statistics</h2>
+                                    <p class="text-sm text-muted-foreground">Monthly earnings</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-semibold">$71.5k</p>
+                                    <p class="text-xs text-emerald-600 dark:text-emerald-300">25% increased</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 h-40 w-full rounded-2xl bg-muted/50 p-4">
+                                <svg :viewBox="`0 0 ${chartSize.width} ${chartSize.height}`" class="h-full w-full">
+                                    <defs>
+                                        <linearGradient id="orderTrend" x1="0" x2="0" y1="0" y2="1">
+                                            <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.35" />
+                                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.05" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path :d="orderTrendArea" fill="url(#orderTrend)" />
+                                    <polyline
+                                        :points="orderTrendLine"
+                                        fill="none"
+                                        stroke="#0EA5E9"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div
+                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 700ms"
+                        >
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold">Quick Transition</h2>
+                                <button class="text-sm text-muted-foreground transition hover:text-foreground" type="button">
+                                    View All
+                                </button>
+                            </div>
+                            <div class="mt-5 flex items-center gap-3">
+                                <div
+                                    v-for="member in quickTeam"
+                                    :key="member.initials"
+                                    class="flex h-11 w-11 items-center justify-center rounded-full text-xs font-semibold"
+                                    :class="member.class"
+                                >
+                                    {{ member.initials }}
+                                </div>
+                                <button
+                                    class="flex h-11 w-11 items-center justify-center rounded-full border border-dashed border-border text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+                                    type="button"
+                                >
+                                    +
+                                </button>
+                            </div>
+                            <div class="mt-6 rounded-2xl border border-border/60 bg-background/60 p-4 text-sm text-muted-foreground">
+                                Need a faster handoff? Create a smart flow and assign teammates in one click.
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.dashboard-card {
+    animation: dashboard-rise 0.6s ease-out both;
+}
+
+@keyframes dashboard-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-card {
+        animation: none;
+    }
+}
+</style>

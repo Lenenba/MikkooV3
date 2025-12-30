@@ -40,7 +40,10 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         @routes
-        @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
+        @vite(['resources/js/app.ts'])
+        @if (Vite::isRunningHot())
+            @vite("resources/js/pages/{$page['component']}.vue")
+        @endif
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
