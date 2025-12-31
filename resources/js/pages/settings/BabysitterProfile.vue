@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { Head, usePage, Link, useForm } from '@inertiajs/vue3'
 import { computed, ref, watch } from 'vue';
-import DatePicker from '@/components/DatePicker.vue'; // Adaptez le chemin d'importation
-
 import AppLayout from '@/layouts/AppLayout.vue'
 import SettingsLayout from '@/layouts/settings/Layout.vue'
 import HeadingSmall from '@/components/HeadingSmall.vue'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import FloatingInput from '@/components/FloatingInput.vue'
+import FloatingTextarea from '@/components/FloatingTextarea.vue'
 import InputError from '@/components/InputError.vue'
 import AddressForm from '@/components/AddressForm.vue'
 
@@ -21,14 +19,6 @@ const babysitterProfile = computed(() => page.props.babysitterProfile as Babysit
 const address = computed(() => page.props.address as Address)
 
 const role = computed(() => page.props.role as string)
-import {
-    NumberField,
-    NumberFieldContent,
-    NumberFieldDecrement,
-    NumberFieldIncrement,
-    NumberFieldInput,
-} from '@/components/ui/number-field'
-
 const breadcrumbs = [
     { title: 'Profile Details', href: 'settings/babysitter/profile/details' },
 ]
@@ -87,57 +77,46 @@ function submit() {
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <!-- First Name -->
                         <div>
-                            <Label for="first_name">First Name</Label>
-                            <Input id="first_name" v-model="form.first_name" class="mt-1 w-full" />
+                            <FloatingInput id="first_name" label="First Name" v-model="form.first_name" />
                             <InputError :message="form.errors.first_name" class="mt-1" />
                         </div>
 
                         <!-- Last Name -->
                         <div>
-                            <Label for="last_name">Last Name</Label>
-                            <Input id="last_name" v-model="form.last_name" class="mt-1 w-full" />
+                            <FloatingInput id="last_name" label="Last Name" v-model="form.last_name" />
                             <InputError :message="form.errors.last_name" class="mt-1" />
                         </div>
 
                         <!-- Phone -->
                         <div>
-                            <Label for="phone">Phone</Label>
-                            <Input id="phone" v-model="form.phone" class="mt-1 w-full" />
+                            <FloatingInput id="phone" label="Phone" v-model="form.phone" />
                             <InputError :message="form.errors.phone" class="mt-1" />
                         </div>
 
                         <!-- Birthdate -->
                         <div>
-                            <Label for="birthdate">Birthdate</Label>
-                            <Input id="birthdate" type="date" v-model="form.birthdate" class="mt-1 w-full" />
+                            <FloatingInput id="birthdate" label="Birthdate" type="date" v-model="form.birthdate" />
                             <InputError :message="form.errors.birthdate" class="mt-1" />
                         </div>
 
-                        <NumberField class="gap-2" :min="0" :format-options="{
-                            style: 'currency',
-                            currency: 'EUR',
-                            currencyDisplay: 'code',
-                            currencySign: 'accounting',
-                        }" v-model:model-value="form.price_per_hour">
-                            <Label for="price_per_hour">Price per hour</Label>
-                            <NumberFieldContent>
-                                <NumberFieldDecrement />
-                                <NumberFieldInput v-model="form.price_per_hour" />
-                                <NumberFieldIncrement />
-                            </NumberFieldContent>
-                        </NumberField>
+                        <FloatingInput
+                            id="price_per_hour"
+                            label="Price per hour"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            v-model="form.price_per_hour"
+                        />
 
                         <!-- experience full width -->
                         <div class="sm:col-span-2">
-                            <Label for="experience">experience</Label>
-                            <Textarea id="experience" rows="3" v-model="form.experience" class="mt-1 w-full" />
+                            <FloatingTextarea id="experience" label="Experience" rows="3" v-model="form.experience" />
                             <InputError :message="form.errors.experience" class="mt-1" />
                         </div>
 
                         <!-- Bio full width -->
                         <div class="sm:col-span-2">
-                            <Label for="bio">Bio</Label>
-                            <Textarea id="bio" rows="4" v-model="form.bio" class="mt-1 w-full" />
+                            <FloatingTextarea id="bio" label="Bio" rows="4" v-model="form.bio" />
                             <InputError :message="form.errors.bio" class="mt-1" />
                         </div>
                         <!-- Action buttons -->

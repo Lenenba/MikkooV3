@@ -6,8 +6,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import SettingsLayout from '@/layouts/settings/Layout.vue'
 import HeadingSmall from '@/components/HeadingSmall.vue'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import FloatingInput from '@/components/FloatingInput.vue'
 import InputError from '@/components/InputError.vue'
 import { type SharedData, type ParentProfile, type Address } from '@/types'
 import { LoaderCircle, SaveIcon } from 'lucide-vue-next'
@@ -52,29 +51,25 @@ function submit() {
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
                         <!-- First Name -->
                         <div>
-                            <Label for="first_name">First Name</Label>
-                            <Input id="first_name" v-model="form.first_name" class="mt-1 w-full" />
+                            <FloatingInput id="first_name" label="First Name" v-model="form.first_name" />
                             <InputError :message="form.errors.first_name" class="mt-1" />
                         </div>
 
                         <!-- Last Name -->
                         <div>
-                            <Label for="last_name">Last Name</Label>
-                            <Input id="last_name" v-model="form.last_name" class="mt-1 w-full" />
+                            <FloatingInput id="last_name" label="Last Name" v-model="form.last_name" />
                             <InputError :message="form.errors.last_name" class="mt-1" />
                         </div>
 
                         <!-- Phone -->
                         <div>
-                            <Label for="phone">Phone</Label>
-                            <Input id="phone" v-model="form.phone" class="mt-1 w-full" />
+                            <FloatingInput id="phone" label="Phone" v-model="form.phone" />
                             <InputError :message="form.errors.phone" class="mt-1" />
                         </div>
 
                         <!-- Birthdate -->
                         <div>
-                            <Label for="birthdate">Birthdate</Label>
-                            <Input id="birthdate" type="date" v-model="form.birthdate" class="mt-1 w-full" />
+                            <FloatingInput id="birthdate" label="Birthdate" type="date" v-model="form.birthdate" />
                             <InputError :message="form.errors.birthdate" class="mt-1" />
                         </div>
 

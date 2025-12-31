@@ -5,6 +5,7 @@ import { ref } from 'vue';
 // Components
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
+import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -16,10 +17,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
-const passwordInput = ref<HTMLInputElement | null>(null);
+const passwordInput = ref<{ focus: () => void } | null>(null);
 
 const form = useForm({
     password: '',
@@ -65,8 +64,14 @@ const closeModal = () => {
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only">Password</Label>
-                            <Input id="password" type="password" name="password" ref="passwordInput" v-model="form.password" placeholder="Password" />
+                            <FloatingInput
+                                id="password"
+                                label="Password"
+                                type="password"
+                                name="password"
+                                ref="passwordInput"
+                                v-model="form.password"
+                            />
                             <InputError :message="form.errors.password" />
                         </div>
 

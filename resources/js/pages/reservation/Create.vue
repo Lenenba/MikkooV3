@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Head, usePage, useForm } from '@inertiajs/vue3';
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import FloatingInput from '@/components/FloatingInput.vue'
+import FloatingTextarea from '@/components/FloatingTextarea.vue'
 import { computed, watch, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
@@ -169,9 +168,12 @@ const createReservation = () => {
                                 <div class="">
                                     <!-- Notes -->
                                     <div class="mb-8">
-                                        <Label for="note" class="font-semibold text-gray-700 mb-2">Notes pour la
-                                            reservation :</Label>
-                                        <Textarea v-model="form.notes" placeholder="Type your message here." />
+                                        <FloatingTextarea
+                                            id="note"
+                                            label="Notes pour la reservation"
+                                            rows="3"
+                                            v-model="form.notes"
+                                        />
                                     </div>
                                     <!-- Address & contact -->
                                     <div class="flex flex-col lg:flex-row lg:space-x-6">
@@ -223,19 +225,28 @@ const createReservation = () => {
                                 <!-- Reservation date input -->
                                 <div class="mt-12">
                                     <p class="font-semibold text-gray-700 mb-2">Date et heure</p>
-                                    <input type="date" id="reservation-date" name="reservation-date"
+                                    <FloatingInput
+                                        id="reservation-date"
+                                        label="Date"
+                                        type="date"
+                                        name="reservation-date"
                                         v-model="form.start_date"
-                                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Reservation date" />
+                                    />
                                     <div class="mt-2 grid grid-cols-2 gap-4">
-                                        <input type="time" id="reservation-time" name="reservation-time"
+                                        <FloatingInput
+                                            id="reservation-start-time"
+                                            label="Start time"
+                                            type="time"
+                                            name="reservation-start-time"
                                             v-model="form.start_time"
-                                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="Reservation time" />
-                                        <input type="time" id="reservation-time" name="reservation-time"
+                                        />
+                                        <FloatingInput
+                                            id="reservation-end-time"
+                                            label="End time"
+                                            type="time"
+                                            name="reservation-end-time"
                                             v-model="form.end_time"
-                                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="Reservation date" />
+                                        />
                                     </div>
                                 </div>
                                 <button type="button" disabled
@@ -298,8 +309,14 @@ const createReservation = () => {
                                         <td class="size-px whitespace-nowrap px-4 py-3 text-left">
                                             <span class="text-sm text-gray-600 dark:text-neutral-400">
                                                 <div class="relative">
-                                                    <Input autofocus v-model="form.services[index].name" label="Name"
-                                                        @input="searchServices(form.services[index].name, index)" />
+                                                    <FloatingInput
+                                                        :id="`service-name-${index}`"
+                                                        label="Service"
+                                                        autofocus
+                                                        autocomplete="off"
+                                                        v-model="form.services[index].name"
+                                                        @input="searchServices(form.services[index].name, index)"
+                                                    />
                                                 </div>
                                                 <div class="relative w-full">
                                                     <ul v-if="searchResults[index]?.length"

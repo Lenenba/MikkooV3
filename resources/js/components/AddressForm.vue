@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, watch, toRefs } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import axios from 'axios'
+import FloatingInput from '@/components/FloatingInput.vue'
 
 // Define props and emits
 interface Address {
@@ -42,6 +43,8 @@ watch(
     }
 )
 
+const geoapifyKey = import.meta.env.VITE_GEOAPIFY_KEY
+
 // Watch query to fetch suggestions
 watch(
     query,
@@ -51,16 +54,21 @@ watch(
             showSuggestions.value = false
             return
         }
+        if (!geoapifyKey) {
+            suggestions.value = []
+            showSuggestions.value = false
+            return
+        }
         try {
-            const { data } = await axios.get('https://api.locationiq.com/v1/autocomplete.php', {
+            const { data } = await axios.get('https://api.geoapify.com/v1/geocode/autocomplete', {
                 params: {
-                    key: import.meta.env.VITE_LOCATIONIQ_KEY,
-                    q,
-                    format: 'json',
-                    addressdetails: 1
+                    text: q,
+                    apiKey: geoapifyKey,
+                    limit: 6,
+                    lang: 'fr',
                 }
             })
-            suggestions.value = data
+            suggestions.value = data?.features ?? []
             showSuggestions.value = true
         } catch {
             suggestions.value = []
@@ -71,18 +79,21 @@ watch(
 
 // When a suggestion is selected
 function selectSuggestion(item: any) {
-    const addr = item.address || {}
-    address.street = addr.road || addr.house_number
-        ? `${addr.house_number || ''} ${addr.road || ''}`.trim()
-        : item.display_name
-    address.city = addr.city || addr.town || addr.village || ''
-    address.province = addr.state || ''
-    address.postal_code = addr.postcode || ''
-    address.country = addr.country || ''
-    address.latitude = parseFloat(item.lat)
-    address.longitude = parseFloat(item.lon)
+    const props = item?.properties ?? {}
+    const street = [props.housenumber, props.street].filter(Boolean).join(' ').trim()
+    address.street = street || props.address_line1 || props.formatted || ''
+    address.city = props.city || props.town || props.village || ''
+    address.province = props.state || props.region || ''
+    address.postal_code = props.postcode || ''
+    address.country = props.country || ''
+    address.latitude = typeof props.lat === 'number'
+        ? props.lat
+        : item?.geometry?.coordinates?.[1]
+    address.longitude = typeof props.lon === 'number'
+        ? props.lon
+        : item?.geometry?.coordinates?.[0]
 
-    query.value = address.street || item.display_name
+    query.value = address.street || props.formatted || ''
     suggestions.value = []
     showSuggestions.value = false
 
@@ -93,7 +104,13 @@ function selectSuggestion(item: any) {
 <template>
     <div class="relative">
         <!-- Autocomplete input -->
-        <input v-model="query" type="text" placeholder="Start typing address..." class="w-full border rounded p-2" />
+        <FloatingInput
+            id="address-query"
+            label="Address search"
+            v-model="query"
+            type="text"
+            autocomplete="off"
+        />
         <ul v-if="showSuggestions"
             class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg max-h-60 overflow-auto">
             <li v-for="(item, index) in suggestions" :key="index" @click="selectSuggestion(item)"
@@ -105,30 +122,24 @@ function selectSuggestion(item: any) {
         <!-- Address fields auto-filled -->
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium mb-1">Street</label>
-                <input v-model="address.street" disabled class="w-full border rounded p-2 bg-gray-100" />
+                <FloatingInput label="Street" v-model="address.street" disabled />
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">City</label>
-                <input v-model="address.city" disabled class="w-full border rounded p-2 bg-gray-100" />
+                <FloatingInput label="City" v-model="address.city" disabled />
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Province</label>
-                <input v-model="address.province" disabled class="w-full border rounded p-2 bg-gray-100" />
+                <FloatingInput label="Province" v-model="address.province" disabled />
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Postal Code</label>
-                <input v-model="address.postal_code" disabled class="w-full border rounded p-2 bg-gray-100" />
+                <FloatingInput label="Postal Code" v-model="address.postal_code" disabled />
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Country</label>
-                <input v-model="address.country" disabled class="w-full border rounded p-2 bg-gray-100" />
+                <FloatingInput label="Country" v-model="address.country" disabled />
             </div>
             <div class="sm:col-span-2">
-                <label class="block text-sm font-medium mb-1">Latitude, Longitude</label>
                 <div class="flex space-x-2">
-                    <input v-model="address.latitude" disabled class="w-1/2 border rounded p-2 bg-gray-100" />
-                    <input v-model="address.longitude" disabled class="w-1/2 border rounded p-2 bg-gray-100" />
+                    <FloatingInput label="Latitude" v-model="address.latitude" disabled />
+                    <FloatingInput label="Longitude" v-model="address.longitude" disabled />
                 </div>
             </div>
         </div>

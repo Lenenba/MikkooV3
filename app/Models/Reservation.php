@@ -108,6 +108,14 @@ class Reservation extends Model
     }
 
     /**
+     * Ratings attached to this reservation.
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    /**
      * Scope a query to only include customers of a given user.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query

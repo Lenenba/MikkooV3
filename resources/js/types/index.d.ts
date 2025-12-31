@@ -62,6 +62,24 @@ export interface Details {
     end_time: string;
 }
 
+export interface Rating {
+    id: number;
+    reservation_id: number;
+    reviewer_id: number;
+    reviewee_id: number;
+    rating: number;
+    comment?: string | null;
+    created_at?: string;
+    reviewer?: User;
+}
+
+export interface RatingsPayload {
+    can_rate: boolean;
+    mine?: Rating | null;
+    other?: Rating | null;
+    target_name?: string | null;
+}
+
 export interface Stats {
     current_month_revenue: number;
     previous_month_revenue: number;
@@ -81,10 +99,23 @@ export interface Preview {
     preview: string; // Ceci est un object URL
 }
 
+export interface SearchFilters {
+    name?: string;
+    city?: string;
+    country?: string;
+    min_price?: number | string | null;
+    max_price?: number | string | null;
+    min_rating?: number | string | null;
+    payment_frequency?: string | null;
+    sort?: string | null;
+}
+
 export interface SharedData extends PageProps {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    ratings?: RatingsPayload;
+    filters?: SearchFilters;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
 }
@@ -103,14 +134,14 @@ export interface BabysitterProfile {
 
 export interface Address {
     id: number;
-    street: string;
-    city: string;
-    provider: string;
-    state: string;
-    country: string;
-    postal_code: string;
-    latitude: number;
-    longitude: number;
+    street?: string | null;
+    city?: string | null;
+    province?: string | null;
+    state?: string | null;
+    country?: string | null;
+    postal_code?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
 }
 // src/types/index.ts
 export interface Babysitter {
@@ -120,6 +151,9 @@ export interface Babysitter {
     address: Address;
     babysitter_profile: BabysitterProfile;
     media: MediaItem[];
+    rating_avg?: number | null;
+    rating_count?: number | null;
+    received_ratings?: Rating[];
 }
 
 export interface ParentProfile {

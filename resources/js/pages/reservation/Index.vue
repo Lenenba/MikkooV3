@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { columns } from '@/components/Reservation/columns';
+import FloatingInput from '@/components/FloatingInput.vue';
+import FloatingSelect from '@/components/FloatingSelect.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import DataTableViewOptions from '@/components/columnToggle.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Reservation, type SharedData, type Stats } from '@/types';
 import { Head, usePage, Link } from '@inertiajs/vue3';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import DataTable from '@/components/Reservation/data-table.vue';
 import {
     CalendarCheck,
@@ -286,28 +278,24 @@ const breadcrumbs: BreadcrumbItem[] = [
                             <div class="relative w-full sm:w-72">
                                 <Search
                                     class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                                <Input class="h-9 w-full pl-9" placeholder="Rechercher une reservation..."
+                                <FloatingInput
+                                    id="reservation-search"
+                                    label="Recherche"
+                                    label-class="pl-9"
+                                    class="w-full pl-9"
                                     :model-value="table.getColumn('ref')?.getFilterValue() as string"
-                                    @update:model-value="table.getColumn('ref')?.setFilterValue($event)" />
+                                    @update:model-value="table.getColumn('ref')?.setFilterValue($event)"
+                                />
                             </div>
                             <div class="w-full sm:w-56">
-                                <Select
+                                <FloatingSelect
+                                    id="reservation-status"
+                                    label="Statut"
+                                    placeholder="Tous les statuts"
+                                    :options="statusOptions"
                                     :model-value="(table.getColumn('status')?.getFilterValue() as string) ?? 'all'"
                                     @update:model-value="value => table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)"
-                                >
-                                    <SelectTrigger class="h-9 w-full">
-                                        <SelectValue placeholder="Statut" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Statut</SelectLabel>
-                                            <SelectItem v-for="option in statusOptions" :key="option.value"
-                                                :value="option.value">
-                                                {{ option.label }}
-                                            </SelectItem>
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                />
                             </div>
                             <DataTableViewOptions :table="table" label="Filtrer" menu-label="Colonnes"
                                 button-class="w-full sm:w-auto" />

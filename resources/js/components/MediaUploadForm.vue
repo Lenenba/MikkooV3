@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import type { Preview } from '@/types'; // Import depuis votre fichier de types
+import type { Preview } from '@/types';
 
-// Suppose que vous avez des composants Vue pour l'IU. Sinon, remplacez par des éléments HTML.
+import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { XIcon, PlusIcon } from 'lucide-vue-next'; // Importez les icônes nécessaires
+import { XIcon, PlusIcon } from 'lucide-vue-next';
 
-// Constantes
 const MAX_PHOTOS = 5;
 const MIN_WIDTH = 500;
 const MIN_HEIGHT = 500;
@@ -17,17 +14,15 @@ const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 
-// Références et état réactif
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const mediaPreviews = ref<Preview[]>([]);
-const clientSideErrors = ref<string[]>([]); // Pour les erreurs de validation côté client
+const clientSideErrors = ref<string[]>([]);
 
 const inertiaForm = useForm({
     collection_name: '',
     images: [] as File[],
 });
 
-// Validation des dimensions de l'image
 const validateImageDimensions = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
         const img = new Image();
@@ -44,7 +39,6 @@ const validateImageDimensions = (file: File): Promise<boolean> => {
     });
 };
 
-// Gestion du changement de fichier
 const onFileChange = async (event: Event) => {
     const target = event.target as HTMLInputElement;
     const files = target.files;
@@ -76,17 +70,16 @@ const onFileChange = async (event: Event) => {
         newPreviewsToAdd.push({ file, preview: url });
     }
 
-    clientSideErrors.value = currentClientErrors; // Afficher uniquement les dernières erreurs de validation du lot
+    clientSideErrors.value = currentClientErrors;
     if (newPreviewsToAdd.length > 0) {
         mediaPreviews.value = [...mediaPreviews.value, ...newPreviewsToAdd];
     }
 
     if (fileInputRef.value) {
-        fileInputRef.value.value = ''; // Permet de re-sélectionner le même fichier si besoin
+        fileInputRef.value.value = '';
     }
 };
 
-// Supprimer une photo de la prévisualisation
 const removePhoto = (idx: number) => {
     const removed = mediaPreviews.value.splice(idx, 1);
     if (removed.length > 0) {
@@ -94,44 +87,37 @@ const removePhoto = (idx: number) => {
     }
 };
 
-// Réinitialiser tout le formulaire
 const resetAllClientState = () => {
     mediaPreviews.value.forEach((p) => URL.revokeObjectURL(p.preview));
     mediaPreviews.value = [];
     clientSideErrors.value = [];
-    inertiaForm.reset(); // Réinitialise collection_name et images dans inertiaForm
+    inertiaForm.reset();
     if (fileInputRef.value) {
         fileInputRef.value.value = '';
     }
 };
 
-// Propriété calculée pour activer/désactiver le bouton d'upload
 const canUpload = computed(() => {
     return mediaPreviews.value.length > 0 && inertiaForm.collection_name.trim() !== '' && !inertiaForm.processing;
 });
 
-// Logique d'upload
 const upload = () => {
     if (!canUpload.value) return;
-    clientSideErrors.value = []; // Clear client-side errors before submission
+    clientSideErrors.value = [];
 
-    // Mettre à jour inertiaForm.images avec les fichiers actuels
     inertiaForm.images = mediaPreviews.value.map(p => p.file);
 
     inertiaForm.post('/settings/media', {
         preserveScroll: true,
         onSuccess: () => {
-            resetAllClientState(); // Nettoie les prévisualisations et le formulaire Inertia
+            resetAllClientState();
         },
-        onError: (errors: Record<string, string[]>) => { // `errors` est déjà géré par inertiaForm.errors
-            // Vous pouvez ajouter une logique supplémentaire si nécessaire,
-            // par exemple, si certaines erreurs ne sont pas liées à des champs spécifiques.
+        onError: (errors: Record<string, string[]>) => {
             console.error("Upload failed with errors:", errors);
         },
     });
 };
 
-// Nettoyage des Object URLs lors de la destruction du composant
 onUnmounted(() => {
     mediaPreviews.value.forEach((p) => URL.revokeObjectURL(p.preview));
 });
@@ -144,11 +130,17 @@ onUnmounted(() => {
             Upload Media
         </h2>
         <div class="grid w-full max-w-sm items-center gap-1.5">
-            <Label for="collection_name">Collection name</Label>
-            <Input id="collection_name" name="collection_name" type="text" v-model="inertiaForm.collection_name"
-                placeholder="Enter collection name" :disabled="inertiaForm.processing" />
-            <span v-if="inertiaForm.errors.collection_name" class="text-sm text-red-500 mt-1">{{
-                inertiaForm.errors.collection_name }}</span>
+            <FloatingInput
+                id="collection_name"
+                label="Collection name"
+                name="collection_name"
+                type="text"
+                v-model="inertiaForm.collection_name"
+                :disabled="inertiaForm.processing"
+            />
+            <span v-if="inertiaForm.errors.collection_name" class="text-sm text-red-500 mt-1">
+                {{ inertiaForm.errors.collection_name }}
+            </span>
         </div>
 
         <div>

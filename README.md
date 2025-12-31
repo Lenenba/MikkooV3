@@ -13,7 +13,7 @@ This project is a Laravel 12 + Vue 3 application. It uses Inertia and Vite for f
 1. Clone the repository and change into the project directory.
 2. Copy `.env.example` to `.env` and adjust your environment variables as needed.
    - Configure your database connection (`DB_CONNECTION`, `DB_DATABASE`, etc.). By default a SQLite database is used.
-   - If you plan to use address autocompletion, provide a `VITE_LOCATIONIQ_KEY`.
+   - If you plan to use address autocompletion, provide a `VITE_GEOAPIFY_KEY`.
    - Optional role name variables can be set (`PARENT_ROLE_NAME`, `BABYSITTER_ROLE_NAME`, `SUPER_ADMIN_ROLE_NAME`).
 3. Install PHP dependencies:
    ```bash
@@ -51,4 +51,3 @@ You can also use the Composer script which runs both plus the queue worker:
 ```bash
 composer run dev
 ```
-

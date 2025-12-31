@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
@@ -27,11 +26,10 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div class="space-y-6">
                 <div class="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
+                    <FloatingInput
                         id="password"
+                        label="Password"
                         type="password"
-                        class="mt-1 block w-full"
                         v-model="form.password"
                         required
                         autocomplete="current-password"

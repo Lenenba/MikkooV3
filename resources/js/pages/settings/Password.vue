@@ -6,9 +6,8 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -18,8 +17,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
     },
 ];
 
-const passwordInput = ref<HTMLInputElement | null>(null);
-const currentPasswordInput = ref<HTMLInputElement | null>(null);
+const passwordInput = ref<{ focus: () => void } | null>(null);
+const currentPasswordInput = ref<{ focus: () => void } | null>(null);
 
 const form = useForm({
     current_password: '',
@@ -34,16 +33,12 @@ const updatePassword = () => {
         onError: (errors: any) => {
             if (errors.password) {
                 form.reset('password', 'password_confirmation');
-                if (passwordInput.value instanceof HTMLInputElement) {
-                    passwordInput.value.focus();
-                }
+                passwordInput.value?.focus();
             }
 
             if (errors.current_password) {
                 form.reset('current_password');
-                if (currentPasswordInput.value instanceof HTMLInputElement) {
-                    currentPasswordInput.value.focus();
-                }
+                currentPasswordInput.value?.focus();
             }
         },
     });
@@ -60,42 +55,36 @@ const updatePassword = () => {
 
                 <form @submit.prevent="updatePassword" class="space-y-6">
                     <div class="grid gap-2">
-                        <Label for="current_password">Current password</Label>
-                        <Input
+                        <FloatingInput
                             id="current_password"
                             ref="currentPasswordInput"
+                            label="Current password"
                             v-model="form.current_password"
                             type="password"
-                            class="mt-1 block w-full"
                             autocomplete="current-password"
-                            placeholder="Current password"
                         />
                         <InputError :message="form.errors.current_password" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="password">New password</Label>
-                        <Input
+                        <FloatingInput
                             id="password"
                             ref="passwordInput"
+                            label="New password"
                             v-model="form.password"
                             type="password"
-                            class="mt-1 block w-full"
                             autocomplete="new-password"
-                            placeholder="New password"
                         />
                         <InputError :message="form.errors.password" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="password_confirmation">Confirm password</Label>
-                        <Input
+                        <FloatingInput
                             id="password_confirmation"
+                            label="Confirm password"
                             v-model="form.password_confirmation"
                             type="password"
-                            class="mt-1 block w-full"
                             autocomplete="new-password"
-                            placeholder="Confirm password"
                         />
                         <InputError :message="form.errors.password_confirmation" />
                     </div>

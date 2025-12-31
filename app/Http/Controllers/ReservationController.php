@@ -74,6 +74,7 @@ class ReservationController extends Controller
      */
     public function show(int $id)
     {
+        $user = Auth::user();
         $reservation = Reservation::with([
             'parent',
             'babysitter',
@@ -85,8 +86,44 @@ class ReservationController extends Controller
         ])
             ->findOrFail($id);
 
+        $ratingsPayload = [
+            'can_rate' => false,
+            'mine' => null,
+            'other' => null,
+            'target_name' => null,
+        ];
+
+        if ($user) {
+            $canRate = $user->id === $reservation->parent_id || $user->id === $reservation->babysitter_id;
+
+            if ($canRate) {
+                $revieweeId = $user->id === $reservation->parent_id
+                    ? $reservation->babysitter_id
+                    : $reservation->parent_id;
+
+                $ratingsPayload['can_rate'] = true;
+                $ratingsPayload['mine'] = $reservation->ratings()
+                    ->where('reviewer_id', $user->id)
+                    ->first();
+
+                $ratingsPayload['other'] = $revieweeId
+                    ? $reservation->ratings()->where('reviewer_id', $revieweeId)->first()
+                    : null;
+
+                $profile = $reservation->babysitter?->babysitterProfile;
+                $babysitterName = trim(($profile->first_name ?? '') . ' ' . ($profile->last_name ?? ''));
+                $babysitterName = $babysitterName !== '' ? $babysitterName : ($reservation->babysitter?->name ?? 'Babysitter');
+                $parentName = $reservation->parent?->name ?? 'Parent';
+
+                $ratingsPayload['target_name'] = $user->id === $reservation->parent_id
+                    ? $babysitterName
+                    : $parentName;
+            }
+        }
+
         return Inertia::render('reservation/Show', [
             'reservation' => $reservation,
+            'ratings' => $ratingsPayload,
         ]);
     }
 

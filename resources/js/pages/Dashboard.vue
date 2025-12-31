@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { type BreadcrumbItem, type Stats, type User } from '@/types';
+import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -11,13 +11,72 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const welcome = {
-    name: 'Charlie',
-    title: 'Welcome Back',
-    summary: "Here is a quick look at your store's performance today. Stay on top of your sales, orders, and customers.",
-    monthlySales: '$25.56k',
-    growth: '5.2%',
-};
+type KpiFormat = 'currency' | 'number';
+
+interface DashboardKpi {
+    key: string;
+    label: string;
+    value: number;
+    format: KpiFormat;
+    change_pct: number | null;
+    period: string;
+}
+
+interface DashboardPayload {
+    role: string;
+    stats: Stats;
+    kpis: DashboardKpi[];
+}
+
+interface AuthPayload {
+    user?: User | null;
+}
+
+const page = usePage();
+const dashboard = computed(() => page.props.dashboard as DashboardPayload | undefined);
+const auth = computed(() => page.props.auth as AuthPayload | undefined);
+
+const role = computed(() => dashboard.value?.role ?? 'Parent');
+const userName = computed(() => {
+    const name = auth.value?.user?.name ?? 'there';
+    const first = name.trim().split(' ')[0];
+    return first || 'there';
+});
+
+const stats = computed(() => dashboard.value?.stats);
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+});
+const numberFormatter = new Intl.NumberFormat('en-US');
+const percentFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1, signDisplay: 'exceptZero' });
+
+const formatCurrency = (value: number | null | undefined) => currencyFormatter.format(Number(value ?? 0));
+const formatNumber = (value: number | null | undefined) => numberFormatter.format(Number(value ?? 0));
+const formatPercent = (value: number | null | undefined) =>
+    value === null || value === undefined ? '' : `${percentFormatter.format(value)}%`;
+
+const welcomeTitle = 'Welcome Back';
+const welcomeSummary =
+    "Here is a quick look at your store's performance today. Stay on top of your sales, orders, and customers.";
+
+const monthlyLabel = computed(() => {
+    if (role.value === 'Babysitter') {
+        return 'Monthly Earnings';
+    }
+    if (role.value === 'Admin') {
+        return 'Monthly Revenue';
+    }
+    return 'Monthly Spend';
+});
+
+const monthlyValue = computed(() => formatCurrency(stats.value?.current_month_revenue ?? 0));
+const monthlyChange = computed(() => stats.value?.revenue_change_pct ?? null);
+const monthlyChangeLabel = computed(() =>
+    monthlyChange.value === null ? null : formatPercent(monthlyChange.value)
+);
+const monthlyTrendUp = computed(() => (monthlyChange.value ?? 0) >= 0);
 
 const monthlyBars = [
     { label: 'Jan', value: 3.4 },
@@ -36,44 +95,173 @@ const monthlyBars = [
 
 const maxMonthly = Math.max(...monthlyBars.map((bar) => bar.value));
 
-const kpis = [
-    {
-        title: 'Total Sales',
-        value: '$17,353',
-        change: '8.5%',
-        trend: 'up',
-        period: 'vs last week',
-        icon: 'TS',
-        iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
-    },
-    {
-        title: 'Revenue',
-        value: '$1,192',
-        change: '5.7%',
-        trend: 'up',
-        period: 'vs last week',
-        icon: 'RV',
-        iconClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
-    },
-    {
-        title: 'Total Orders',
-        value: '604',
-        change: '2.1%',
-        trend: 'down',
-        period: 'vs last week',
-        icon: 'TO',
-        iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
-    },
-    {
-        title: 'New Customers',
-        value: '154',
-        change: '12%',
-        trend: 'up',
-        period: 'vs last week',
-        icon: 'NC',
-        iconClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
-    },
-];
+const kpiToneClasses = {
+    emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
+    sky: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
+    amber: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+    rose: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
+    lime: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
+    cyan: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-200',
+    slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+};
+
+const kpiMeta: Record<string, { icon: string; tone: keyof typeof kpiToneClasses }> = {
+    total_revenue: { icon: 'TR', tone: 'emerald' },
+    total_reservations: { icon: 'RS', tone: 'sky' },
+    total_spend: { icon: 'SP', tone: 'emerald' },
+    total_jobs: { icon: 'JB', tone: 'sky' },
+    total_earnings: { icon: 'ER', tone: 'emerald' },
+    upcoming_reservations: { icon: 'UP', tone: 'amber' },
+    upcoming_jobs: { icon: 'UP', tone: 'amber' },
+    canceled_reservations: { icon: 'CN', tone: 'rose' },
+    canceled_jobs: { icon: 'CN', tone: 'rose' },
+    active_babysitters: { icon: 'BS', tone: 'lime' },
+    active_parents: { icon: 'PR', tone: 'cyan' },
+};
+
+const fallbackKpis = computed<DashboardKpi[]>(() => {
+    const totalCount = stats.value?.total_count ?? 0;
+    const totalRevenue = stats.value?.total_revenue ?? 0;
+    const countChange = stats.value?.count_change_pct ?? null;
+    const revenueChange = stats.value?.revenue_change_pct ?? null;
+    const canceledCount = stats.value?.total_canceled_count ?? 0;
+
+    if (role.value === 'Admin') {
+        return [
+            {
+                key: 'total_revenue',
+                label: 'Total Revenue',
+                value: totalRevenue,
+                format: 'currency',
+                change_pct: revenueChange,
+                period: 'vs last month',
+            },
+            {
+                key: 'total_reservations',
+                label: 'Total Reservations',
+                value: totalCount,
+                format: 'number',
+                change_pct: countChange,
+                period: 'vs last month',
+            },
+            {
+                key: 'active_babysitters',
+                label: 'Active Babysitters',
+                value: 0,
+                format: 'number',
+                change_pct: null,
+                period: 'all time',
+            },
+            {
+                key: 'active_parents',
+                label: 'Active Parents',
+                value: 0,
+                format: 'number',
+                change_pct: null,
+                period: 'all time',
+            },
+        ];
+    }
+
+    if (role.value === 'Babysitter') {
+        return [
+            {
+                key: 'total_jobs',
+                label: 'Total Jobs',
+                value: totalCount,
+                format: 'number',
+                change_pct: countChange,
+                period: 'vs last month',
+            },
+            {
+                key: 'total_earnings',
+                label: 'Total Earnings',
+                value: totalRevenue,
+                format: 'currency',
+                change_pct: revenueChange,
+                period: 'vs last month',
+            },
+            {
+                key: 'upcoming_jobs',
+                label: 'Upcoming Jobs',
+                value: 0,
+                format: 'number',
+                change_pct: null,
+                period: 'scheduled',
+            },
+            {
+                key: 'canceled_jobs',
+                label: 'Canceled Jobs',
+                value: canceledCount,
+                format: 'number',
+                change_pct: null,
+                period: 'all time',
+            },
+        ];
+    }
+
+    return [
+        {
+            key: 'total_reservations',
+            label: 'Total Reservations',
+            value: totalCount,
+            format: 'number',
+            change_pct: countChange,
+            period: 'vs last month',
+        },
+        {
+            key: 'total_spend',
+            label: 'Total Spend',
+            value: totalRevenue,
+            format: 'currency',
+            change_pct: revenueChange,
+            period: 'vs last month',
+        },
+        {
+            key: 'upcoming_reservations',
+            label: 'Upcoming',
+            value: 0,
+            format: 'number',
+            change_pct: null,
+            period: 'scheduled',
+        },
+        {
+            key: 'canceled_reservations',
+            label: 'Canceled',
+            value: canceledCount,
+            format: 'number',
+            change_pct: null,
+            period: 'all time',
+        },
+    ];
+});
+
+const kpiCards = computed(() => {
+    const source = dashboard.value?.kpis;
+    const resolved = source && source.length ? source : fallbackKpis.value;
+
+    return resolved.map((kpi, index) => {
+        const meta = kpiMeta[kpi.key] ?? { icon: 'KP', tone: 'slate' };
+        const changeLabel = kpi.change_pct === null || kpi.change_pct === undefined
+            ? null
+            : formatPercent(kpi.change_pct);
+        const trend = kpi.change_pct === null || kpi.change_pct === undefined
+            ? 'neutral'
+            : kpi.change_pct >= 0
+                ? 'up'
+                : 'down';
+
+        return {
+            ...kpi,
+            icon: meta.icon,
+            iconClass: kpiToneClasses[meta.tone] ?? kpiToneClasses.slate,
+            changeLabel,
+            trend,
+            displayValue: kpi.format === 'currency' ? formatCurrency(kpi.value) : formatNumber(kpi.value),
+            delay: 200 + index * 70,
+        };
+    });
+});
 
 const platforms = [
     {
@@ -272,27 +460,36 @@ const orderTrendArea = computed(() => {
                         style="animation-delay: 0ms"
                     >
                         <div class="flex flex-col gap-2">
-                            <p class="text-sm font-medium text-muted-foreground">{{ welcome.title }}</p>
+                            <p class="text-sm font-medium text-muted-foreground">{{ welcomeTitle }}</p>
                             <h1 class="text-2xl font-semibold tracking-tight">
-                                {{ welcome.name }}!
+                                {{ userName }}!
                             </h1>
                             <p class="text-sm text-muted-foreground">
-                                {{ welcome.summary }}
+                                {{ welcomeSummary }}
                             </p>
                         </div>
 
                         <div class="mt-2 flex items-end justify-between gap-4">
                             <div>
-                                <p class="text-3xl font-semibold">{{ welcome.monthlySales }}</p>
+                                <p class="text-3xl font-semibold">{{ monthlyValue }}</p>
                                 <div class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                                    <span>Monthly Sales</span>
-                                    <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
-                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <span>{{ monthlyLabel }}</span>
+                                    <span
+                                        v-if="monthlyChangeLabel"
+                                        class="inline-flex items-center gap-1"
+                                        :class="monthlyTrendUp ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'"
+                                    >
+                                        <svg
+                                            class="h-4 w-4"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                            :class="monthlyTrendUp ? '' : 'rotate-180'"
+                                        >
                                             <path
                                                 d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z"
                                             />
                                         </svg>
-                                        {{ welcome.growth }}
+                                        {{ monthlyChangeLabel }}
                                     </span>
                                 </div>
                             </div>
@@ -409,15 +606,15 @@ const orderTrendArea = computed(() => {
 
                 <section class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div
-                        v-for="(kpi, index) in kpis"
-                        :key="kpi.title"
+                        v-for="kpi in kpiCards"
+                        :key="kpi.key"
                         class="dashboard-card flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-5 shadow-sm backdrop-blur"
-                        :style="{ animationDelay: `${200 + index * 70}ms` }"
+                        :style="{ animationDelay: `${kpi.delay}ms` }"
                     >
                         <div class="flex items-start justify-between">
                             <div>
-                                <p class="text-sm font-medium text-muted-foreground">{{ kpi.title }}</p>
-                                <p class="mt-3 text-2xl font-semibold">{{ kpi.value }}</p>
+                                <p class="text-sm font-medium text-muted-foreground">{{ kpi.label }}</p>
+                                <p class="mt-3 text-2xl font-semibold">{{ kpi.displayValue }}</p>
                             </div>
                             <div class="flex h-12 w-12 items-center justify-center rounded-2xl text-xs font-semibold" :class="kpi.iconClass">
                                 {{ kpi.icon }}
@@ -425,6 +622,7 @@ const orderTrendArea = computed(() => {
                         </div>
                         <div class="flex items-center gap-2 text-sm">
                             <span
+                                v-if="kpi.changeLabel"
                                 class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
                                 :class="kpi.trend === 'up'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
@@ -440,7 +638,7 @@ const orderTrendArea = computed(() => {
                                         d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z"
                                     />
                                 </svg>
-                                {{ kpi.change }}
+                                {{ kpi.changeLabel }}
                             </span>
                             <span class="text-xs text-muted-foreground">{{ kpi.period }}</span>
                         </div>

@@ -31,7 +31,7 @@ class Address extends Model
     ];
 
     /**
-     * Get the owning model (ParentProfile or BabysitterProfile).
+     * Get the owning model (User).
      *
      * @return MorphTo
      */

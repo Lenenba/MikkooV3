@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Head, usePage, Link } from '@inertiajs/vue3';
+import FloatingTextarea from '@/components/FloatingTextarea.vue';
+import { Head, usePage, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type SharedData, type BreadcrumbItem, type Reservation, type Details, type Services, type Babysitter, type Address } from '@/types';
+import { type SharedData, type BreadcrumbItem, type Reservation, type Details, type Services, type Babysitter, type Address, type RatingsPayload } from '@/types';
 import { Star } from 'lucide-vue-next';
 
 const page = usePage<SharedData>();
@@ -20,6 +21,11 @@ type ReservationShow = Reservation & {
 
 const reservation = computed<ReservationShow | null>(() => page.props.reservation ?? null);
 const reservationId = computed(() => reservation.value?.id ?? null);
+const ratings = computed<RatingsPayload | null>(() => page.props.ratings ?? null);
+const canRate = computed(() => ratings.value?.can_rate ?? false);
+const myRating = computed(() => ratings.value?.mine ?? null);
+const otherRating = computed(() => ratings.value?.other ?? null);
+const ratingTargetName = computed(() => ratings.value?.target_name ?? 'this user');
 const details = computed<Details | null>(() => {
     const raw = reservation.value?.details ?? null;
     return Array.isArray(raw) ? raw[0] ?? null : raw;
@@ -173,6 +179,25 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: `/reservations/${reservation.value?.id ?? ''}/show`,
     },
 ];
+
+const ratingStars = [1, 2, 3, 4, 5];
+const ratingHover = ref<number | null>(null);
+const ratingForm = useForm({
+    rating: myRating.value?.rating ?? 0,
+    comment: myRating.value?.comment ?? '',
+});
+
+const displayRating = computed(() => ratingHover.value ?? ratingForm.rating);
+const isStarActive = (value: number) => displayRating.value >= value;
+const submitRating = () => {
+    if (!reservationId.value) {
+        return;
+    }
+
+    ratingForm.post(route('reservations.ratings.store', { reservation: reservationId.value }), {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -282,15 +307,52 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <p class="text-xs text-gray-600 mb-1">Reservation heure de fin</p>
                                 <p class="text-xs text-gray-600 mb-1">{{ formatTime(details?.end_time) }}</p>
                             </div>
-                            <div class="text-xs text-gray-600 flex justify-between mt-2">
-                                <span>Rate :</span>
-                                <span class="flex space-x-1">
-                                    <Star class="h-4 w-4 text-yellow-400" />
-                                    <Star class="h-4 w-4 text-yellow-400" />
-                                    <Star class="h-4 w-4 text-yellow-400" />
-                                    <Star class="h-4 w-4 text-yellow-400" />
-                                    <Star class="h-4 w-4 text-yellow-400" />
-                                </span>
+                            <div v-if="canRate || myRating || otherRating" class="mt-3 border-t border-gray-100 pt-3">
+                                <div class="flex items-center justify-between text-xs text-gray-600">
+                                    <span>Rate {{ ratingTargetName }}:</span>
+                                    <div class="flex items-center gap-1">
+                                        <button
+                                            v-for="value in ratingStars"
+                                            :key="value"
+                                            type="button"
+                                            class="transition"
+                                            :disabled="!canRate || ratingForm.processing"
+                                            @mouseenter="ratingHover = value"
+                                            @mouseleave="ratingHover = null"
+                                            @click="ratingForm.rating = value"
+                                        >
+                                            <Star
+                                                class="h-4 w-4"
+                                                :class="isStarActive(value) ? 'text-amber-400' : 'text-gray-300'"
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div v-if="canRate" class="mt-3 space-y-2">
+                                    <FloatingTextarea
+                                        v-model="ratingForm.comment"
+                                        rows="2"
+                                        label="Note"
+                                    />
+                                    <div class="flex items-center justify-between">
+                                        <span v-if="ratingForm.errors.rating" class="text-xs text-red-600">
+                                            {{ ratingForm.errors.rating }}
+                                        </span>
+                                        <Button
+                                            size="sm"
+                                            class="ml-auto"
+                                            :disabled="ratingForm.processing || ratingForm.rating === 0"
+                                            @click="submitRating"
+                                        >
+                                            Submit rating
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div v-if="otherRating" class="mt-3 text-xs text-gray-500">
+                                    They rated you: {{ otherRating.rating }}/5
+                                </div>
                             </div>
                         </div>
                     </div>

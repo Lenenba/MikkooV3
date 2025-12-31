@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Address;
-use App\Models\ParentProfile;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,16 +25,97 @@ class AddressFactory extends Factory
      */
     public function definition(): array
     {
+        $locations = [
+            [
+                'country' => 'Canada',
+                'city' => 'Montreal',
+                'province' => 'QC',
+                'latitude' => 45.5017,
+                'longitude' => -73.5673,
+            ],
+            [
+                'country' => 'Canada',
+                'city' => 'Quebec',
+                'province' => 'QC',
+                'latitude' => 46.8139,
+                'longitude' => -71.2080,
+            ],
+            [
+                'country' => 'Canada',
+                'city' => 'Toronto',
+                'province' => 'ON',
+                'latitude' => 43.6532,
+                'longitude' => -79.3832,
+            ],
+            [
+                'country' => 'Canada',
+                'city' => 'Ottawa',
+                'province' => 'ON',
+                'latitude' => 45.4215,
+                'longitude' => -75.6972,
+            ],
+            [
+                'country' => 'Canada',
+                'city' => 'Vancouver',
+                'province' => 'BC',
+                'latitude' => 49.2827,
+                'longitude' => -123.1207,
+            ],
+            [
+                'country' => 'Canada',
+                'city' => 'Calgary',
+                'province' => 'AB',
+                'latitude' => 51.0447,
+                'longitude' => -114.0719,
+            ],
+            [
+                'country' => 'Switzerland',
+                'city' => 'Zurich',
+                'province' => 'ZH',
+                'latitude' => 47.3769,
+                'longitude' => 8.5417,
+            ],
+            [
+                'country' => 'Switzerland',
+                'city' => 'Geneva',
+                'province' => 'GE',
+                'latitude' => 46.2044,
+                'longitude' => 6.1432,
+            ],
+            [
+                'country' => 'Switzerland',
+                'city' => 'Lausanne',
+                'province' => 'VD',
+                'latitude' => 46.5197,
+                'longitude' => 6.6323,
+            ],
+            [
+                'country' => 'Switzerland',
+                'city' => 'Bern',
+                'province' => 'BE',
+                'latitude' => 46.9480,
+                'longitude' => 7.4474,
+            ],
+            [
+                'country' => 'Switzerland',
+                'city' => 'Basel',
+                'province' => 'BS',
+                'latitude' => 47.5596,
+                'longitude' => 7.5886,
+            ],
+        ];
+        $location = $this->faker->randomElement($locations);
+
         return [
-            'addressable_id'   => ParentProfile::factory(),          // Link to a ParentProfile by default
-            'addressable_type' => ParentProfile::class,             // Polymorphic type
+            'addressable_id'   => User::factory(),
+            'addressable_type' => User::class,
             'street'           => $this->faker->streetAddress(),
-            'city'             => $this->faker->city(),
-            'province'         => $this->faker->stateAbbr(),
+            'city'             => $location['city'],
+            'province'         => $location['province'],
             'postal_code'      => $this->faker->postcode(),
-            'country'          => $this->faker->country(),
-            'latitude'         => $this->faker->latitude(),
-            'longitude'        => $this->faker->longitude(),
+            'country'          => $location['country'],
+            'latitude'         => $location['latitude'] + $this->faker->randomFloat(4, -0.05, 0.05),
+            'longitude'        => $location['longitude'] + $this->faker->randomFloat(4, -0.05, 0.05),
         ];
     }
 }

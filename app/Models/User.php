@@ -139,6 +139,26 @@ class User extends Authenticatable
     {
         return $this->hasMany(Reservation::class, 'parent_id');
     }
+
+    /**
+     * Ratings received by this user.
+     *
+     * @return HasMany
+     */
+    public function receivedRatings(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'reviewee_id');
+    }
+
+    /**
+     * Ratings authored by this user.
+     *
+     * @return HasMany
+     */
+    public function givenRatings(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'reviewer_id');
+    }
     /**
      * All media in the 'garde' collection (photos/vidéos de gardes effectuées).
      *
@@ -193,17 +213,83 @@ class User extends Authenticatable
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
-        return $query->when($filters['name'] ?? null, function (Builder $q, string $searchTerm) {
-            $q->where(function (Builder $subQuery) use ($searchTerm) {
-                // Filtrer par le nom de l'utilisateur
-                $subQuery->where('name', 'like', '%' . $searchTerm . '%')
-                    // OU filtrer par le prénom ou le nom de famille sur le profil lié
-                    ->orWhereHas('babysitterProfile', function (Builder $profileQuery) use ($searchTerm) {
-                        $profileQuery->where('first_name', 'like', '%' . $searchTerm . '%')
-                            ->orWhere('last_name', 'like', '%' . $searchTerm . '%');
+        $hasValue = static fn($value) => $value !== null && $value !== '';
+
+        if ($hasValue($filters['name'] ?? null)) {
+            $searchTerm = $filters['name'];
+            $query->where(function (Builder $subQuery) use ($searchTerm) {
+                $like = '%' . $searchTerm . '%';
+                $subQuery->where('name', 'like', $like)
+                    ->orWhereHas('babysitterProfile', function (Builder $profileQuery) use ($like) {
+                        $profileQuery->where('first_name', 'like', $like)
+                            ->orWhere('last_name', 'like', $like);
+                    })
+                    ->orWhereHas('address', function (Builder $addressQuery) use ($like) {
+                        $addressQuery->where('city', 'like', $like)
+                            ->orWhere('country', 'like', $like)
+                            ->orWhere('province', 'like', $like);
                     });
             });
-        });
+        }
+
+        if ($hasValue($filters['city'] ?? null)) {
+            $city = $filters['city'];
+            $query->where(function (Builder $subQuery) use ($city) {
+                $subQuery->whereHas('address', function (Builder $addressQuery) use ($city) {
+                    $addressQuery->where('city', 'like', '%' . $city . '%');
+                });
+            });
+        }
+
+        if ($hasValue($filters['country'] ?? null)) {
+            $country = $filters['country'];
+            $query->where(function (Builder $subQuery) use ($country) {
+                $subQuery->whereHas('address', function (Builder $addressQuery) use ($country) {
+                    $addressQuery->where('country', 'like', '%' . $country . '%');
+                });
+            });
+        }
+
+        if ($hasValue($filters['min_price'] ?? null)) {
+            $minPrice = (float) $filters['min_price'];
+            $query->whereHas('babysitterProfile', function (Builder $profileQuery) use ($minPrice) {
+                $profileQuery->where('price_per_hour', '>=', $minPrice);
+            });
+        }
+
+        if ($hasValue($filters['max_price'] ?? null)) {
+            $maxPrice = (float) $filters['max_price'];
+            $query->whereHas('babysitterProfile', function (Builder $profileQuery) use ($maxPrice) {
+                $profileQuery->where('price_per_hour', '<=', $maxPrice);
+            });
+        }
+
+        if ($hasValue($filters['payment_frequency'] ?? null)) {
+            $frequency = $filters['payment_frequency'];
+            $query->whereHas('babysitterProfile', function (Builder $profileQuery) use ($frequency) {
+                $profileQuery->where('payment_frequency', $frequency);
+            });
+        }
+
+        if ($hasValue($filters['min_rating'] ?? null)) {
+            $minRating = (float) $filters['min_rating'];
+            $query->havingRaw('rating_avg >= ?', [$minRating]);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope a query to include rating summary columns.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithRatingSummary(Builder $query): Builder
+    {
+        return $query
+            ->withAvg('receivedRatings as rating_avg', 'rating')
+            ->withCount('receivedRatings as rating_count');
     }
 
     /**

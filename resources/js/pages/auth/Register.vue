@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
+import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
@@ -29,41 +28,54 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input id="name" type="text" required autofocus :tabindex="1" autocomplete="name" v-model="form.name" placeholder="Full name" />
+                    <FloatingInput
+                        id="name"
+                        label="Name"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="1"
+                        autocomplete="name"
+                        v-model="form.name"
+                    />
                     <InputError :message="form.errors.name" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input id="email" type="email" required :tabindex="2" autocomplete="email" v-model="form.email" placeholder="email@example.com" />
+                    <FloatingInput
+                        id="email"
+                        label="Email address"
+                        type="email"
+                        required
+                        :tabindex="2"
+                        autocomplete="email"
+                        v-model="form.email"
+                    />
                     <InputError :message="form.errors.email" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password">Password</Label>
-                    <Input
+                    <FloatingInput
                         id="password"
+                        label="Password"
                         type="password"
                         required
                         :tabindex="3"
                         autocomplete="new-password"
                         v-model="form.password"
-                        placeholder="Password"
                     />
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation">Confirm password</Label>
-                    <Input
+                    <FloatingInput
                         id="password_confirmation"
+                        label="Confirm password"
                         type="password"
                         required
                         :tabindex="4"
                         autocomplete="new-password"
                         v-model="form.password_confirmation"
-                        placeholder="Confirm password"
                     />
                     <InputError :message="form.errors.password_confirmation" />
                 </div>

@@ -33,6 +33,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+        if ($user && ! $user->address()->exists()) {
+            return redirect()->route('onboarding.index', ['step' => 2]);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

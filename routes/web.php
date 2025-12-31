@@ -2,24 +2,52 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\ReservationRatingController;
 use App\Http\Controllers\ServicesSearchController;
 use App\Http\Controllers\SearchBabysitterController;
+use App\Http\Controllers\AddressOnboardingController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
+use App\Http\Middleware\EnsureUserHasAddress;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)
+    ->middleware(['auth', 'verified', EnsureUserHasAddress::class])
+    ->name('dashboard');
+
+Route::get('/onboarding', [OnboardingController::class, 'index'])
+    ->name('onboarding.index');
+
+Route::post('/onboarding/profile', [OnboardingController::class, 'storeProfile'])
+    ->middleware('auth')
+    ->name('onboarding.profile.store');
+
+Route::post('/onboarding/availability', [OnboardingController::class, 'storeAvailability'])
+    ->middleware('auth')
+    ->name('onboarding.availability.store');
+
+Route::post('/onboarding/finish', [OnboardingController::class, 'finish'])
+    ->middleware('auth')
+    ->name('onboarding.finish');
 
 
 
-Route::middleware('auth')->group(
+Route::middleware(['auth', EnsureUserHasAddress::class])->group(
     function () {
+        Route::get('/onboarding/address', [AddressOnboardingController::class, 'show'])
+            ->name('onboarding.address');
+        Route::get('/onboarding/address/search', [AddressOnboardingController::class, 'search'])
+            ->middleware('throttle:30,1')
+            ->name('onboarding.address.search');
+        Route::post('/onboarding/address', [AddressOnboardingController::class, 'store'])
+            ->name('onboarding.address.store');
+
         Route::get('/search', SearchBabysitterController::class)
             ->name('search.babysitter');
         Route::get('/reservations', [ReservationController::class, 'index'])
@@ -28,6 +56,8 @@ Route::middleware('auth')->group(
             ->name('reservations.store');
         Route::get('/reservations/{id}/show', [ReservationController::class, 'show'])
             ->name('reservations.show');
+        Route::post('/reservations/{reservation}/ratings', [ReservationRatingController::class, 'store'])
+            ->name('reservations.ratings.store');
 
         Route::post('/reservations/{reservationId}/accept', AcceptReservationController::class)
             ->name('reservations.accept');

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
@@ -37,36 +36,39 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" type="email" name="email" autocomplete="email" v-model="form.email" class="mt-1 block w-full" readonly />
+                    <FloatingInput
+                        id="email"
+                        label="Email"
+                        type="email"
+                        name="email"
+                        autocomplete="email"
+                        v-model="form.email"
+                        readonly
+                    />
                     <InputError :message="form.errors.email" class="mt-2" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password">Password</Label>
-                    <Input
+                    <FloatingInput
                         id="password"
+                        label="Password"
                         type="password"
                         name="password"
                         autocomplete="new-password"
                         v-model="form.password"
-                        class="mt-1 block w-full"
                         autofocus
-                        placeholder="Password"
                     />
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation"> Confirm Password </Label>
-                    <Input
+                    <FloatingInput
                         id="password_confirmation"
+                        label="Confirm Password"
                         type="password"
                         name="password_confirmation"
                         autocomplete="new-password"
                         v-model="form.password_confirmation"
-                        class="mt-1 block w-full"
-                        placeholder="Confirm password"
                     />
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
