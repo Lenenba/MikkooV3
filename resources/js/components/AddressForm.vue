@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 import FloatingInput from '@/components/FloatingInput.vue'
 
@@ -12,6 +12,10 @@ interface Address {
     country?: string
     latitude?: number
     longitude?: number
+}
+
+interface AddressSuggestion extends Address {
+    display_name?: string
 }
 
 const props = withDefaults(defineProps<{
@@ -29,10 +33,42 @@ const address = reactive<Address>({
     ...props.modelValue
 })
 
+const MIN_QUERY_LENGTH = 3
+const DEBOUNCE_MS = 300
+
 // Query for autocomplete
 const query = ref(address.street || '')
-const suggestions = ref<any[]>([])
-const showSuggestions = ref(false)
+const suggestions = ref<AddressSuggestion[]>([])
+const isLoading = ref(false)
+const hasSearched = ref(false)
+const hasError = ref(false)
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+let activeController: AbortController | null = null
+let activeRequestId = 0
+let suppressNextQuery = false
+
+const showSuggestions = computed(() => {
+    const trimmed = query.value.trim()
+    if (trimmed.length < MIN_QUERY_LENGTH) {
+        return false
+    }
+    return isLoading.value || hasSearched.value || suggestions.value.length > 0
+})
+
+const abortActiveRequest = () => {
+    if (activeController) {
+        activeController.abort()
+        activeController = null
+    }
+}
+
+const resetSuggestions = () => {
+    suggestions.value = []
+    hasSearched.value = false
+    hasError.value = false
+    isLoading.value = false
+}
 
 // Watch for external changes to modelValue
 watch(
@@ -43,62 +79,92 @@ watch(
     }
 )
 
-const geoapifyKey = import.meta.env.VITE_GEOAPIFY_KEY
-
 // Watch query to fetch suggestions
 watch(
     query,
     async (q) => {
-        if (!q || q.length < 3) {
-            suggestions.value = []
-            showSuggestions.value = false
+        const trimmed = q?.trim() ?? ''
+
+        if (debounceTimer) {
+            clearTimeout(debounceTimer)
+            debounceTimer = null
+        }
+
+        if (suppressNextQuery) {
+            suppressNextQuery = false
             return
         }
-        if (!geoapifyKey) {
-            suggestions.value = []
-            showSuggestions.value = false
+
+        if (trimmed.length < MIN_QUERY_LENGTH) {
+            abortActiveRequest()
+            resetSuggestions()
             return
         }
-        try {
-            const { data } = await axios.get('https://api.geoapify.com/v1/geocode/autocomplete', {
-                params: {
-                    text: q,
-                    apiKey: geoapifyKey,
-                    limit: 6,
-                    lang: 'fr',
+
+        debounceTimer = setTimeout(async () => {
+            const requestId = ++activeRequestId
+            hasError.value = false
+            hasSearched.value = false
+            isLoading.value = true
+
+            abortActiveRequest()
+            const controller = new AbortController()
+            activeController = controller
+
+            try {
+                const { data } = await axios.get(route('onboarding.address.search'), {
+                    params: {
+                        query: trimmed,
+                    },
+                    signal: controller.signal,
+                })
+                if (requestId !== activeRequestId) {
+                    return
                 }
-            })
-            suggestions.value = data?.features ?? []
-            showSuggestions.value = true
-        } catch {
-            suggestions.value = []
-            showSuggestions.value = false
-        }
+                suggestions.value = data?.results ?? []
+            } catch (error: any) {
+                if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError' || error?.name === 'AbortError') {
+                    return
+                }
+                if (requestId !== activeRequestId) {
+                    return
+                }
+                suggestions.value = []
+                hasError.value = true
+            } finally {
+                if (requestId === activeRequestId) {
+                    isLoading.value = false
+                    hasSearched.value = true
+                }
+            }
+        }, DEBOUNCE_MS)
     }
 )
 
 // When a suggestion is selected
-function selectSuggestion(item: any) {
-    const props = item?.properties ?? {}
-    const street = [props.housenumber, props.street].filter(Boolean).join(' ').trim()
-    address.street = street || props.address_line1 || props.formatted || ''
-    address.city = props.city || props.town || props.village || ''
-    address.province = props.state || props.region || ''
-    address.postal_code = props.postcode || ''
-    address.country = props.country || ''
-    address.latitude = typeof props.lat === 'number'
-        ? props.lat
-        : item?.geometry?.coordinates?.[1]
-    address.longitude = typeof props.lon === 'number'
-        ? props.lon
-        : item?.geometry?.coordinates?.[0]
+function selectSuggestion(item: AddressSuggestion) {
+    suppressNextQuery = true
+    abortActiveRequest()
+    resetSuggestions()
 
-    query.value = address.street || props.formatted || ''
-    suggestions.value = []
-    showSuggestions.value = false
+    address.street = item.street ?? ''
+    address.city = item.city ?? ''
+    address.province = item.province ?? ''
+    address.postal_code = item.postal_code ?? ''
+    address.country = item.country ?? ''
+    address.latitude = typeof item.latitude === 'number' ? item.latitude : undefined
+    address.longitude = typeof item.longitude === 'number' ? item.longitude : undefined
 
+    query.value = item.display_name || address.street || ''
     emit('update:modelValue', { ...address })
 }
+
+onBeforeUnmount(() => {
+    if (debounceTimer) {
+        clearTimeout(debounceTimer)
+    }
+    abortActiveRequest()
+})
 </script>
 
 <template>
@@ -111,12 +177,29 @@ function selectSuggestion(item: any) {
             type="text"
             autocomplete="off"
         />
-        <ul v-if="showSuggestions"
-            class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg max-h-60 overflow-auto">
-            <li v-for="(item, index) in suggestions" :key="index" @click="selectSuggestion(item)"
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer truncate">
-                {{ item.display_name }}
+        <ul
+            v-if="showSuggestions"
+            class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg max-h-60 overflow-auto"
+        >
+            <li v-if="isLoading" class="px-4 py-2 text-sm text-gray-500">
+                Recherche en cours...
             </li>
+            <li v-else-if="hasError" class="px-4 py-2 text-sm text-red-500">
+                Erreur de recherche. Reessaie.
+            </li>
+            <li v-else-if="!suggestions.length" class="px-4 py-2 text-sm text-gray-500">
+                Aucun resultat.
+            </li>
+            <template v-else>
+                <li
+                    v-for="(item, index) in suggestions"
+                    :key="index"
+                    @click="selectSuggestion(item)"
+                    class="px-4 py-2 hover:bg-gray-100 cursor-pointer truncate"
+                >
+                    {{ item.display_name || [item.street, item.city, item.country].filter(Boolean).join(', ') || 'Address' }}
+                </li>
+            </template>
         </ul>
 
         <!-- Address fields auto-filled -->

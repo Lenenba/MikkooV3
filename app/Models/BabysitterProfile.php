@@ -28,6 +28,10 @@ class BabysitterProfile extends Model
         'updated_at',
     ];
 
+    protected $casts = [
+        'settings' => 'array',
+    ];
+
     /**
      * One-to-one polymorphic relation to address.
      *

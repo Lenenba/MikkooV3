@@ -79,10 +79,43 @@ class OnboardingController extends Controller
         } else {
             $profile = $user->parentProfile()->firstOrCreate([], $this->profileNameDefaults($user));
             $settings = $profile->settings ?? [];
-            foreach (['children_count', 'children_ages', 'preferences'] as $key) {
-                if (array_key_exists($key, $payload)) {
-                    $settings[$key] = $payload[$key];
-                }
+            if (array_key_exists('children', $payload)) {
+                $children = collect($payload['children'])
+                    ->map(function (array $child) {
+                        $name = trim((string) ($child['name'] ?? ''));
+                        $age = $child['age'] ?? null;
+                        $allergies = trim((string) ($child['allergies'] ?? ''));
+                        $details = trim((string) ($child['details'] ?? ''));
+                        $photo = $child['photo'] ?? null;
+
+                        return [
+                            'name' => $name !== '' ? $name : null,
+                            'age' => is_numeric($age) ? (int) $age : null,
+                            'allergies' => $allergies !== '' ? $allergies : null,
+                            'details' => $details !== '' ? $details : null,
+                            'photo' => is_string($photo) && $photo !== '' ? $photo : null,
+                        ];
+                    })
+                    ->filter(function (array $child) {
+                        return $child['name'] !== null
+                            || $child['age'] !== null
+                            || $child['allergies'] !== null
+                            || $child['details'] !== null
+                            || $child['photo'] !== null;
+                    })
+                    ->values();
+
+                $settings['children'] = $children->all();
+                $settings['children_count'] = $children->count();
+                $settings['children_ages'] = $children
+                    ->pluck('age')
+                    ->filter(fn ($age) => $age !== null)
+                    ->map(fn ($age) => (string) $age)
+                    ->implode(', ');
+            }
+
+            if (array_key_exists('preferences', $payload)) {
+                $settings['preferences'] = $payload['preferences'];
             }
             $profile->settings = $settings;
             $profile->save();

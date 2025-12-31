@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import type { Preview } from '@/types';
 
@@ -7,7 +7,18 @@ import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
 import { XIcon, PlusIcon } from 'lucide-vue-next';
 
-const MAX_PHOTOS = 5;
+const props = withDefaults(defineProps<{
+    collectionName?: string;
+    collectionLabel?: string;
+    hideCollectionInput?: boolean;
+    maxPhotos?: number;
+}>(), {
+    collectionName: '',
+    collectionLabel: 'Collection name',
+    hideCollectionInput: false,
+    maxPhotos: 5,
+});
+
 const MIN_WIDTH = 500;
 const MIN_HEIGHT = 500;
 const MAX_FILE_SIZE_MB = 5;
@@ -19,9 +30,25 @@ const mediaPreviews = ref<Preview[]>([]);
 const clientSideErrors = ref<string[]>([]);
 
 const inertiaForm = useForm({
-    collection_name: '',
+    collection_name: props.collectionName ?? '',
     images: [] as File[],
 });
+
+const resolvedMaxPhotos = computed(() => {
+    const value = Number(props.maxPhotos);
+    return Number.isFinite(value) && value > 0 ? value : 5;
+});
+
+const collectionLabel = computed(() => props.collectionLabel || 'Collection name');
+
+watch(
+    () => props.collectionName,
+    (value) => {
+        if (value) {
+            inertiaForm.collection_name = value;
+        }
+    }
+);
 
 const validateImageDimensions = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -48,8 +75,8 @@ const onFileChange = async (event: Event) => {
     const newPreviewsToAdd: Preview[] = [];
 
     for (const file of Array.from(files)) {
-        if (mediaPreviews.value.length + newPreviewsToAdd.length >= MAX_PHOTOS) {
-            currentClientErrors.push(`You can only upload up to ${MAX_PHOTOS} photos.`);
+        if (mediaPreviews.value.length + newPreviewsToAdd.length >= resolvedMaxPhotos.value) {
+            currentClientErrors.push(`You can only upload up to ${resolvedMaxPhotos.value} photos.`);
             break;
         }
         if (!file.type.startsWith('image/')) {
@@ -92,6 +119,9 @@ const resetAllClientState = () => {
     mediaPreviews.value = [];
     clientSideErrors.value = [];
     inertiaForm.reset();
+    if (props.collectionName) {
+        inertiaForm.collection_name = props.collectionName;
+    }
     if (fileInputRef.value) {
         fileInputRef.value.value = '';
     }
@@ -129,10 +159,10 @@ onUnmounted(() => {
         <h2 class="text-lg font-semibold text-gray-900 dark:text-neutral-200">
             Upload Media
         </h2>
-        <div class="grid w-full max-w-sm items-center gap-1.5">
+        <div v-if="!props.hideCollectionInput" class="grid w-full max-w-sm items-center gap-1.5">
             <FloatingInput
                 id="collection_name"
-                label="Collection name"
+                :label="collectionLabel"
                 name="collection_name"
                 type="text"
                 v-model="inertiaForm.collection_name"
@@ -144,17 +174,16 @@ onUnmounted(() => {
         </div>
 
         <div>
-            <Label class="block mb-2 text-sm font-medium text-gray-800 dark:text-neutral-200">
-                Add photos (max {{ MAX_PHOTOS }}, {{ MIN_WIDTH }}x{{ MIN_HEIGHT }}px min, {{ MAX_FILE_SIZE_MB }}MB max
-                per image)
-            </Label>
+            <p class="block mb-2 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                Add photos (max {{ resolvedMaxPhotos }}, {{ MIN_WIDTH }}x{{ MIN_HEIGHT }}px min, {{ MAX_FILE_SIZE_MB }}MB max per image)
+            </p>
             <div class="flex flex-wrap gap-2">
                 <label for="media-file-input"
                     :class="['flex shrink-0 justify-center items-center w-32 h-32 border-2 border-dotted border-gray-300 rounded-xl text-gray-400 cursor-pointer hover:bg-gray-50 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-700/20',
-                        { 'opacity-50 cursor-not-allowed': mediaPreviews.length >= MAX_PHOTOS || inertiaForm.processing }]">
+                        { 'opacity-50 cursor-not-allowed': mediaPreviews.length >= resolvedMaxPhotos || inertiaForm.processing }]">
                     <input ref="fileInputRef" id="media-file-input" type="file" accept="image/*" multiple class="hidden"
                         @change="onFileChange"
-                        :disabled="mediaPreviews.length >= MAX_PHOTOS || inertiaForm.processing" />
+                        :disabled="mediaPreviews.length >= resolvedMaxPhotos || inertiaForm.processing" />
                     <PlusIcon class="w-6 h-6" />
                 </label>
 

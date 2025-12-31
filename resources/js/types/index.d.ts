@@ -130,6 +130,7 @@ export interface BabysitterProfile {
     price_per_hour: number;
     user_id: User['id'];
     payment_frequency: string;
+    settings?: Record<string, unknown> | null;
 }
 
 export interface Address {
@@ -163,6 +164,7 @@ export interface ParentProfile {
     phone: string;
     birthdate: string;
     user_id: User['id'];
+    settings?: Record<string, unknown> | null;
 }
 export interface User {
     id: number;

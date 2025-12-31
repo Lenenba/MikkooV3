@@ -101,7 +101,7 @@ const hasValue = computed(() => model.value !== '' && model.value !== null && mo
 const isFloating = computed(() => isFocused.value || hasValue.value);
 
 const selectClasses = computed(() => [
-    'peer p-4 pe-9 block w-full border-stone-200 rounded-sm text-sm focus:border-green-600 focus:ring-green-600 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:ring-neutral-600',
+    'peer p-4 pe-9 block w-full border-stone-200 border rounded-sm text-sm focus:border-green-600 focus:ring-green-600 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:ring-neutral-600',
     isFloating.value ? 'pt-6 pb-2' : '',
 ]);
 
@@ -124,25 +124,13 @@ defineExpose({ focus: () => input.value.focus() });
 <template>
     <!-- Floating Select -->
     <div class="relative">
-        <select
-            :id="selectId"
-            v-model="model"
-            ref="input"
-            v-bind="attrs"
-            :class="selectClasses"
-            @focus="isFocused = true"
-            @blur="isFocused = false"
-        >
+        <select :id="selectId" v-model="model" ref="input" v-bind="attrs" :class="selectClasses" :required="required"
+            @focus="isFocused = true" @blur="isFocused = false">
             <option v-if="placeholder" value="" :disabled="required">
                 {{ placeholder }}
             </option>
-            <option
-                v-for="option in resolvedOptions"
-                :key="option.value"
-                class="rounded-sm"
-                :value="option.value"
-                :disabled="option.disabled"
-            >
+            <option v-for="option in resolvedOptions" :key="option.value" class="rounded-sm" :value="option.value"
+                :disabled="option.disabled">
                 {{ option.label }}
             </option>
         </select>

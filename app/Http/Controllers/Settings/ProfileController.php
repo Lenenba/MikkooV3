@@ -18,9 +18,27 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+
+        $role = null;
+        $parentProfile = null;
+        $babysitterProfile = null;
+        $address = null;
+
+        if ($user) {
+            $role = $user->isBabysitter() ? 'babysitter' : 'parent';
+            $parentProfile = $user->isParent() ? $user->parentProfile : null;
+            $babysitterProfile = $user->isBabysitter() ? $user->babysitterProfile : null;
+            $address = $user->address;
+        }
+
         return Inertia::render('settings/Profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'role' => $role,
+            'parentProfile' => $parentProfile,
+            'babysitterProfile' => $babysitterProfile,
+            'address' => $address,
         ]);
     }
 

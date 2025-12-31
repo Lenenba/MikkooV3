@@ -1,7 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 
-// Props pour recevoir un label
 const props = defineProps({
     label: {
         type: String,
@@ -17,33 +16,29 @@ const props = defineProps({
     },
 });
 
-// Modèle réactif pour la valeur de l'entrée
 const model = defineModel({
     type: [Number, String],
     required: true,
 });
 
-// Référence pour l'élément input
 const input = ref(null);
 
-// Méthodes pour gérer l'incrémentation et la décrémentation
 const toNumber = (value) => {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
 };
 
 const increment = () => {
-    model.value = toNumber(model.value) + 1; // Incr‚mente la valeur
+    model.value = toNumber(model.value) + 1;
 };
 
 const decrement = () => {
     const currentValue = toNumber(model.value);
     if (currentValue > 0) {
-        model.value = currentValue - 1; // D‚cr‚mente uniquement si la valeur est sup‚rieure … 0
+        model.value = currentValue - 1;
     }
 };
 
-// Exposer la méthode focus pour accéder à l'élément input
 defineExpose({ focus: () => input.value.focus() });
 </script>
 
@@ -69,7 +64,7 @@ defineExpose({ focus: () => input.value.focus() });
                 <button type="button" @click="decrement"
                     class="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-full border border-stone-200 bg-white text-stone-800 shadow-sm hover:bg-stone-50 focus:outline-none focus:bg-stone-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                     tabindex="-1" aria-label="Decrease">
-                    <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    <svg class="shrink-0 size-3.5" xmlns="http:
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M5 12h14"></path>
@@ -80,7 +75,7 @@ defineExpose({ focus: () => input.value.focus() });
                 <button type="button" @click="increment"
                     class="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-full border border-stone-200 bg-white text-stone-800 shadow-sm hover:bg-stone-50 focus:outline-none focus:bg-stone-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                     tabindex="-1" aria-label="Increase">
-                    <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    <svg class="shrink-0 size-3.5" xmlns="http:
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M5 12h14"></path>

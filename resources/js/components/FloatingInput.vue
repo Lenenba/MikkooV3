@@ -85,7 +85,7 @@ defineExpose({ focus: () => input.value?.focus() });
 
 <template>
     <div class="relative">
-        <input :id="inputId" v-model="value" ref="input" v-bind="attrs" :type="type" :disabled="disabled"
+        <input :id="inputId" v-model="value" ref="input" v-bind="attrs" :type="type" :required="required" :disabled="disabled"
             :readonly="readonly" :autocomplete="resolvedAutocomplete" class="peer p-4 block w-full border-stone-200 rounded-sm text-sm placeholder-transparent focus:border-green-600 focus:ring-green-600 disabled:opacity-50 border disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:ring-neutral-600
                 focus:pt-6
                 focus:pb-2
