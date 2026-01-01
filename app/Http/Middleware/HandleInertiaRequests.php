@@ -48,7 +48,10 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
-                'profilPicture' =>  $this->convertToWebp($user?->media()->isProfilePicture()->first()->file_path ?? ''),
+                'profilPicture' => $this->convertToWebp(
+                    $user?->media()->isProfilePicture()->first()->file_path
+                        ?? ($user ? ($user->isBabysitter() ? 'bbsiter.png' : 'parent.png') : '')
+                ),
                 'role' => $user?->isBabysitter() ? 'Babysitter' : 'Parent',
             ],
             'flash' => [

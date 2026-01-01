@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Announcement;
 use App\Models\Service;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 
@@ -71,6 +72,19 @@ class AnnouncementSeeder extends Seeder
             $childAge = Arr::random($childAges);
             $childNote = $randomBool(70) ? Arr::random($childNotes) : null;
             $description = $randomBool(85) ? Arr::random($descriptions) : null;
+            $startDate = Carbon::now()->addDays(rand(1, 21))->toDateString();
+            $startHour = rand(7, 18);
+            $durationHours = rand(2, 4);
+            $startTime = sprintf('%02d:00', $startHour);
+            $endTime = sprintf('%02d:00', min(22, $startHour + $durationHours));
+            $isRecurring = $randomBool(30);
+            $scheduleType = $isRecurring ? 'recurring' : 'single';
+            $recurrenceFrequency = $isRecurring ? 'weekly' : null;
+            $recurrenceInterval = $isRecurring ? 1 : null;
+            $recurrenceDays = $isRecurring ? [Carbon::parse($startDate)->isoWeekday()] : null;
+            $recurrenceEndDate = $isRecurring
+                ? Carbon::parse($startDate)->addWeeks(rand(3, 8))->toDateString()
+                : null;
 
             Announcement::create([
                 'parent_id' => $parent->id,
@@ -90,6 +104,15 @@ class AnnouncementSeeder extends Seeder
                 'child_age' => $childAge,
                 'child_notes' => $childNote,
                 'description' => $description,
+                'location' => $parent->address?->city,
+                'start_date' => $startDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'schedule_type' => $scheduleType,
+                'recurrence_frequency' => $recurrenceFrequency,
+                'recurrence_interval' => $recurrenceInterval,
+                'recurrence_days' => $recurrenceDays,
+                'recurrence_end_date' => $recurrenceEndDate,
                 'status' => $randomBool(75) ? 'open' : 'closed',
             ]);
 

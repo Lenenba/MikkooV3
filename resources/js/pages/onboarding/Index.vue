@@ -8,6 +8,7 @@ import AddressForm from '@/components/AddressForm.vue';
 import MediaUploadForm from '@/components/MediaUploadForm.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { CHILD_DEFAULT_PHOTOS, resolveChildPhoto } from '@/lib/childPhotos';
 
 const page = usePage();
 
@@ -199,6 +200,7 @@ const submitProfile = () => {
 const showChildForm = ref(profileForm.children.length === 0);
 const childDraft = ref(emptyChild());
 const childPhotoKey = ref(0);
+const childDefaultPhotos = CHILD_DEFAULT_PHOTOS;
 
 const hasChildContent = (child) => {
     if (child.photo) {
@@ -256,6 +258,10 @@ const setChildPhoto = (event: Event) => {
 const clearChildPhoto = () => {
     childDraft.value.photo = '';
     childPhotoKey.value += 1;
+};
+
+const selectDefaultChildPhoto = (photo: string) => {
+    childDraft.value.photo = photo;
 };
 
 const availabilityForm = useForm({
@@ -502,6 +508,27 @@ const goToStep = (step: number) => {
                                                 Remove photo
                                             </Button>
                                         </div>
+                                        <div class="mt-4 space-y-2">
+                                            <p class="text-sm font-medium text-foreground">Images par defaut</p>
+                                            <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                                                <button
+                                                    v-for="photo in childDefaultPhotos"
+                                                    :key="photo"
+                                                    type="button"
+                                                    class="group overflow-hidden rounded-sm border border-border transition"
+                                                    :class="childDraft.photo === photo
+                                                        ? 'ring-2 ring-primary/60'
+                                                        : 'hover:border-primary/60'"
+                                                    @click="selectDefaultChildPhoto(photo)"
+                                                >
+                                                    <img
+                                                        :src="photo"
+                                                        alt="Default child"
+                                                        class="h-16 w-full object-cover"
+                                                    />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mt-4 flex items-center justify-end gap-2">
@@ -516,21 +543,17 @@ const goToStep = (step: number) => {
                                     :key="index"
                                     class="rounded-sm border border-border p-4"
                                 >
-                                    <div class="flex items-start gap-3">
-                                        <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
-                                            <img
-                                                v-if="child.photo"
-                                                :src="child.photo"
-                                                alt="Child photo"
-                                                class="h-full w-full object-cover"
-                                            />
-                                            <div v-else class="flex h-full w-full items-center justify-center text-xs text-muted-foreground/70">
-                                                No photo
-                                            </div>
-                                        </div>
-                                        <div class="space-y-1 text-sm text-muted-foreground">
-                                            <p class="text-sm font-semibold text-foreground">
-                                                {{ child.name || `Child ${index + 1}` }}
+                                <div class="flex items-start gap-3">
+                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
+                                        <img
+                                            :src="resolveChildPhoto(child.photo, [child.name, child.age], index)"
+                                            alt="Child photo"
+                                            class="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div class="space-y-1 text-sm text-muted-foreground">
+                                        <p class="text-sm font-semibold text-foreground">
+                                            {{ child.name || `Child ${index + 1}` }}
                                             </p>
                                             <p>Age: {{ child.age || '-' }}</p>
                                             <p v-if="child.allergies">Allergies: {{ child.allergies }}</p>

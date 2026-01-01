@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type Announcement, type BreadcrumbItem, type Stats, type User } from '@/types';
+import { resolveChildPhoto } from '@/lib/childPhotos';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -82,10 +83,8 @@ const formatChildLabel = (announcement: Announcement) => {
     return parts.join(' · ');
 };
 
-const childInitial = (name?: string | null) => {
-    const value = (name ?? '').toString().trim();
-    return value ? value.charAt(0).toUpperCase() : '?';
-};
+const childPhotoUrl = (child: { photo?: string | null; name?: string | null; age?: string | number | null }, index: number) =>
+    resolveChildPhoto(child.photo, [child.name, child.age], index);
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -768,12 +767,10 @@ const orderTrendArea = computed(() => {
                                             >
                                                 <div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">
                                                     <img
-                                                        v-if="child.photo"
-                                                        :src="child.photo"
+                                                        :src="childPhotoUrl(child, index)"
                                                         :alt="child.name ?? 'Enfant'"
                                                         class="h-full w-full object-cover"
                                                     />
-                                                    <span v-else>{{ childInitial(child.name) }}</span>
                                                 </div>
                                                 <span class="text-xs text-muted-foreground">{{ child.name || 'Enfant' }}</span>
                                             </div>

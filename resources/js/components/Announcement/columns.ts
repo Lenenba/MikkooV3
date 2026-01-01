@@ -44,15 +44,16 @@ const renderChildCell = (announcement: Announcement) => {
     ])
 }
 
-const renderStatusCell = (status?: string | null) => {
-    const key = (status ?? '').toString().toLowerCase()
+const renderStatusCell = (announcement: Announcement) => {
+    const key = (announcement.status ?? '').toString().toLowerCase()
+    const pendingCount = Number(announcement.pending_applications_count ?? 0)
     const statusMap: Record<string, { text: string; classes: string }> = {
         open: {
-            text: 'Ouverte',
-            classes: 'bg-emerald-50 text-emerald-700',
+            text: pendingCount > 0 ? `Candidatures (${pendingCount})` : 'Ouverte',
+            classes: pendingCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700',
         },
         closed: {
-            text: 'Fermee',
+            text: 'Pourvue',
             classes: 'bg-slate-100 text-slate-600',
         },
     }
@@ -84,7 +85,7 @@ export const getAnnouncementColumns = (): ColumnDef<Announcement>[] => [
     {
         accessorKey: 'status',
         header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
-        cell: ({ row }) => renderStatusCell(row.getValue('status')),
+        cell: ({ row }) => renderStatusCell(row.original),
     },
     {
         accessorKey: 'created_at',

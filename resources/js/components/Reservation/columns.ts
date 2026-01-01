@@ -22,7 +22,8 @@ const formatCurrency = (value: number | string | null | undefined) => {
     return currencyFormatter.format(0)
 }
 
-const defaultProfilePhoto = '/bbsiter.png'
+const defaultBabysitterPhoto = '/bbsiter.png'
+const defaultParentPhoto = '/parent.png'
 
 type PersonWithMedia = {
     name?: string
@@ -39,21 +40,21 @@ const resolvePersonName = (person?: PersonWithMedia) => {
     return person?.name ?? (fullName || 'Unknown')
 }
 
-const resolvePersonImage = (person?: PersonWithMedia) => {
+const resolvePersonImage = (person: PersonWithMedia | undefined, fallback: string) => {
     if (!person) {
-        return defaultProfilePhoto
+        return fallback
     }
     const media = person.media ?? []
     return person.profile_picture
         ?? person.avatar
         ?? media.find(item => item.is_profile_picture)?.file_path
         ?? media[0]?.file_path
-        ?? defaultProfilePhoto
+        ?? fallback
 }
 
-const renderPersonCell = (person?: PersonWithMedia, withAvatar = false) => {
+const renderPersonCell = (person: PersonWithMedia | undefined, withAvatar: boolean, fallback: string) => {
     const nameLabel = resolvePersonName(person)
-    const imageUrl = resolvePersonImage(person)
+    const imageUrl = resolvePersonImage(person, fallback)
     const initial = nameLabel.trim().charAt(0).toUpperCase() || '?'
 
     if (!withAvatar) {
@@ -93,12 +94,15 @@ const renderDateCell = (details?: { date?: string; start_time?: string; end_time
     ])
 }
 
-const getPersonColumn = (key: 'babysitter' | 'parent', label: string): ColumnDef<Reservation> => ({
-    id: key,
-    header: () => h('span', { class: headerClass }, label),
-    cell: ({ row }) => renderPersonCell(row.original[key] as PersonWithMedia, true),
-    enableSorting: false,
-})
+const getPersonColumn = (key: 'babysitter' | 'parent', label: string): ColumnDef<Reservation> => {
+    const fallback = key === 'parent' ? defaultParentPhoto : defaultBabysitterPhoto
+    return {
+        id: key,
+        header: () => h('span', { class: headerClass }, label),
+        cell: ({ row }) => renderPersonCell(row.original[key] as PersonWithMedia, true, fallback),
+        enableSorting: false,
+    }
+}
 
 const getRoleKey = (role?: string) => (role ?? '').toString().toLowerCase()
 

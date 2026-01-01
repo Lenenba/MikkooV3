@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\AnnouncementApplication;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Announcement extends Model
 {
@@ -24,6 +26,15 @@ class Announcement extends Model
         'child_age',
         'child_notes',
         'description',
+        'location',
+        'start_date',
+        'start_time',
+        'end_time',
+        'schedule_type',
+        'recurrence_frequency',
+        'recurrence_interval',
+        'recurrence_days',
+        'recurrence_end_date',
         'status',
     ];
 
@@ -34,6 +45,9 @@ class Announcement extends Model
      */
     protected $casts = [
         'children' => 'array',
+        'recurrence_days' => 'array',
+        'start_date' => 'date',
+        'recurrence_end_date' => 'date',
     ];
 
     /**
@@ -42,5 +56,13 @@ class Announcement extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    /**
+     * Applications submitted by babysitters.
+     */
+    public function applications(): HasMany
+    {
+        return $this->hasMany(AnnouncementApplication::class);
     }
 }

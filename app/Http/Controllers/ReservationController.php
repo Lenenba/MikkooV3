@@ -45,6 +45,11 @@ class ReservationController extends Controller
 
         $reservations = Reservation::forUser($user)
             ->with(['parent', 'babysitter', 'babysitter.media', 'babysitter.babysitterProfile', 'services', 'details'])
+            ->where(function ($query) {
+                $query
+                    ->whereNull('announcement_id')
+                    ->orWhereHas('details', fn($details) => $details->where('status', '!=', 'pending'));
+            })
             ->orderByDesc('created_at')
             ->paginate(15)
             ->through(fn($r) => [

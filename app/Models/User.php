@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Address;
 use App\Models\Announcement;
+use App\Models\AnnouncementApplication;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -159,6 +160,14 @@ class User extends Authenticatable
     public function announcements(): HasMany
     {
         return $this->hasMany(Announcement::class, 'parent_id');
+    }
+
+    /**
+     * Applications submitted as a babysitter.
+     */
+    public function announcementApplications(): HasMany
+    {
+        return $this->hasMany(AnnouncementApplication::class, 'babysitter_id');
     }
 
     /**

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import InputError from '@/components/InputError.vue'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,7 @@ import {
     XCircle,
 } from 'lucide-vue-next'
 import { Checkbox } from '@/components/ui/checkbox'
+import { resolveChildPhoto } from '@/lib/childPhotos'
 
 interface AnnouncementsPayload {
     items: Announcement[]
@@ -55,7 +56,7 @@ const tableColumns = computed(() => getAnnouncementColumns())
 const statusOptions = [
     { value: 'all', label: 'Tous les statuts' },
     { value: 'open', label: 'Ouverte' },
-    { value: 'closed', label: 'Fermee' },
+    { value: 'closed', label: 'Pourvue' },
 ]
 
 const numberFormatter = new Intl.NumberFormat('en-US')
@@ -205,6 +206,15 @@ const announcementForm = useForm({
     child_ids: [] as number[],
     child_notes: '',
     description: '',
+    location: '',
+    schedule_type: 'single',
+    start_date: '',
+    start_time: '',
+    end_time: '',
+    recurrence_frequency: 'weekly',
+    recurrence_interval: 1,
+    recurrence_days: [] as number[],
+    recurrence_end_date: '',
 })
 
 const resetAnnouncementForm = () => {
@@ -231,6 +241,59 @@ const toggleChildSelection = (childId: number, checked: boolean | 'indeterminate
     announcementForm.child_ids = Array.from(ids)
 }
 
+const recurrenceOptions = [
+    { value: 'daily', label: 'Chaque jour' },
+    { value: 'weekly', label: 'Chaque semaine' },
+    { value: 'monthly', label: 'Chaque mois' },
+]
+
+const weekdayOptions = [
+    { value: 1, label: 'Lun' },
+    { value: 2, label: 'Mar' },
+    { value: 3, label: 'Mer' },
+    { value: 4, label: 'Jeu' },
+    { value: 5, label: 'Ven' },
+    { value: 6, label: 'Sam' },
+    { value: 7, label: 'Dim' },
+]
+
+const getIsoWeekday = (value: string) => {
+    if (!value) return null
+    const parsed = new Date(`${value}T00:00:00`)
+    if (Number.isNaN(parsed.getTime())) return null
+    const day = parsed.getDay()
+    return day === 0 ? 7 : day
+}
+
+const toggleRecurrenceDay = (day: number, checked: boolean | 'indeterminate') => {
+    const isChecked = checked === true
+    const days = new Set(announcementForm.recurrence_days)
+    if (isChecked) {
+        days.add(day)
+    } else {
+        days.delete(day)
+    }
+    announcementForm.recurrence_days = Array.from(days)
+}
+
+watch(
+    () => [announcementForm.schedule_type, announcementForm.recurrence_frequency, announcementForm.start_date],
+    () => {
+        if (announcementForm.schedule_type !== 'recurring') {
+            return
+        }
+        if (!announcementForm.recurrence_interval || Number(announcementForm.recurrence_interval) < 1) {
+            announcementForm.recurrence_interval = 1
+        }
+        if (announcementForm.recurrence_frequency === 'weekly' && announcementForm.recurrence_days.length === 0) {
+            const defaultDay = getIsoWeekday(announcementForm.start_date)
+            if (defaultDay) {
+                announcementForm.recurrence_days = [defaultDay]
+            }
+        }
+    }
+)
+
 const formatChildAge = (value?: string | number | null) => {
     if (value === null || value === undefined || value === '') {
         return ''
@@ -242,13 +305,22 @@ const formatChildAge = (value?: string | number | null) => {
     return /^\d+$/.test(raw) ? `${raw} ans` : raw
 }
 
-const childPhotoFallback = (child: AnnouncementChild) => {
-    const name = (child.name ?? '').toString().trim()
-    return name ? name.charAt(0).toUpperCase() : '?'
-}
+const childPhotoUrl = (child: AnnouncementChild, index: number) =>
+    resolveChildPhoto(child.photo, [child.name, child.age], index)
 
 const submitAnnouncement = () => {
-    announcementForm.post(route('announcements.store'), {
+    announcementForm.transform((data) => {
+        if (data.schedule_type !== 'recurring') {
+            return {
+                ...data,
+                recurrence_frequency: null,
+                recurrence_interval: null,
+                recurrence_days: [],
+                recurrence_end_date: null,
+            }
+        }
+        return data
+    }).post(route('announcements.store'), {
         preserveScroll: true,
         onSuccess: () => {
             resetAnnouncementForm()
@@ -386,7 +458,7 @@ const submitAnnouncement = () => {
                         <Label>Enfant(s) concernes</Label>
                         <div v-if="availableChildren.length" class="grid gap-3 sm:grid-cols-2">
                             <label
-                                v-for="child in availableChildren"
+                                v-for="(child, index) in availableChildren"
                                 :key="child.id ?? child.name ?? 'child'"
                                 class="flex items-center gap-3 rounded-md border border-border/70 bg-background/60 p-3"
                             >
@@ -398,12 +470,10 @@ const submitAnnouncement = () => {
                                 <div class="flex items-center gap-3">
                                     <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-600">
                                         <img
-                                            v-if="child.photo"
-                                            :src="child.photo"
+                                            :src="childPhotoUrl(child, index)"
                                             :alt="child.name ?? 'Enfant'"
                                             class="h-full w-full object-cover"
                                         />
-                                        <span v-else>{{ childPhotoFallback(child) }}</span>
                                     </div>
                                     <div>
                                         <p class="text-sm font-semibold text-foreground">
@@ -445,6 +515,140 @@ const submitAnnouncement = () => {
                             placeholder="Precisez le contexte, les horaires, et toute information utile."
                         />
                         <InputError :message="announcementForm.errors.description" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="announcement-location">Lieu (optionnel)</Label>
+                        <Input
+                            id="announcement-location"
+                            v-model="announcementForm.location"
+                            placeholder="ex: Quartier, adresse ou lieu de garde"
+                        />
+                        <InputError :message="announcementForm.errors.location" />
+                    </div>
+
+                    <div class="space-y-3 rounded-xl border border-border/60 bg-background/70 p-4">
+                        <div class="flex items-center justify-between">
+                            <Label class="text-sm font-semibold text-foreground">Date et heure</Label>
+                            <div class="inline-flex rounded-sm border border-border bg-muted/60 p-1">
+                                <button
+                                    type="button"
+                                    class="px-3 py-1 text-xs font-medium rounded-sm transition"
+                                    :class="announcementForm.schedule_type === 'single'
+                                        ? 'bg-card text-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'"
+                                    @click="announcementForm.schedule_type = 'single'"
+                                >
+                                    Journee unique
+                                </button>
+                                <button
+                                    type="button"
+                                    class="px-3 py-1 text-xs font-medium rounded-sm transition"
+                                    :class="announcementForm.schedule_type === 'recurring'
+                                        ? 'bg-card text-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'"
+                                    @click="announcementForm.schedule_type = 'recurring'"
+                                >
+                                    Recurrence
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            <div class="space-y-2 sm:col-span-1">
+                                <Label for="announcement-date">
+                                    {{ announcementForm.schedule_type === 'recurring' ? 'Date de debut' : 'Date' }}
+                                </Label>
+                                <Input
+                                    id="announcement-date"
+                                    type="date"
+                                    v-model="announcementForm.start_date"
+                                />
+                                <InputError :message="announcementForm.errors.start_date" />
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="announcement-start-time">Heure debut</Label>
+                                <Input
+                                    id="announcement-start-time"
+                                    type="time"
+                                    v-model="announcementForm.start_time"
+                                />
+                                <InputError :message="announcementForm.errors.start_time" />
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="announcement-end-time">Heure fin</Label>
+                                <Input
+                                    id="announcement-end-time"
+                                    type="time"
+                                    v-model="announcementForm.end_time"
+                                />
+                                <InputError :message="announcementForm.errors.end_time" />
+                            </div>
+                        </div>
+
+                        <div v-if="announcementForm.schedule_type === 'recurring'" class="space-y-3">
+                            <div class="space-y-2">
+                                <Label>Frequence</Label>
+                                <Select
+                                    :model-value="announcementForm.recurrence_frequency"
+                                    @update:model-value="value => (announcementForm.recurrence_frequency = value)"
+                                >
+                                    <SelectTrigger class="h-9">
+                                        <SelectValue placeholder="Choisir une frequence" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="option in recurrenceOptions"
+                                            :key="option.value"
+                                            :value="option.value"
+                                        >
+                                            {{ option.label }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="announcementForm.errors.recurrence_frequency" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="announcement-recurrence-interval">Intervalle</Label>
+                                <Input
+                                    id="announcement-recurrence-interval"
+                                    type="number"
+                                    min="1"
+                                    v-model="announcementForm.recurrence_interval"
+                                />
+                                <InputError :message="announcementForm.errors.recurrence_interval" />
+                            </div>
+
+                            <div v-if="announcementForm.recurrence_frequency === 'weekly'" class="space-y-2">
+                                <Label>Jours</Label>
+                                <div class="grid grid-cols-7 gap-2 text-xs text-muted-foreground">
+                                    <label
+                                        v-for="day in weekdayOptions"
+                                        :key="day.value"
+                                        class="flex items-center gap-1"
+                                    >
+                                        <Checkbox
+                                            :id="`recurrence-${day.value}`"
+                                            :checked="announcementForm.recurrence_days.includes(day.value)"
+                                            @update:checked="value => toggleRecurrenceDay(day.value, value)"
+                                        />
+                                        <span>{{ day.label }}</span>
+                                    </label>
+                                </div>
+                                <InputError :message="announcementForm.errors.recurrence_days" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="announcement-recurrence-end">Fin de recurrence</Label>
+                                <Input
+                                    id="announcement-recurrence-end"
+                                    type="date"
+                                    v-model="announcementForm.recurrence_end_date"
+                                />
+                                <InputError :message="announcementForm.errors.recurrence_end_date" />
+                            </div>
+                        </div>
                     </div>
 
                     <DialogFooter class="mt-4">

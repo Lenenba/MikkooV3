@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Models\AnnouncementApplication;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AnnouncementMatchNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class AnnouncementController extends Controller
@@ -20,6 +23,10 @@ class AnnouncementController extends Controller
 
         $items = Announcement::query()
             ->where('parent_id', $user->id)
+            ->withCount([
+                'applications',
+                'applications as pending_applications_count' => fn($query) => $query->where('status', 'pending'),
+            ])
             ->latest()
             ->get()
             ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement))
@@ -60,6 +67,16 @@ class AnnouncementController extends Controller
             'child_ids.*' => ['integer', 'min:0'],
             'child_notes' => ['nullable', 'string', 'max:1000'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'location' => ['nullable', 'string', 'max:160'],
+            'schedule_type' => ['required', 'string', 'in:single,recurring'],
+            'start_date' => ['required', 'date'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'recurrence_frequency' => ['nullable', 'required_if:schedule_type,recurring', 'in:daily,weekly,monthly'],
+            'recurrence_interval' => ['nullable', 'integer', 'min:1'],
+            'recurrence_days' => ['nullable', 'array', 'required_if:recurrence_frequency,weekly'],
+            'recurrence_days.*' => ['integer', 'min:1', 'max:7'],
+            'recurrence_end_date' => ['nullable', 'required_if:schedule_type,recurring', 'date', 'after_or_equal:start_date'],
         ]);
 
         $availableChildren = collect($this->getParentChildren($user))->keyBy('id');
@@ -87,6 +104,32 @@ class AnnouncementController extends Controller
         $description = isset($data['description']) ? trim((string) $data['description']) : null;
         $description = $description !== '' ? $description : null;
 
+        $location = isset($data['location']) ? trim((string) $data['location']) : null;
+        $location = $location !== '' ? $location : null;
+
+        $scheduleType = $data['schedule_type'] ?? 'single';
+        $scheduleType = in_array($scheduleType, ['single', 'recurring'], true) ? $scheduleType : 'single';
+
+        $recurrenceDays = collect($data['recurrence_days'] ?? [])
+            ->map(fn($day) => (int) $day)
+            ->filter(fn(int $day) => $day >= 1 && $day <= 7)
+            ->unique()
+            ->values()
+            ->all();
+
+        $recurrenceFrequency = $scheduleType === 'recurring'
+            ? (isset($data['recurrence_frequency']) ? trim((string) $data['recurrence_frequency']) : null)
+            : null;
+        $recurrenceFrequency = $recurrenceFrequency !== '' ? $recurrenceFrequency : null;
+
+        $recurrenceInterval = $scheduleType === 'recurring'
+            ? (int) ($data['recurrence_interval'] ?? 1)
+            : null;
+
+        $recurrenceEndDate = $scheduleType === 'recurring'
+            ? ($data['recurrence_end_date'] ?? null)
+            : null;
+
         $announcement = Announcement::create([
             'parent_id' => $user->id,
             'title' => trim($data['title']),
@@ -96,6 +139,15 @@ class AnnouncementController extends Controller
             'child_age' => $childAge,
             'child_notes' => $childNotes,
             'description' => $description,
+            'location' => $location,
+            'schedule_type' => $scheduleType,
+            'start_date' => $data['start_date'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
+            'recurrence_frequency' => $recurrenceFrequency,
+            'recurrence_interval' => $scheduleType === 'recurring' ? $recurrenceInterval : null,
+            'recurrence_days' => $scheduleType === 'recurring' ? $recurrenceDays : null,
+            'recurrence_end_date' => $scheduleType === 'recurring' ? $recurrenceEndDate : null,
             'status' => 'open',
         ]);
 
@@ -154,7 +206,12 @@ class AnnouncementController extends Controller
                 abort(403);
             }
         } elseif ($user->isBabysitter()) {
-            if ($announcement->status !== 'open') {
+            $hasApplication = AnnouncementApplication::query()
+                ->where('announcement_id', $announcement->id)
+                ->where('babysitter_id', $user->id)
+                ->exists();
+
+            if ($announcement->status !== 'open' && ! $hasApplication) {
                 abort(403);
             }
 
@@ -165,11 +222,11 @@ class AnnouncementController extends Controller
                 ->filter()
                 ->values();
 
-            if ($serviceNames->isEmpty()) {
+            if (! $hasApplication && $serviceNames->isEmpty()) {
                 abort(403);
             }
 
-            $matches = $serviceNames->contains(function ($serviceName) use ($announcement) {
+            $matches = $hasApplication ? true : $serviceNames->contains(function ($serviceName) use ($announcement) {
                 return $this->serviceMatches($announcement->service, (string) $serviceName);
             });
 
@@ -182,9 +239,39 @@ class AnnouncementController extends Controller
 
         $announcement->load(['parent.address']);
 
+        $applicationsPayload = null;
+        $myApplicationPayload = null;
+
+        if ($user->isParent()) {
+            $applicationsPayload = AnnouncementApplication::query()
+                ->where('announcement_id', $announcement->id)
+                ->with([
+                    'babysitter.address',
+                    'babysitter.babysitterProfile',
+                    'babysitter.media',
+                    'babysitter.receivedRatings',
+                    'reservation.details',
+                ])
+                ->latest()
+                ->get()
+                ->map(fn(AnnouncementApplication $application) => $this->formatApplication($application))
+                ->values();
+        }
+
+        if ($user->isBabysitter()) {
+            $myApplication = AnnouncementApplication::query()
+                ->where('announcement_id', $announcement->id)
+                ->where('babysitter_id', $user->id)
+                ->with(['reservation.details'])
+                ->first();
+            $myApplicationPayload = $myApplication ? $this->formatApplication($myApplication) : null;
+        }
+
         return Inertia::render('announcements/Show', [
             'announcement' => $this->formatAnnouncement($announcement, true),
             'viewerRole' => $user->isBabysitter() ? 'Babysitter' : 'Parent',
+            'applications' => $applicationsPayload,
+            'myApplication' => $myApplicationPayload,
         ]);
     }
 
@@ -202,8 +289,19 @@ class AnnouncementController extends Controller
             'child_age' => $announcement->child_age,
             'child_notes' => $announcement->child_notes,
             'description' => $announcement->description,
+            'location' => $announcement->location,
+            'start_date' => $announcement->start_date?->toDateString(),
+            'start_time' => $announcement->start_time,
+            'end_time' => $announcement->end_time,
+            'schedule_type' => $announcement->schedule_type,
+            'recurrence_frequency' => $announcement->recurrence_frequency,
+            'recurrence_interval' => $announcement->recurrence_interval,
+            'recurrence_days' => $announcement->recurrence_days ?? [],
+            'recurrence_end_date' => $announcement->recurrence_end_date?->toDateString(),
             'status' => $announcement->status,
             'created_at' => $announcement->created_at?->toDateTimeString(),
+            'applications_count' => $announcement->applications_count ?? null,
+            'pending_applications_count' => $announcement->pending_applications_count ?? null,
         ];
 
         if ($includeParent) {
@@ -291,6 +389,10 @@ class AnnouncementController extends Controller
             return;
         }
 
+        if (! Schema::hasTable('services') || ! Schema::hasColumn('services', 'user_id')) {
+            return;
+        }
+
         $services = Service::query()
             ->whereNotNull('user_id')
             ->get(['user_id', 'name']);
@@ -310,7 +412,66 @@ class AnnouncementController extends Controller
             ->get();
 
         foreach ($babysitters as $babysitter) {
-            $babysitter->notify(new AnnouncementMatchNotification($announcement));
+            try {
+                $babysitter->notify(new AnnouncementMatchNotification($announcement));
+            } catch (\Throwable $exception) {
+                Log::warning('Announcement notification failed.', [
+                    'announcement_id' => $announcement->id,
+                    'babysitter_id' => $babysitter->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function formatApplication(AnnouncementApplication $application): array
+    {
+        $babysitter = $application->babysitter;
+        $profile = $babysitter?->babysitterProfile;
+        $fullName = trim((string) (($profile?->first_name ?? '') . ' ' . ($profile?->last_name ?? '')));
+        $name = $fullName !== '' ? $fullName : ($babysitter?->name ?? 'Babysitter');
+        $media = $babysitter?->media ?? [];
+        $profilePicture = $media->firstWhere('is_profile_picture', true)?->file_path
+            ?? $media->first()?->file_path;
+
+        $ratingAvg = $babysitter?->rating_avg ?? null;
+        $ratingCount = $babysitter?->rating_count ?? null;
+
+        if ($babysitter && $ratingAvg === null) {
+            $ratingAvg = $babysitter->relationLoaded('receivedRatings')
+                ? $babysitter->receivedRatings->avg('rating')
+                : $babysitter->receivedRatings()->avg('rating');
+        }
+
+        if ($babysitter && $ratingCount === null) {
+            $ratingCount = $babysitter->relationLoaded('receivedRatings')
+                ? $babysitter->receivedRatings->count()
+                : $babysitter->receivedRatings()->count();
+        }
+
+        return [
+            'id' => $application->id,
+            'status' => $application->status,
+            'message' => $application->message,
+            'created_at' => $application->created_at?->toDateTimeString(),
+            'expires_at' => $application->expires_at?->toDateTimeString(),
+            'reservation_id' => $application->reservation_id,
+            'reservation_status' => $application->reservation?->details?->status,
+            'babysitter' => $babysitter
+                ? [
+                    'id' => $babysitter->id,
+                    'name' => $name,
+                    'email' => $babysitter->email,
+                    'city' => $babysitter->address?->city,
+                    'rating_avg' => $ratingAvg,
+                    'rating_count' => $ratingCount,
+                    'price_per_hour' => $profile?->price_per_hour,
+                    'profile_picture' => $profilePicture,
+                ]
+                : null,
+        ];
     }
 }

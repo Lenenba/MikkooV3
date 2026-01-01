@@ -26,6 +26,7 @@ class Reservation extends Model
         'number',
         'parent_id',
         'babysitter_id',
+        'announcement_id',
         'total_amount',
         'notes',
     ];
@@ -72,6 +73,14 @@ class Reservation extends Model
     public function babysitter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'babysitter_id');
+    }
+
+    /**
+     * Announcement linked to this reservation.
+     */
+    public function announcement(): BelongsTo
+    {
+        return $this->belongsTo(Announcement::class);
     }
 
     /**

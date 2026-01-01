@@ -9,6 +9,7 @@ use App\Http\Controllers\ReservationRatingController;
 use App\Http\Controllers\ServicesSearchController;
 use App\Http\Controllers\SearchBabysitterController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\AnnouncementApplicationController;
 use App\Http\Controllers\AddressOnboardingController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
@@ -79,6 +80,14 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
             ->name('announcements.update');
         Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])
             ->name('announcements.destroy');
+        Route::post('/announcements/{announcement}/apply', [AnnouncementApplicationController::class, 'store'])
+            ->name('announcements.apply');
+        Route::post('/announcements/{announcement}/applications/{application}/accept', [AnnouncementApplicationController::class, 'accept'])
+            ->name('announcements.applications.accept');
+        Route::post('/announcements/{announcement}/applications/{application}/reject', [AnnouncementApplicationController::class, 'reject'])
+            ->name('announcements.applications.reject');
+        Route::post('/announcements/{announcement}/applications/{application}/withdraw', [AnnouncementApplicationController::class, 'withdraw'])
+            ->name('announcements.applications.withdraw');
     }
 );
 

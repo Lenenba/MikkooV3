@@ -16,11 +16,18 @@ const props = defineProps<{
     announcement: {
         id: number | string
         status?: string | null
+        applications_count?: number | null
+        pending_applications_count?: number | null
     }
 }>()
 
 const status = computed(() => (props.announcement.status ?? '').toString().toLowerCase())
 const canClose = computed(() => status.value !== 'closed')
+const hasApplications = computed(() => {
+    const pending = Number(props.announcement.pending_applications_count ?? 0)
+    const total = Number(props.announcement.applications_count ?? 0)
+    return pending > 0 || total > 0
+})
 
 const closeAnnouncement = () => {
     if (!canClose.value) {
@@ -42,6 +49,10 @@ const deleteAnnouncement = () => {
         { preserveScroll: true },
     )
 }
+
+const viewApplications = () => {
+    router.get(route('announcements.show', { announcement: props.announcement.id }))
+}
 </script>
 
 <template>
@@ -54,8 +65,12 @@ const deleteAnnouncement = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem v-if="hasApplications" @click="viewApplications">
+                Voir candidatures
+            </DropdownMenuItem>
+            <DropdownMenuSeparator v-if="hasApplications" />
             <DropdownMenuItem v-if="canClose" @click="closeAnnouncement">
-                Fermer l'annonce
+                Marquer comme pourvue
             </DropdownMenuItem>
             <DropdownMenuSeparator v-if="canClose" />
             <DropdownMenuItem @click="deleteAnnouncement">

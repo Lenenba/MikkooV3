@@ -183,6 +183,10 @@ class DashboardController extends Controller
         if ($role === 'Parent') {
             $items = Announcement::query()
                 ->where('parent_id', $user->id)
+                ->withCount([
+                    'applications',
+                    'applications as pending_applications_count' => fn($query) => $query->where('status', 'pending'),
+                ])
                 ->latest()
                 ->get()
                 ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement))
@@ -257,8 +261,19 @@ class DashboardController extends Controller
             'child_age' => $announcement->child_age,
             'child_notes' => $announcement->child_notes,
             'description' => $announcement->description,
+            'location' => $announcement->location,
+            'start_date' => $announcement->start_date?->toDateString(),
+            'start_time' => $announcement->start_time,
+            'end_time' => $announcement->end_time,
+            'schedule_type' => $announcement->schedule_type,
+            'recurrence_frequency' => $announcement->recurrence_frequency,
+            'recurrence_interval' => $announcement->recurrence_interval,
+            'recurrence_days' => $announcement->recurrence_days ?? [],
+            'recurrence_end_date' => $announcement->recurrence_end_date?->toDateString(),
             'status' => $announcement->status,
             'created_at' => $announcement->created_at?->toDateTimeString(),
+            'applications_count' => $announcement->applications_count ?? null,
+            'pending_applications_count' => $announcement->pending_applications_count ?? null,
         ];
 
         if ($includeParent) {

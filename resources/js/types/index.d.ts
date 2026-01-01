@@ -126,9 +126,42 @@ export interface Announcement {
     child_age?: string | null;
     child_notes?: string | null;
     description?: string | null;
+    location?: string | null;
+    start_date?: string | null;
+    start_time?: string | null;
+    end_time?: string | null;
+    schedule_type?: string | null;
+    recurrence_frequency?: string | null;
+    recurrence_interval?: number | null;
+    recurrence_days?: number[] | null;
+    recurrence_end_date?: string | null;
     status?: string;
     created_at?: string;
     parent?: AnnouncementParent | null;
+    applications_count?: number | null;
+    pending_applications_count?: number | null;
+}
+
+export interface AnnouncementApplicant {
+    id: number;
+    name: string;
+    email?: string | null;
+    city?: string | null;
+    rating_avg?: number | null;
+    rating_count?: number | null;
+    price_per_hour?: number | null;
+    profile_picture?: string | null;
+}
+
+export interface AnnouncementApplication {
+    id: number;
+    status: string;
+    message?: string | null;
+    created_at?: string;
+    expires_at?: string | null;
+    reservation_id?: number | null;
+    reservation_status?: string | null;
+    babysitter?: AnnouncementApplicant | null;
 }
 
 

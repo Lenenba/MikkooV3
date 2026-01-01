@@ -31,6 +31,23 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+const defaultParentAvatar = '/parent.png';
+const defaultBabysitterAvatar = '/bbsiter.png';
+
+const avatarSrc = computed(() => {
+    const user = auth.value?.user;
+    if (!user) {
+        return defaultParentAvatar;
+    }
+    if (user.avatar) {
+        return user.avatar;
+    }
+    if (auth.value?.profilPicture) {
+        return auth.value.profilPicture;
+    }
+    const role = (auth.value?.role ?? '').toString().toLowerCase();
+    return role === 'babysitter' ? defaultBabysitterAvatar : defaultParentAvatar;
+});
 
 const isCurrentRoute = computed(() => (url: string) => page.url === url);
 
@@ -169,7 +186,7 @@ const rightNavItems: NavItem[] = [
                                 class="relative size-10 w-auto rounded-full p-1 focus-within:ring-2 focus-within:ring-primary"
                             >
                                 <Avatar class="size-8 overflow-hidden rounded-full">
-                                    <AvatarImage v-if="auth.user.avatar" :src="auth.user.avatar" :alt="auth.user.name" />
+                                    <AvatarImage v-if="avatarSrc" :src="avatarSrc" :alt="auth.user.name" />
                                     <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white">
                                         {{ getInitials(auth.user?.name) }}
                                     </AvatarFallback>
