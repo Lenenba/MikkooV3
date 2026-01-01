@@ -394,7 +394,7 @@ class LaunchSeeder extends Seeder
 
                         $take = min(mt_rand(1, 3), $servicePool->count());
                         $selected = $servicePool->random($take);
-                        if ($take === 1) {
+                        if ($selected instanceof Service) {
                             $selected = collect([$selected]);
                         }
 
