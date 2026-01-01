@@ -111,6 +111,9 @@ export interface Announcement {
     id: number;
     title: string;
     service: string;
+    child_name?: string | null;
+    child_age?: string | null;
+    child_notes?: string | null;
     description?: string | null;
     status?: string;
     created_at?: string;

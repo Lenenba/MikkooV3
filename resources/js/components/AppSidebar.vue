@@ -37,7 +37,7 @@ const mainNavItems = computed(() => {
     if (role.value === 'parent') {
         items.push({
             title: 'Mes annonces',
-            href: '/dashboard#annonces',
+            href: '/announcements',
             icon: Megaphone,
         });
     }

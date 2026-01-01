@@ -1,24 +1,10 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { type Announcement, type BreadcrumbItem, type Stats, type User } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Plus } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -66,57 +52,8 @@ const userName = computed(() => {
 });
 
 const stats = computed(() => dashboard.value?.stats);
-const isParent = computed(() => role.value === 'Parent');
 const isBabysitter = computed(() => role.value === 'Babysitter');
 const announcementItems = computed(() => announcementsPayload.value?.items ?? []);
-const announcementSuggestions = computed(() => announcementsPayload.value?.suggestions ?? []);
-
-const isAnnouncementDialogOpen = ref(false);
-const announcementForm = useForm({
-    title: '',
-    service: '',
-    description: '',
-});
-
-const resetAnnouncementForm = () => {
-    announcementForm.reset();
-    announcementForm.clearErrors();
-};
-
-const openAnnouncementDialog = () => {
-    resetAnnouncementForm();
-    isAnnouncementDialogOpen.value = true;
-};
-
-const submitAnnouncement = () => {
-    announcementForm.post(route('announcements.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            resetAnnouncementForm();
-            isAnnouncementDialogOpen.value = false;
-        },
-    });
-};
-
-const closeAnnouncement = (announcementId: number) => {
-    router.patch(
-        route('announcements.update', { announcement: announcementId }),
-        { status: 'closed' },
-        { preserveScroll: true },
-    );
-};
-
-const statusLabel = (status?: string | null) => {
-    if (status === 'closed') {
-        return 'Fermee';
-    }
-    return 'Ouverte';
-};
-
-const statusBadgeClass = (status?: string | null) =>
-    status === 'closed'
-        ? 'border-transparent bg-slate-100 text-slate-600'
-        : 'border-transparent bg-emerald-100 text-emerald-700';
 
 const formatAnnouncementDate = (value?: string | null) => {
     if (!value) {
@@ -131,6 +68,13 @@ const formatAnnouncementDate = (value?: string | null) => {
         month: 'short',
         day: 'numeric',
     }).format(date);
+};
+
+const formatChildLabel = (announcement: Announcement) => {
+    const parts = [announcement.child_name, announcement.child_age]
+        .map((value) => (value ?? '').toString().trim())
+        .filter(Boolean);
+    return parts.join(' · ');
 };
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -153,7 +97,7 @@ const welcomeSummary = computed(() => {
     if (role.value === 'Admin') {
         return "Vue d'ensemble de l'activite des reservations, revenus et utilisateurs.";
     }
-    return 'Suivez vos reservations, vos depenses et vos annonces.';
+    return 'Suivez vos reservations et vos depenses.';
 });
 
 const monthlyLabel = computed(() => {
@@ -770,7 +714,7 @@ const orderTrendArea = computed(() => {
                     </div>
                 </section>
 
-                <section id="annonces" v-if="isParent || isBabysitter" class="grid gap-6 lg:grid-cols-12">
+                <section id="annonces" v-if="isBabysitter && announcementItems.length" class="grid gap-6 lg:grid-cols-12">
                     <div
                         class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-12"
                         style="animation-delay: 360ms"
@@ -778,57 +722,43 @@ const orderTrendArea = computed(() => {
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h2 class="text-lg font-semibold">
-                                    {{ isBabysitter ? 'Annonces correspondantes' : 'Vos annonces' }}
+                                    Annonces correspondantes
                                 </h2>
                                 <p class="text-sm text-muted-foreground">
-                                    <span v-if="isBabysitter">
-                                        Les demandes qui correspondent aux services que vous proposez.
-                                    </span>
-                                    <span v-else>
-                                        Publiez une annonce pour trouver un babysitter adapte.
-                                    </span>
+                                    Les demandes qui correspondent aux services que vous proposez.
                                 </p>
                             </div>
-                            <Button
-                                v-if="isParent"
-                                class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
-                                size="sm"
-                                @click="openAnnouncementDialog"
-                            >
-                                <Plus class="h-4 w-4" />
-                                Nouvelle annonce
-                            </Button>
                         </div>
 
                         <div class="mt-5 grid gap-3">
-                            <template v-if="announcementItems.length">
-                                <div
-                                    v-for="announcement in announcementItems"
-                                    :key="announcement.id"
-                                    class="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/60 p-4"
-                                >
-                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                        <div class="space-y-2">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <p class="text-sm font-semibold text-foreground">
-                                                    {{ announcement.title }}
-                                                </p>
-                                                <Badge class="border-transparent bg-sky-100 text-sky-700">
-                                                    {{ announcement.service }}
-                                                </Badge>
-                                                <Badge
-                                                    v-if="isParent"
-                                                    :class="statusBadgeClass(announcement.status)"
-                                                >
-                                                    {{ statusLabel(announcement.status) }}
-                                                </Badge>
-                                            </div>
-                                            <p v-if="announcement.description" class="text-sm text-muted-foreground">
-                                                {{ announcement.description }}
+                            <div
+                                v-for="announcement in announcementItems"
+                                :key="announcement.id"
+                                class="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/60 p-4"
+                            >
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="space-y-2">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="text-sm font-semibold text-foreground">
+                                                {{ announcement.title }}
                                             </p>
+                                            <Badge class="border-transparent bg-sky-100 text-sky-700">
+                                                {{ announcement.service }}
+                                            </Badge>
                                         </div>
-                                        <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:items-end">
-                                            <span v-if="isBabysitter && announcement.parent">
+                                        <p v-if="formatChildLabel(announcement)" class="text-xs text-muted-foreground">
+                                            Enfant: {{ formatChildLabel(announcement) }}
+                                        </p>
+                                        <p v-if="announcement.child_notes" class="text-sm text-muted-foreground">
+                                            {{ announcement.child_notes }}
+                                        </p>
+                                        <p v-if="announcement.description" class="text-sm text-muted-foreground">
+                                            {{ announcement.description }}
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col gap-2 text-xs text-muted-foreground sm:items-end">
+                                        <div class="flex flex-col gap-1">
+                                            <span v-if="announcement.parent">
                                                 Parent: {{ announcement.parent?.name }}
                                                 <span v-if="announcement.parent?.city">- {{ announcement.parent.city }}</span>
                                             </span>
@@ -836,39 +766,13 @@ const orderTrendArea = computed(() => {
                                                 {{ formatAnnouncementDate(announcement.created_at) }}
                                             </span>
                                         </div>
-                                    </div>
-
-                                    <div v-if="isParent && announcement.status !== 'closed'" class="flex flex-wrap items-center gap-2">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            @click="closeAnnouncement(announcement.id)"
-                                        >
-                                            Fermer l'annonce
+                                        <Button variant="outline" size="sm" as-child>
+                                            <Link :href="route('announcements.show', { announcement: announcement.id })">
+                                                Voir details
+                                            </Link>
                                         </Button>
                                     </div>
                                 </div>
-                            </template>
-                            <div v-else class="rounded-xl border border-dashed border-border/70 bg-background/60 p-6 text-center">
-                                <p class="text-sm font-semibold text-foreground">
-                                    {{ isBabysitter ? 'Aucune annonce correspondante' : 'Aucune annonce publiee' }}
-                                </p>
-                                <p class="mt-1 text-xs text-muted-foreground">
-                                    <span v-if="isBabysitter">
-                                        Ajoutez plus de services pour recevoir des demandes adaptees.
-                                    </span>
-                                    <span v-else>
-                                        Commencez par publier votre premiere annonce.
-                                    </span>
-                                </p>
-                                <Button
-                                    v-if="isParent"
-                                    class="mt-4 h-9 bg-emerald-500 text-white hover:bg-emerald-600"
-                                    size="sm"
-                                    @click="openAnnouncementDialog"
-                                >
-                                    Publier une annonce
-                                </Button>
                             </div>
                         </div>
                     </div>
@@ -1039,70 +943,6 @@ const orderTrendArea = computed(() => {
             </div>
         </div>
 
-        <Dialog v-if="isParent" v-model:open="isAnnouncementDialogOpen">
-            <DialogContent class="rounded-2xl sm:max-w-xl">
-                <DialogHeader class="border-b border-border/60 pb-3">
-                    <DialogTitle class="text-lg font-semibold text-foreground">
-                        Nouvelle annonce
-                    </DialogTitle>
-                    <DialogDescription class="text-sm text-muted-foreground">
-                        Decrivez rapidement le service dont vous avez besoin.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <form @submit.prevent="submitAnnouncement" class="space-y-4">
-                    <div class="space-y-2">
-                        <Label for="announcement-title">Titre</Label>
-                        <Input
-                            id="announcement-title"
-                            v-model="announcementForm.title"
-                            placeholder="ex: Garde de nuit pour samedi"
-                        />
-                        <InputError :message="announcementForm.errors.title" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <Label for="announcement-service">Service recherche</Label>
-                        <Input
-                            id="announcement-service"
-                            v-model="announcementForm.service"
-                            list="service-suggestions"
-                            placeholder="ex: Lavage, Garde reguliere"
-                        />
-                        <datalist id="service-suggestions">
-                            <option
-                                v-for="suggestion in announcementSuggestions"
-                                :key="suggestion"
-                                :value="suggestion"
-                            />
-                        </datalist>
-                        <InputError :message="announcementForm.errors.service" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <Label for="announcement-description">Details</Label>
-                        <Textarea
-                            id="announcement-description"
-                            v-model="announcementForm.description"
-                            rows="3"
-                            placeholder="Precisez le contexte, les horaires, et toute information utile."
-                        />
-                        <InputError :message="announcementForm.errors.description" />
-                    </div>
-
-                    <DialogFooter class="mt-4">
-                        <DialogClose as-child>
-                            <Button type="button" variant="outline" @click="resetAnnouncementForm">
-                                Annuler
-                            </Button>
-                        </DialogClose>
-                        <Button type="submit" :disabled="announcementForm.processing">
-                            Publier
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
     </AppLayout>
 </template>
 

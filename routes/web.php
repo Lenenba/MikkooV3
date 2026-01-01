@@ -69,6 +69,10 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
         Route::get('/service/search', ServicesSearchController::class)
             ->name('service.search');
 
+        Route::get('/announcements', [AnnouncementController::class, 'index'])
+            ->name('announcements.index');
+        Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])
+            ->name('announcements.show');
         Route::post('/announcements', [AnnouncementController::class, 'store'])
             ->name('announcements.store');
         Route::patch('/announcements/{announcement}', [AnnouncementController::class, 'update'])

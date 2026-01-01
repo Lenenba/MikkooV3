@@ -28,6 +28,8 @@ class ProdSeeder extends Seeder
 
         $this->command->info('Roles created or retrieved.');
 
+        $this->call(ServiceCatalogSeeder::class);
+
         /**
          * Helper to create a user with the correct profile and media.
          *

@@ -46,8 +46,22 @@ class BabysitterServicesController extends Controller
             'top_service_count' => $topService['bookings_count'] ?? 0,
         ];
 
+        $catalog = Service::query()
+            ->whereNull('user_id')
+            ->orderBy('name')
+            ->get()
+            ->map(function (Service $service) {
+                return [
+                    'id' => $service->id,
+                    'name' => $service->name,
+                    'description' => $service->description,
+                ];
+            })
+            ->values();
+
         return Inertia::render('settings/Services', [
             'services' => $services,
+            'catalog' => $catalog,
             'kpis' => $kpis,
         ]);
     }

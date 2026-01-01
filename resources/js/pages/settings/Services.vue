@@ -35,6 +35,12 @@ interface ServiceItem {
     bookings_count: number;
 }
 
+interface CatalogItem {
+    id: number;
+    name: string;
+    description?: string | null;
+}
+
 interface Kpis {
     total_services: number;
     total_bookings: number;
@@ -44,6 +50,7 @@ interface Kpis {
 
 const props = defineProps<{
     services: ServiceItem[];
+    catalog: CatalogItem[];
     kpis: Kpis;
 }>();
 
@@ -194,8 +201,29 @@ const resetForm = () => {
     editingId.value = null;
 };
 
+const normalizeName = (value: string) => value.trim().toLowerCase();
+
+const existingServiceNames = computed(() => {
+    return new Set(props.services.map((service) => normalizeName(service.name)));
+});
+
+const catalogItems = computed(() =>
+    props.catalog.map((item) => ({
+        ...item,
+        is_added: existingServiceNames.value.has(normalizeName(item.name)),
+    }))
+);
+
 const openCreateDialog = () => {
     resetForm();
+    isDialogOpen.value = true;
+};
+
+const openCatalogDialog = (service: CatalogItem) => {
+    resetForm();
+    form.name = service.name;
+    form.description = service.description ?? '';
+    form.price = '0';
     isDialogOpen.value = true;
 };
 
@@ -290,6 +318,43 @@ const columns: ColumnDef<ServiceItem>[] = [
             ]),
     },
 ];
+
+const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
+    {
+        accessorKey: 'name',
+        header: () => h('span', { class: headerClass }, 'Service'),
+        cell: ({ row }) => {
+            const service = row.original;
+            return h('div', { class: 'flex flex-col' }, [
+                h('span', { class: 'text-sm font-medium text-gray-900' }, service.name),
+                service.description
+                    ? h('span', { class: 'text-xs text-gray-500' }, service.description)
+                    : null,
+            ]);
+        },
+    },
+    {
+        id: 'actions',
+        enableHiding: false,
+        header: () => h('div', { class: ['text-right', headerClass] }, 'Actions'),
+        cell: ({ row }) => {
+            const service = row.original;
+            const isAdded = service.is_added;
+            return h('div', { class: 'flex justify-end' }, [
+                h(
+                    Button,
+                    {
+                        variant: isAdded ? 'outline' : 'default',
+                        size: 'sm',
+                        disabled: isAdded,
+                        onClick: () => openCatalogDialog(service),
+                    },
+                    { default: () => (isAdded ? 'Ajoute' : 'Ajouter') }
+                ),
+            ]);
+        },
+    },
+];
 </script>
 
 <template>
@@ -367,6 +432,22 @@ const columns: ColumnDef<ServiceItem>[] = [
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <div class="space-y-3">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-base font-semibold text-gray-900">Catalogue de services</h2>
+                    <p class="text-sm text-gray-500">
+                        Selectionnez un service connu puis ajustez votre prix, ou creez votre propre service.
+                    </p>
+                </div>
+                <DataTable
+                    :columns="catalogColumns"
+                    :data="catalogItems"
+                    search-column="name"
+                    search-placeholder="Rechercher un service du catalogue..."
+                    empty-message="Aucun service catalogue disponible."
+                />
+            </div>
 
             <DataTable :columns="columns" :data="props.services" search-column="name"
                 search-placeholder="Rechercher un service..." empty-message="Aucun service ajoute pour le moment.">
