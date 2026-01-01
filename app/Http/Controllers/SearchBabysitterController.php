@@ -107,7 +107,7 @@ class SearchBabysitterController extends Controller
         }
 
         $babysitters = $babysittersQuery
-            ->simplePaginate(10)
+            ->simplePaginate(12)
             ->withQueryString();
 
         return Inertia::render('search/Index', [

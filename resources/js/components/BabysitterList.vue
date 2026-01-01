@@ -24,6 +24,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
 const ratingStars = [1, 2, 3, 4, 5];
 const reviewDateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const defaultProfilePhoto = '/bbsiter.png';
 
 const formatCurrency = (value: number | null | undefined) =>
     currencyFormatter.format(Number(value ?? 0));
@@ -85,7 +86,7 @@ const getProfilePhoto = (babysitter: Babysitter) => {
     return (
         media.find((item) => item.is_profile_picture)?.file_path ??
         media[0]?.file_path ??
-        ''
+        defaultProfilePhoto
     );
 };
 

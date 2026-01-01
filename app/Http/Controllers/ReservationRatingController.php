@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RatingRequest;
 use App\Models\Reservation;
 use App\Services\RatingService;
+use App\Notifications\RatingReceivedNotification;
 use Illuminate\Support\Facades\Auth;
 
 class ReservationRatingController extends Controller
@@ -17,12 +18,16 @@ class ReservationRatingController extends Controller
             abort(403);
         }
 
-        $ratingService->submitReservationRating(
+        $rating = $ratingService->submitReservationRating(
             $reservation,
             $user,
             $request->integer('rating'),
             $request->input('comment')
         );
+
+        if ($rating->wasRecentlyCreated && $rating->reviewee) {
+            $rating->reviewee->notify(new RatingReceivedNotification($rating));
+        }
 
         return back()->with('success', __('Rating saved.'));
     }

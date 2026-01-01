@@ -140,9 +140,10 @@ const totalAmount = computed(() =>
     toNumber(reservation.value?.total_amount ?? caculSubtotal.value + calculTax.value)
 );
 
+const defaultProfilePhoto = '/bbsiter.png';
 const babysitterPhoto = computed(() => {
     const media = babysitter.value?.media ?? [];
-    return media.find(item => item.is_profile_picture)?.file_path ?? media[0]?.file_path ?? '';
+    return media.find(item => item.is_profile_picture)?.file_path ?? media[0]?.file_path ?? defaultProfilePhoto;
 });
 
 const babysitterName = computed(() => {

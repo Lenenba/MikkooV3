@@ -26,6 +26,15 @@ const Babysitter = computed(
 const Numero = computed(
     () => page.props.numero as string | number
 );
+const defaultProfilePhoto = '/bbsiter.png';
+const babysitterPhoto = computed(() => {
+    const media = Babysitter.value?.media ?? [];
+    return (
+        media.find((item) => item.is_profile_picture)?.file_path ??
+        media[0]?.file_path ??
+        defaultProfilePhoto
+    );
+});
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Mes Reservations',
@@ -207,7 +216,7 @@ const createReservation = () => {
                             <div class="flex flex-col gap-4 sm:flex-row">
                                 <div class="w-full sm:w-40">
                                     <div class="aspect-[4/5] w-full overflow-hidden rounded-sm bg-muted">
-                                        <img :src="Babysitter.media.find(p => p.is_profile_picture)?.file_path"
+                                        <img :src="babysitterPhoto"
                                             alt="Profile picture" class="h-full w-full object-cover" />
                                     </div>
                                 </div>

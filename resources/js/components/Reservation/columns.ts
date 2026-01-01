@@ -22,6 +22,8 @@ const formatCurrency = (value: number | string | null | undefined) => {
     return currencyFormatter.format(0)
 }
 
+const defaultProfilePhoto = '/bbsiter.png'
+
 type PersonWithMedia = {
     name?: string
     email?: string
@@ -39,14 +41,14 @@ const resolvePersonName = (person?: PersonWithMedia) => {
 
 const resolvePersonImage = (person?: PersonWithMedia) => {
     if (!person) {
-        return ''
+        return defaultProfilePhoto
     }
     const media = person.media ?? []
     return person.profile_picture
         ?? person.avatar
         ?? media.find(item => item.is_profile_picture)?.file_path
         ?? media[0]?.file_path
-        ?? ''
+        ?? defaultProfilePhoto
 }
 
 const renderPersonCell = (person?: PersonWithMedia, withAvatar = false) => {
