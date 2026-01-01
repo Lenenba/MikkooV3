@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ReservationRequest;
 use App\Services\ReservationStatsService;
+use App\Notifications\ReservationRequestedNotification;
 
 class ReservationController extends Controller
 {
@@ -186,6 +187,17 @@ class ReservationController extends Controller
             'recurrence_days'       => $scheduleType === 'recurring' ? ($data['recurrence_days'] ?? null) : null,
             'recurrence_end_date'   => $scheduleType === 'recurring' ? ($data['recurrence_end_date'] ?? null) : null,
         ]);
+
+        $reservation->loadMissing([
+            'parent.parentProfile',
+            'babysitter.babysitterProfile',
+            'details',
+            'services',
+        ]);
+
+        if ($reservation->babysitter) {
+            $reservation->babysitter->notify(new ReservationRequestedNotification($reservation));
+        }
 
         // Redirect back with a success message
         return redirect()

@@ -41,16 +41,50 @@ class ReservationNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        // English comment: use a markdown template with subject and data
+        $reservation = $this->reservation->loadMissing([
+            'parent.parentProfile',
+            'babysitter.babysitterProfile',
+            'details',
+            'services',
+        ]);
+
+        $status = $reservation->details?->status ?? 'updated';
+        $subject = match ($status) {
+            'confirmed' => 'Reservation confirmee',
+            'canceled' => 'Reservation annulee',
+            default => 'Mise a jour de votre reservation',
+        };
+
+        $recipientName = $this->resolveRecipientName($notifiable);
+
         return (new MailMessage)
-            ->subject('Votre réservation a été confirmée')
-            ->markdown(
-                'reservations.confirmed',
-                [
-                    'reservation' => $this->reservation,
-                    'status' => $this->reservation->status,
-                ]
-            );
+            ->subject($subject)
+            ->markdown('emails.reservations.status', [
+                'reservation' => $reservation,
+                'details' => $reservation->details,
+                'status' => $status,
+                'recipientName' => $recipientName,
+            ]);
+    }
+
+    protected function resolveRecipientName(object $notifiable): string
+    {
+        if (! method_exists($notifiable, 'parentProfile') || ! method_exists($notifiable, 'babysitterProfile')) {
+            return '';
+        }
+
+        $profile = $notifiable->parentProfile ?? $notifiable->babysitterProfile;
+        $first = trim((string) ($profile?->first_name ?? ''));
+        $last = trim((string) ($profile?->last_name ?? ''));
+        $full = trim($first . ' ' . $last);
+
+        if ($full !== '') {
+            return $full;
+        }
+
+        $fallback = trim((string) ($notifiable->name ?? ''));
+
+        return $fallback !== '' ? $fallback : '';
     }
 
     /**

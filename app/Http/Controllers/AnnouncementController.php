@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\Service;
 use App\Models\User;
+use App\Notifications\AnnouncementMatchNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -86,7 +87,7 @@ class AnnouncementController extends Controller
         $description = isset($data['description']) ? trim((string) $data['description']) : null;
         $description = $description !== '' ? $description : null;
 
-        Announcement::create([
+        $announcement = Announcement::create([
             'parent_id' => $user->id,
             'title' => trim($data['title']),
             'service' => trim($data['service']),
@@ -97,6 +98,8 @@ class AnnouncementController extends Controller
             'description' => $description,
             'status' => 'open',
         ]);
+
+        $this->notifyMatchingBabysitters($announcement);
 
         return back()->with('success', 'Annonce publiee.');
     }
@@ -279,5 +282,35 @@ class AnnouncementController extends Controller
         }
 
         return str_contains($left, $right) || str_contains($right, $left);
+    }
+
+    protected function notifyMatchingBabysitters(Announcement $announcement): void
+    {
+        $service = trim((string) ($announcement->service ?? ''));
+        if ($service === '') {
+            return;
+        }
+
+        $services = Service::query()
+            ->whereNotNull('user_id')
+            ->get(['user_id', 'name']);
+
+        $matchedUserIds = $services
+            ->filter(fn($item) => $this->serviceMatches($service, (string) $item->name))
+            ->pluck('user_id')
+            ->unique()
+            ->values();
+
+        if ($matchedUserIds->isEmpty()) {
+            return;
+        }
+
+        $babysitters = User::Babysitters()
+            ->whereIn('id', $matchedUserIds)
+            ->get();
+
+        foreach ($babysitters as $babysitter) {
+            $babysitter->notify(new AnnouncementMatchNotification($announcement));
+        }
     }
 }
