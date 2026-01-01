@@ -3,15 +3,15 @@
 namespace Database\Seeders;
 
 use App\Models\Address;
-use App\Models\BabysitterProfile;
-use App\Models\Media;
-use App\Models\ParentProfile;
 use App\Models\Reservation;
+use App\Models\ReservationDetail;
 use App\Models\Role;
+use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -22,6 +22,13 @@ class LaunchSeeder extends Seeder
      */
     public function run(): void
     {
+        $fakerAvailable = class_exists(\Faker\Factory::class);
+        $faker = $fakerAvailable ? \Faker\Factory::create('fr_FR') : null;
+
+        if (! $fakerAvailable) {
+            $this->command->warn('Faker not available; using deterministic data.');
+        }
+
         $adminRoleName = env('SUPER_ADMIN_ROLE_NAME', 'SuperAdmin');
         $parentRoleName = env('PARENT_ROLE_NAME', 'Parent');
         $babysitterRoleName = env('BABYSITTER_ROLE_NAME', 'Babysitter');
@@ -34,7 +41,7 @@ class LaunchSeeder extends Seeder
 
         $this->call(ServiceCatalogSeeder::class);
 
-        fake()->seed(20250307);
+        mt_srand(20250307);
 
         $locationsByCountry = [
             'Switzerland' => [
@@ -61,6 +68,112 @@ class LaunchSeeder extends Seeder
             ],
         ];
 
+        $firstNames = [
+            'Emma', 'Lina', 'Sofia', 'Maya', 'Noah', 'Lucas', 'Liam', 'Leo', 'Nina', 'Sara',
+            'Mila', 'Ethan', 'Ava', 'Chloe', 'Mason', 'Ella', 'Jules', 'Hugo', 'Adam', 'Luca',
+        ];
+
+        $lastNames = [
+            'Martin', 'Dubois', 'Muller', 'Rossi', 'Dupont', 'Bernard', 'Schmidt', 'Weber', 'Lambert', 'Tremblay',
+            'Roy', 'Gagnon', 'Moreau', 'Laurent', 'Brun', 'Peterson', 'Meyer', 'Fischer', 'Simon', 'Lopez',
+        ];
+
+        $bioSnippets = [
+            'Patient and calm with kids of all ages.',
+            'Montessori inspired activities and gentle routines.',
+            'Outdoor play and creative games every day.',
+            'Homework support and bedtime routines.',
+            'Focused on safety, respect, and kindness.',
+            'Comfortable with toddlers and school age kids.',
+        ];
+
+        $experienceSnippets = [
+            '3 years of babysitting in family homes.',
+            'Former camp counselor with first aid basics.',
+            'Experience with twins and bedtime routines.',
+            'After school care and activity planning.',
+            'Support with homework and reading practice.',
+            'Weekend and evening availability.',
+        ];
+
+        $reservationNotes = [
+            'After school care and snack time.',
+            'Evening babysitting with bedtime routine.',
+            'Weekend support for two children.',
+            'Help with homework and light dinner.',
+            'Short booking with flexible end time.',
+        ];
+
+        $streetNames = ['Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Lake', 'Hill', 'Park', 'Sunset', 'River'];
+        $streetTypes = ['St', 'Ave', 'Rd', 'Ln', 'Blvd'];
+
+        $paymentFrequencies = ['per_task', 'daily', 'weekly', 'biweekly', 'monthly'];
+
+        $priceBands = [
+            'Switzerland' => [28, 45],
+            'Belgium' => [15, 28],
+            'Canada' => [18, 32],
+        ];
+
+        $randomElement = static function (array $items) {
+            return $items[mt_rand(0, count($items) - 1)];
+        };
+
+        $randomBool = static function (int $percent): bool {
+            return mt_rand(1, 100) <= $percent;
+        };
+
+        $randomName = function () use ($faker, $randomElement, $firstNames, $lastNames): array {
+            if ($faker) {
+                return [$faker->firstName(), $faker->lastName()];
+            }
+
+            return [$randomElement($firstNames), $randomElement($lastNames)];
+        };
+
+        $randomBirthdate = function (int $minAge, int $maxAge) use ($faker): string {
+            if ($faker) {
+                return $faker->dateTimeBetween("-{$maxAge} years", "-{$minAge} years")->format('Y-m-d');
+            }
+
+            $min = Carbon::now()->subYears($maxAge)->startOfDay()->timestamp;
+            $max = Carbon::now()->subYears($minAge)->endOfDay()->timestamp;
+            return Carbon::createFromTimestamp(mt_rand($min, $max))->format('Y-m-d');
+        };
+
+        $randomStreet = function () use ($randomElement, $streetNames, $streetTypes): string {
+            return sprintf('%d %s %s', mt_rand(10, 220), $randomElement($streetNames), $randomElement($streetTypes));
+        };
+
+        $randomPostal = function (string $country): string {
+            if ($country === 'Canada') {
+                $letters = 'ABCEGHJKLMNPRSTVXY';
+                return sprintf(
+                    '%s%d%s %d%s%d',
+                    $letters[mt_rand(0, strlen($letters) - 1)],
+                    mt_rand(0, 9),
+                    $letters[mt_rand(0, strlen($letters) - 1)],
+                    mt_rand(0, 9),
+                    $letters[mt_rand(0, strlen($letters) - 1)],
+                    mt_rand(0, 9)
+                );
+            }
+
+            return (string) mt_rand(1000, 9999);
+        };
+
+        $randomPhone = function (string $country): string {
+            if ($country === 'Switzerland') {
+                return sprintf('+41 %d %03d %02d %02d', mt_rand(70, 79), mt_rand(100, 999), mt_rand(10, 99), mt_rand(10, 99));
+            }
+
+            if ($country === 'Belgium') {
+                return sprintf('+32 %d %02d %02d %02d', mt_rand(470, 499), mt_rand(10, 99), mt_rand(10, 99), mt_rand(10, 99));
+            }
+
+            return sprintf('+1 %03d %03d %04d', mt_rand(200, 999), mt_rand(200, 999), mt_rand(0, 9999));
+        };
+
         $emailCounter = 1;
         $makeEmail = function (string $firstName, string $lastName) use (&$emailCounter): string {
             $slug = Str::slug("{$firstName}.{$lastName}", '.');
@@ -76,14 +189,31 @@ class LaunchSeeder extends Seeder
             return Arr::random($locationsByCountry[$country] ?? $locationsByCountry['Canada']);
         };
 
-        $createUser = function (Role $role, string $country, ?string $email = null, ?string $firstName = null, ?string $lastName = null) use (
-            $adminRoleName,
+        $createUser = function (
+            Role $role,
+            string $country,
+            ?string $email = null,
+            ?string $firstName = null,
+            ?string $lastName = null
+        ) use (
             $babysitterRoleName,
+            $bioSnippets,
+            $experienceSnippets,
             $makeEmail,
-            $pickLocation
+            $paymentFrequencies,
+            $pickLocation,
+            $priceBands,
+            $randomBirthdate,
+            $randomElement,
+            $randomName,
+            $randomPhone,
+            $randomPostal,
+            $randomStreet
         ): User {
-            $firstName = $firstName ?? fake()->firstName();
-            $lastName = $lastName ?? fake()->lastName();
+            if (! $firstName || ! $lastName) {
+                [$firstName, $lastName] = $randomName();
+            }
+
             $email = $email ?? $makeEmail($firstName, $lastName);
 
             $user = User::firstOrCreate(
@@ -98,45 +228,40 @@ class LaunchSeeder extends Seeder
 
             if ($role->name === $babysitterRoleName) {
                 if (! $user->babysitterProfile()->exists()) {
-                    BabysitterProfile::factory()
-                        ->for($user)
-                        ->state([
-                            'first_name' => $firstName,
-                            'last_name' => $lastName,
-                        ])
-                        ->create();
+                    [$minPrice, $maxPrice] = $priceBands[$country] ?? [15, 30];
+                    $user->babysitterProfile()->create([
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'birthdate' => $randomBirthdate(20, 48),
+                        'phone' => $randomPhone($country),
+                        'bio' => $randomElement($bioSnippets),
+                        'experience' => $randomElement($experienceSnippets),
+                        'price_per_hour' => mt_rand($minPrice, $maxPrice),
+                        'payment_frequency' => $randomElement($paymentFrequencies),
+                    ]);
                 }
             } else {
                 if (! $user->parentProfile()->exists()) {
-                    ParentProfile::factory()
-                        ->for($user)
-                        ->state([
-                            'first_name' => $firstName,
-                            'last_name' => $lastName,
-                        ])
-                        ->create();
+                    $user->parentProfile()->create([
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'birthdate' => $randomBirthdate(28, 55),
+                        'phone' => $randomPhone($country),
+                    ]);
                 }
-            }
-
-            if (! $user->media()->where('collection_name', 'avatar')->exists()) {
-                Media::factory()
-                    ->for($user, 'mediaable')
-                    ->state(['collection_name' => 'avatar'])
-                    ->create();
             }
 
             if (! $user->address()->exists()) {
                 $location = $pickLocation($country);
-                Address::factory()
-                    ->for($user, 'addressable')
-                    ->state([
-                        'city' => $location['city'],
-                        'province' => $location['province'],
-                        'country' => $country,
-                        'latitude' => $location['latitude'] + fake()->randomFloat(4, -0.05, 0.05),
-                        'longitude' => $location['longitude'] + fake()->randomFloat(4, -0.05, 0.05),
-                    ])
-                    ->create();
+                $user->address()->create([
+                    'street' => $randomStreet(),
+                    'city' => $location['city'],
+                    'province' => $location['province'],
+                    'postal_code' => $randomPostal($country),
+                    'country' => $country,
+                    'latitude' => $location['latitude'] + (mt_rand(-50, 50) / 1000),
+                    'longitude' => $location['longitude'] + (mt_rand(-50, 50) / 1000),
+                ]);
             }
 
             return $user;
@@ -207,6 +332,10 @@ class LaunchSeeder extends Seeder
             $this->command->info("Babysitters seeded for {$country}: {$count}");
         }
 
+        $this->call([
+            BabysitterServicesSeeder::class,
+        ]);
+
         $this->command->info('Creating reservations for the last 3 months...');
         $reservationsPerMonth = 2;
         $monthsBack = 3;
@@ -225,23 +354,77 @@ class LaunchSeeder extends Seeder
 
                     for ($j = 0; $j < $reservationsPerMonth; $j++) {
                         $randomBabysitter = Arr::random($countryBabysitters);
-                        $randomDate = fake()->dateTimeBetween($start, $end);
+                        $randomDate = Carbon::createFromTimestamp(mt_rand($start->timestamp, $end->timestamp));
+                        $startHour = mt_rand(8, 18);
+                        $startTime = Carbon::createFromTime($startHour, 0);
+                        $endTime = $startTime->copy()->addHours(mt_rand(2, 5));
+                        $status = $randomBool(70) ? 'confirmed' : 'pending';
 
-                        Reservation::factory()
-                            ->state([
-                                'parent_id' => $parent->id,
-                                'babysitter_id' => $randomBabysitter->id,
+                        $reservation = Reservation::create([
+                            'parent_id' => $parent->id,
+                            'babysitter_id' => $randomBabysitter->id,
+                            'total_amount' => 0,
+                            'notes' => $randomElement($reservationNotes),
+                        ]);
+
+                        $reservation->timestamps = false;
+                        $reservation->created_at = $randomDate;
+                        $reservation->updated_at = $randomDate;
+                        $reservation->save();
+
+                        ReservationDetail::create([
+                            'reservation_id' => $reservation->id,
+                            'date' => $randomDate->format('Y-m-d'),
+                            'start_time' => $startTime->format('H:i:s'),
+                            'end_time' => $endTime->format('H:i:s'),
+                            'status' => $status,
+                        ]);
+
+                        $servicePool = Service::query()
+                            ->where('user_id', $randomBabysitter->id)
+                            ->get();
+
+                        if ($servicePool->isEmpty()) {
+                            $servicePool = Service::query()->whereNull('user_id')->get();
+                        }
+
+                        if ($servicePool->isEmpty()) {
+                            continue;
+                        }
+
+                        $take = min(mt_rand(1, 3), $servicePool->count());
+                        $selected = $servicePool->random($take);
+                        if ($take === 1) {
+                            $selected = collect([$selected]);
+                        }
+
+                        $total = 0;
+                        foreach ($selected as $service) {
+                            $quantity = mt_rand(1, 3);
+                            $unitPrice = (float) $service->price;
+                            if ($unitPrice <= 0) {
+                                $unitPrice = mt_rand(12, 30);
+                            }
+                            $lineTotal = $unitPrice * $quantity;
+                            $total += $lineTotal;
+
+                            DB::table('reservation_services')->insert([
+                                'reservation_id' => $reservation->id,
+                                'service_id' => $service->id,
+                                'quantity' => $quantity,
+                                'total' => $lineTotal,
                                 'created_at' => $randomDate,
                                 'updated_at' => $randomDate,
-                            ])
-                            ->create();
+                            ]);
+                        }
+
+                        $reservation->update(['total_amount' => $total]);
                     }
                 }
             }
         }
 
         $this->call([
-            BabysitterServicesSeeder::class,
             AnnouncementSeeder::class,
             RatingSeeder::class,
         ]);

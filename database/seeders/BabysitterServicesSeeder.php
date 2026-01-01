@@ -34,7 +34,7 @@ class BabysitterServicesSeeder extends Seeder
             $selected = $catalog->shuffle()->take(min(3, $catalog->count()));
 
             foreach ($selected as $service) {
-                $price = fake()->randomFloat(2, 12, 30);
+                $price = mt_rand(1200, 3000) / 100;
                 $record = Service::withTrashed()->firstOrCreate(
                     [
                         'user_id' => $babysitter->id,

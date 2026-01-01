@@ -6,6 +6,7 @@ use App\Models\Announcement;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 
 class AnnouncementSeeder extends Seeder
 {
@@ -60,14 +61,16 @@ class AnnouncementSeeder extends Seeder
         $count = min(12, max(6, $parents->count() * 2));
         $created = 0;
 
+        $randomBool = static fn(int $percent) => mt_rand(1, 100) <= $percent;
+
         for ($i = 0; $i < $count; $i++) {
             $parent = $parents->random();
             $service = $services->random();
-            $title = sprintf(fake()->randomElement($titleTemplates), $service);
-            $childName = fake()->randomElement($childNames);
-            $childAge = fake()->randomElement($childAges);
-            $childNote = fake()->boolean(70) ? fake()->randomElement($childNotes) : null;
-            $description = fake()->boolean(85) ? fake()->randomElement($descriptions) : null;
+            $title = sprintf(Arr::random($titleTemplates), $service);
+            $childName = Arr::random($childNames);
+            $childAge = Arr::random($childAges);
+            $childNote = $randomBool(70) ? Arr::random($childNotes) : null;
+            $description = $randomBool(85) ? Arr::random($descriptions) : null;
 
             Announcement::create([
                 'parent_id' => $parent->id,
@@ -87,7 +90,7 @@ class AnnouncementSeeder extends Seeder
                 'child_age' => $childAge,
                 'child_notes' => $childNote,
                 'description' => $description,
-                'status' => fake()->boolean(75) ? 'open' : 'closed',
+                'status' => $randomBool(75) ? 'open' : 'closed',
             ]);
 
             $created++;

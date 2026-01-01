@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Reservation;
 use App\Services\RatingService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 
 class RatingSeeder extends Seeder
 {
@@ -34,6 +35,13 @@ class RatingSeeder extends Seeder
             'Felt safe and confident during the whole stay.',
             'Highly recommended, will book again.',
         ];
+        $babysitterComments = [
+            'Smooth booking with clear instructions.',
+            'Kids were lovely, great experience.',
+            'Parents were responsive and helpful.',
+            'Everything went well and on time.',
+        ];
+        $randomBool = static fn(int $percent) => mt_rand(1, 100) <= $percent;
 
         foreach ($eligible as $reservation) {
             $parent = $reservation->parent;
@@ -46,17 +54,17 @@ class RatingSeeder extends Seeder
             $ratingService->submitReservationRating(
                 $reservation,
                 $parent,
-                fake()->numberBetween(3, 5),
-                fake()->randomElement($parentComments)
+                mt_rand(3, 5),
+                Arr::random($parentComments)
             );
             $created++;
 
-            if (fake()->boolean(70)) {
+            if ($randomBool(70)) {
                 $ratingService->submitReservationRating(
                     $reservation,
                     $babysitter,
-                    fake()->numberBetween(3, 5),
-                    fake()->boolean(35) ? fake()->sentence() : null
+                    mt_rand(3, 5),
+                    $randomBool(35) ? Arr::random($babysitterComments) : null
                 );
                 $created++;
             }
