@@ -4,17 +4,17 @@ import type { Announcement } from '@/types'
 import DataTableColumnHeader from '@/components/columnHeader.vue'
 import DropdownAction from '@/components/Announcement/data-table-dropdown.vue'
 
-const headerClass = 'text-xs font-semibold uppercase tracking-wide text-gray-500'
+const headerClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 
 const renderTitleCell = (announcement: Announcement) => {
     const title = announcement.title ?? '-'
     const description = announcement.description ?? ''
 
     return h('div', { class: 'flex max-w-[260px] flex-col' }, [
-        h('span', { class: 'truncate text-sm font-semibold text-gray-900' }, title),
+        h('span', { class: 'truncate text-sm font-semibold text-foreground' }, title),
         description
-            ? h('span', { class: 'text-xs text-gray-500' }, description)
-            : h('span', { class: 'text-xs text-gray-400' }, '-'),
+            ? h('span', { class: 'text-xs text-muted-foreground' }, description)
+            : h('span', { class: 'text-xs text-muted-foreground/70' }, '-'),
     ])
 }
 
@@ -35,12 +35,12 @@ const renderChildCell = (announcement: Announcement) => {
     const countLabel = names.length > 1 ? `${names.length} enfants` : ''
 
     return h('div', { class: 'flex max-w-[220px] flex-col' }, [
-        h('span', { class: 'text-sm font-medium text-gray-900' }, label),
+        h('span', { class: 'text-sm font-medium text-foreground' }, label),
         notes
-            ? h('span', { class: 'text-xs text-gray-500' }, notes)
+            ? h('span', { class: 'text-xs text-muted-foreground' }, notes)
             : countLabel
-                ? h('span', { class: 'text-xs text-gray-500' }, countLabel)
-                : h('span', { class: 'text-xs text-gray-400' }, '-'),
+                ? h('span', { class: 'text-xs text-muted-foreground' }, countLabel)
+                : h('span', { class: 'text-xs text-muted-foreground/70' }, '-'),
     ])
 }
 
@@ -59,7 +59,7 @@ const renderStatusCell = (status?: string | null) => {
 
     const mapped = statusMap[key] ?? {
         text: key || 'Inconnu',
-        classes: 'bg-gray-100 text-gray-700',
+        classes: 'bg-muted text-foreground',
     }
 
     return h('span', { class: `rounded-full px-2.5 py-1 text-xs font-semibold ${mapped.classes}` }, mapped.text)
@@ -89,7 +89,7 @@ export const getAnnouncementColumns = (): ColumnDef<Announcement>[] => [
     {
         accessorKey: 'created_at',
         header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
-        cell: ({ row }) => h('span', { class: 'text-sm text-gray-600' }, row.getValue('created_at') ?? '-'),
+        cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, row.getValue('created_at') ?? '-'),
     },
     {
         id: 'actions',

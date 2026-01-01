@@ -54,7 +54,7 @@ const statusMeta = computed(() => {
     if (current === 'canceled' || current === 'cancelled') {
         return { label: 'Annulee', className: 'bg-red-50 text-red-700 border-red-200' };
     }
-    return { label: 'Inconnu', className: 'bg-gray-100 text-gray-600 border-gray-200' };
+    return { label: 'Inconnu', className: 'bg-muted text-muted-foreground border-border' };
 });
 
 const canCancel = computed(() => {
@@ -207,13 +207,13 @@ const submitRating = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div v-if="reservation" class="mx-auto w-full lg:w-3/4">
             <div
-                class="p-5 space-y-4 flex flex-col lg:flex-row bg-gray-100 border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
+                class="p-5 space-y-4 flex flex-col lg:flex-row bg-muted border border-border rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
                 <!-- Left: profile image -->
                 <div class="lg:w-1/4 mb-4 lg:mb-0">
-                    <div class="w-full overflow-hidden rounded-sm bg-gray-100">
+                    <div class="w-full overflow-hidden rounded-sm bg-muted">
                         <img v-if="babysitterPhoto" :src="babysitterPhoto" :alt="babysitterName"
                             class="w-full object-cover" />
-                        <div v-else class="flex h-40 w-full items-center justify-center text-xs text-gray-400">
+                        <div v-else class="flex h-40 w-full items-center justify-center text-xs text-muted-foreground/70">
                             Aucune photo
                         </div>
                     </div>
@@ -224,14 +224,14 @@ const submitRating = () => {
                     <!-- Header -->
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <h1 class="text-xl font-semibold text-gray-800 dark:text-green-100">
+                            <h1 class="text-xl font-semibold text-foreground dark:text-green-100">
                                 Reservation pour {{ babysitterName }}
                             </h1>
                             <div class="mt-2 flex flex-wrap items-center gap-2">
                                 <Badge variant="outline" :class="statusMeta.className">
                                     {{ statusMeta.label }}
                                 </Badge>
-                                <span class="text-xs text-gray-500">Ref: {{ reservationNumber }}</span>
+                                <span class="text-xs text-muted-foreground">Ref: {{ reservationNumber }}</span>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -253,7 +253,7 @@ const submitRating = () => {
                             <div class="">
                                 <!-- Notes -->
                                 <div class="mb-8">
-                                    <Label for="note" class="font-semibold text-gray-700 mb-2">Notes pour la
+                                    <Label for="note" class="font-semibold text-foreground mb-2">Notes pour la
                                         reservation :</Label>
                                     <p>{{ reservation.notes ?? '-' }}</p>
                                 </div>
@@ -261,25 +261,25 @@ const submitRating = () => {
                                 <div class="flex flex-col lg:flex-row lg:space-x-6">
                                     <!-- Property address -->
                                     <div class="flex-1">
-                                        <p class="font-semibold text-gray-700">Property address</p>
-                                        <p class="text-xs text-gray-600">
+                                        <p class="font-semibold text-foreground">Property address</p>
+                                        <p class="text-xs text-muted-foreground">
                                             {{ addressLine1 || '-' }}
                                         </p>
-                                        <p class="text-xs text-gray-600">
+                                        <p class="text-xs text-muted-foreground">
                                             {{ addressLine2 || '-' }}
                                         </p>
-                                        <p class="text-xs text-gray-600">
+                                        <p class="text-xs text-muted-foreground">
                                             {{ addressLine3 || '-' }}
                                         </p>
                                     </div>
                                     <!-- Contact details -->
                                     <div class="flex-1">
-                                        <p class="font-semibold text-gray-700">Contact details</p>
-                                        <p class="text-xs text-gray-600">{{ contactEmail || '-' }}</p>
-                                        <p class="text-xs text-gray-600">
+                                        <p class="font-semibold text-foreground">Contact details</p>
+                                        <p class="text-xs text-muted-foreground">{{ contactEmail || '-' }}</p>
+                                        <p class="text-xs text-muted-foreground">
                                             {{ birthdateLabel }}
                                         </p>
-                                        <p class="text-xs text-gray-600">
+                                        <p class="text-xs text-muted-foreground">
                                             {{ contactPhone || '-' }}
                                         </p>
                                     </div>
@@ -288,27 +288,27 @@ const submitRating = () => {
                         </div>
 
                         <!-- Right side (1/3) -->
-                        <div class="bg-white p-4 rounded col-span-2">
-                            <p class="font-semibold text-gray-700 mb-2">Reservation details</p>
-                            <div class="text-xs text-gray-600 flex justify-between">
+                        <div class="bg-card p-4 rounded col-span-2">
+                            <p class="font-semibold text-foreground mb-2">Reservation details</p>
+                            <div class="text-xs text-muted-foreground flex justify-between">
                                 <span>Numero :</span>
                                 <span>{{ reservationNumber }}</span>
                             </div>
 
                             <div class="my-2 flex flex-row justify-between">
-                                <p class="text-xs text-gray-600 mb-1">Reservation date</p>
-                                <p class="text-xs text-gray-600 mb-1">{{ formatDate(details?.date) }}</p>
+                                <p class="text-xs text-muted-foreground mb-1">Reservation date</p>
+                                <p class="text-xs text-muted-foreground mb-1">{{ formatDate(details?.date) }}</p>
                             </div>
                             <div class="my-2 flex flex-row justify-between">
-                                <p class="text-xs text-gray-600 mb-1">Reservation heure de debut</p>
-                                <p class="text-xs text-gray-600 mb-1">{{ formatTime(details?.start_time) }}</p>
+                                <p class="text-xs text-muted-foreground mb-1">Reservation heure de debut</p>
+                                <p class="text-xs text-muted-foreground mb-1">{{ formatTime(details?.start_time) }}</p>
                             </div>
                             <div class="my-2 flex flex-row justify-between">
-                                <p class="text-xs text-gray-600 mb-1">Reservation heure de fin</p>
-                                <p class="text-xs text-gray-600 mb-1">{{ formatTime(details?.end_time) }}</p>
+                                <p class="text-xs text-muted-foreground mb-1">Reservation heure de fin</p>
+                                <p class="text-xs text-muted-foreground mb-1">{{ formatTime(details?.end_time) }}</p>
                             </div>
-                            <div v-if="canRate || myRating || otherRating" class="mt-3 border-t border-gray-100 pt-3">
-                                <div class="flex items-center justify-between text-xs text-gray-600">
+                            <div v-if="canRate || myRating || otherRating" class="mt-3 border-t border-border pt-3">
+                                <div class="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Rate {{ ratingTargetName }}:</span>
                                     <div class="flex items-center gap-1">
                                         <button
@@ -323,7 +323,7 @@ const submitRating = () => {
                                         >
                                             <Star
                                                 class="h-4 w-4"
-                                                :class="isStarActive(value) ? 'text-amber-400' : 'text-gray-300'"
+                                                :class="isStarActive(value) ? 'text-amber-400' : 'text-muted-foreground/30'"
                                             />
                                         </button>
                                     </div>
@@ -350,7 +350,7 @@ const submitRating = () => {
                                     </div>
                                 </div>
 
-                                <div v-if="otherRating" class="mt-3 text-xs text-gray-500">
+                                <div v-if="otherRating" class="mt-3 text-xs text-muted-foreground">
                                     They rated you: {{ otherRating.rating }}/5
                                 </div>
                             </div>
@@ -359,10 +359,10 @@ const submitRating = () => {
                 </div>
             </div>
             <div
-                class="p-5 space-y-3 flex flex-col bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
+                class="p-5 space-y-3 flex flex-col bg-card border border-border rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
                 <!-- Table Section -->
                 <div
-                    class="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+                    class="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                     <div class="min-w-full inline-block align-middle min-h-[300px]">
                         <!-- Table -->
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
@@ -370,28 +370,28 @@ const submitRating = () => {
                                 <tr>
                                     <th scope="col" class="min-w-[430px] ">
                                         <div
-                                            class="px-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                            class="px-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                             Services
                                         </div>
                                     </th>
 
                                     <th scope="col">
                                         <div
-                                            class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                            class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                             Nbre d'enfant (s)
                                         </div>
                                     </th>
 
                                     <th scope="col">
                                         <div
-                                            class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                            class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                             Unit price
                                         </div>
                                     </th>
 
                                     <th scope="col">
                                         <div
-                                            class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                            class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                             Total
                                         </div>
                                     </th>
@@ -421,16 +421,16 @@ const submitRating = () => {
                 </div>
             </div>
             <div
-                class="p-5 grid grid-cols-2 gap-4 justify-between bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
+                class="p-5 grid grid-cols-2 gap-4 justify-between bg-card border border-border rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
 
                 <div>
 
                 </div>
-                <div class="border-l border-gray-200 dark:border-neutral-700 rounded-sm p-4">
+                <div class="border-l border-border dark:border-neutral-700 rounded-sm p-4">
                     <!-- List Item -->
                     <div class="py-4 grid grid-cols-2 gap-x-4  dark:border-neutral-700">
                         <div class="col-span-1">
-                            <p class="text-sm text-gray-500 dark:text-neutral-500">
+                            <p class="text-sm text-muted-foreground dark:text-neutral-500">
                                 Subtotal:
                             </p>
                         </div>
@@ -442,10 +442,10 @@ const submitRating = () => {
                         </div>
                     </div>
                     <!-- Section des détails des taxes (affichée ou masquée) -->
-                    <div class="space-y-2 py-4 border-t border-gray-200 dark:border-neutral-700">
+                    <div class="space-y-2 py-4 border-t border-border dark:border-neutral-700">
                         <div class="flex justify-between font-bold">
-                            <p class="text-sm text-gray-800 dark:text-neutral-200">Total taxes :</p>
-                             <p class="text-sm text-gray-800 dark:text-neutral-200">
+                            <p class="text-sm text-foreground dark:text-neutral-200">Total taxes :</p>
+                             <p class="text-sm text-foreground dark:text-neutral-200">
                                  {{ formatCurrency(calculTax) }}
                              </p>
                         </div>
@@ -453,14 +453,14 @@ const submitRating = () => {
                     <!-- End List Item -->
 
                     <!-- List Item -->
-                    <div class="py-4 grid grid-cols-2 gap-x-4 border-t border-gray-200 dark:border-neutral-700">
+                    <div class="py-4 grid grid-cols-2 gap-x-4 border-t border-border dark:border-neutral-700">
                         <div class="col-span-1">
-                            <p class="text-sm text-gray-800 font-bold dark:text-neutral-500">
+                            <p class="text-sm text-foreground font-bold dark:text-neutral-500">
                                 Total amount:
                             </p>
                         </div>
                         <div class="flex justify-end">
-                            <p class="text-sm text-gray-800 font-bold dark:text-neutral-200">
+                            <p class="text-sm text-foreground font-bold dark:text-neutral-200">
                                 {{ formatCurrency(totalAmount) }}
                             </p>
                         </div>
@@ -468,7 +468,7 @@ const submitRating = () => {
                 </div>
             </div>
         </div>
-        <div v-else class="mx-auto w-full lg:w-3/4 rounded-sm border border-gray-100 bg-white p-6 text-sm text-gray-500">
+        <div v-else class="mx-auto w-full lg:w-3/4 rounded-sm border border-border bg-card p-6 text-sm text-muted-foreground">
             Reservation introuvable.
         </div>
     </AppLayout>

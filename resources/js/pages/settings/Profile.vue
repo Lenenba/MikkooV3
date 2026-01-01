@@ -299,7 +299,7 @@ const tabItems = computed(() => {
                 </TabsList>
 
                 <TabsContent value="account" class="space-y-6">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Account" description="Update your name and email address" />
                         <form @submit.prevent="submitAccount" class="mt-6 space-y-6">
                             <div class="grid gap-2">
@@ -352,13 +352,13 @@ const tabItems = computed(() => {
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="accountForm.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                                    <p v-show="accountForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
                                 </Transition>
                             </div>
                         </form>
                     </div>
 
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Profile details" description="Update your personal profile information" />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-6">
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -433,19 +433,19 @@ const tabItems = computed(() => {
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
                                 </Transition>
                             </div>
                         </form>
                     </div>
 
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <DeleteUser />
                     </div>
                 </TabsContent>
 
                 <TabsContent value="address">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Address" description="Update your address details" />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-6">
                             <AddressForm v-model="addressModel" />
@@ -460,7 +460,7 @@ const tabItems = computed(() => {
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
                                 </Transition>
                             </div>
                         </form>
@@ -469,15 +469,15 @@ const tabItems = computed(() => {
 
 
                 <TabsContent v-if="!isBabysitter" value="children">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
                         <HeadingSmall title="Children" description="Manage each child profile" />
                         <InputError :message="detailsForm.errors.children" />
                         <div class="flex items-center justify-between">
-                            <p class="text-sm text-gray-600">Add details for each child, including a photo.</p>
+                            <p class="text-sm text-muted-foreground">Add details for each child, including a photo.</p>
                             <Button type="button" variant="outline" @click="openChildForm">Add child</Button>
                         </div>
 
-                        <div v-if="showChildForm" class="rounded-sm border border-gray-200 p-4">
+                        <div v-if="showChildForm" class="rounded-sm border border-border p-4">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-2">
                                     <FloatingInput id="child_name" label="Child name" v-model="childDraft.name" />
@@ -492,13 +492,13 @@ const tabItems = computed(() => {
                                     <FloatingTextarea id="child_details" label="Details" rows="2" v-model="childDraft.details" />
                                 </div>
                                 <div class="space-y-2 sm:col-span-2">
-                                    <label class="text-sm font-medium text-gray-700" for="child_photo">Photo</label>
+                                    <label class="text-sm font-medium text-foreground" for="child_photo">Photo</label>
                                     <input
                                         :key="childPhotoKey"
                                         id="child_photo"
                                         type="file"
                                         accept="image/*"
-                                        class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-stone-200"
+                                        class="block w-full text-sm text-foreground file:mr-3 file:rounded-sm file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
                                         @change="setChildPhoto"
                                     />
                                     <div v-if="childDraft.photo" class="mt-3 flex items-center gap-3">
@@ -523,22 +523,22 @@ const tabItems = computed(() => {
                             <div
                                 v-for="(child, index) in detailsForm.children"
                                 :key="index"
-                                class="rounded-sm border border-gray-200 p-4"
+                                class="rounded-sm border border-border p-4"
                             >
                                 <div class="flex items-start gap-3">
-                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-stone-100">
+                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
                                         <img
                                             v-if="child.photo"
                                             :src="child.photo"
                                             alt="Child photo"
                                             class="h-full w-full object-cover"
                                         />
-                                        <div v-else class="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                                        <div v-else class="flex h-full w-full items-center justify-center text-xs text-muted-foreground/70">
                                             No photo
                                         </div>
                                     </div>
-                                    <div class="space-y-1 text-sm text-gray-600">
-                                        <p class="text-sm font-semibold text-gray-900">
+                                    <div class="space-y-1 text-sm text-muted-foreground">
+                                        <p class="text-sm font-semibold text-foreground">
                                             {{ child.name || `Child ${index + 1}` }}
                                         </p>
                                         <p>Age: {{ child.age || '-' }}</p>
@@ -569,14 +569,14 @@ const tabItems = computed(() => {
                                 leave-active-class="transition ease-in-out"
                                 leave-to-class="opacity-0"
                             >
-                                <p v-show="detailsForm.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                                <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
                             </Transition>
                         </div>
                     </div>
                 </TabsContent>
 
                 <TabsContent value="availability">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Availability" description="Update your availability details" />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-4">
                             <FloatingTextarea
@@ -601,7 +601,7 @@ const tabItems = computed(() => {
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
                                 </Transition>
                             </div>
                         </form>
@@ -609,11 +609,11 @@ const tabItems = computed(() => {
                 </TabsContent>
 
                 <TabsContent value="media">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
                         <HeadingSmall title="Media" description="Update your avatar and gallery" />
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-gray-900">Avatar</h3>
+                                <h3 class="text-sm font-semibold text-foreground">Avatar</h3>
                                 <MediaUploadForm
                                     collection-name="avatar"
                                     collection-label="Avatar"
@@ -622,7 +622,7 @@ const tabItems = computed(() => {
                                 />
                             </div>
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-gray-900">Gallery</h3>
+                                <h3 class="text-sm font-semibold text-foreground">Gallery</h3>
                                 <MediaUploadForm
                                     collection-name="gallery"
                                     collection-label="Gallery"
@@ -635,7 +635,7 @@ const tabItems = computed(() => {
                 </TabsContent>
 
                 <TabsContent value="gallery">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
                         <HeadingSmall title="Gallery" description="Browse your uploaded photos" />
                         <MediaScrollingHorizontal :items="mediaItems" />
                     </div>

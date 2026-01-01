@@ -78,7 +78,7 @@ const getTrendMeta = (value: number | string | null | undefined) => {
     if (safeValue < 0) {
         return { icon: TrendingDown, className: 'text-red-600', show: true };
     }
-    return { icon: TrendingUp, className: 'text-gray-400', show: false };
+    return { icon: TrendingUp, className: 'text-muted-foreground/70', show: false };
 };
 
 const sparklinePoints = (values: number[]) => {
@@ -156,7 +156,7 @@ const statCards = computed(() => {
                 change: '',
                 changeText: 'au total',
                 trendIcon: TrendingUp,
-                trendClass: 'text-gray-400',
+                trendClass: 'text-muted-foreground/70',
                 showTrend: false,
                 icon: CalendarCheck,
                 iconClass: 'bg-amber-100 text-amber-600',
@@ -169,7 +169,7 @@ const statCards = computed(() => {
                 change: '',
                 changeText: 'en cours',
                 trendIcon: TrendingUp,
-                trendClass: 'text-gray-400',
+                trendClass: 'text-muted-foreground/70',
                 showTrend: false,
                 icon: ClipboardList,
                 iconClass: 'bg-violet-100 text-violet-600',
@@ -195,7 +195,7 @@ const statCards = computed(() => {
                 change: '',
                 changeText: 'au total',
                 trendIcon: TrendingUp,
-                trendClass: 'text-gray-400',
+                trendClass: 'text-muted-foreground/70',
                 showTrend: false,
                 icon: DollarSign,
                 iconClass: 'bg-emerald-100 text-emerald-600',
@@ -208,7 +208,7 @@ const statCards = computed(() => {
                 change: '',
                 changeText: 'au total',
                 trendIcon: TrendingUp,
-                trendClass: 'text-gray-400',
+                trendClass: 'text-muted-foreground/70',
                 showTrend: false,
                 icon: Users,
                 iconClass: 'bg-sky-100 text-sky-600',
@@ -225,7 +225,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'planifiees',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: CalendarCheck,
             iconClass: 'bg-amber-100 text-amber-600',
@@ -238,7 +238,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'en cours',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: ClipboardList,
             iconClass: 'bg-violet-100 text-violet-600',
@@ -264,7 +264,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'au total',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: DollarSign,
             iconClass: 'bg-emerald-100 text-emerald-600',
@@ -277,7 +277,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'au total',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: Users,
             iconClass: 'bg-sky-100 text-sky-600',
@@ -305,17 +305,17 @@ const breadcrumbs: BreadcrumbItem[] = [
             <!-- Stats cards container -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <div v-for="stat in statCards" :key="stat.title"
-                    class="rounded-sm border border-gray-100 bg-white p-4 shadow-sm">
+                    class="rounded-sm border border-border bg-card p-4 shadow-sm">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div :class="['flex h-10 w-10 items-center justify-center rounded-full', stat.iconClass]">
                                 <component :is="stat.icon" class="h-5 w-5" />
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                     {{ stat.title }}
                                 </p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ stat.value }}</p>
+                                <p class="text-2xl font-semibold text-foreground">{{ stat.value }}</p>
                             </div>
                         </div>
                         <svg class="h-10 w-28" viewBox="0 0 120 40" fill="none">
@@ -328,7 +328,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <component v-if="stat.showTrend" :is="stat.trendIcon"
                             :class="['h-3 w-3', stat.trendClass]" />
                         <span v-if="stat.change" :class="stat.trendClass">{{ stat.change }}</span>
-                        <span class="text-gray-400">{{ stat.changeText }}</span>
+                        <span class="text-muted-foreground/70">{{ stat.changeText }}</span>
                     </div>
                 </div>
             </div>

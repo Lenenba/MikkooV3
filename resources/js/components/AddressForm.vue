@@ -179,15 +179,15 @@ onBeforeUnmount(() => {
         />
         <ul
             v-if="showSuggestions"
-            class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg max-h-60 overflow-auto"
+            class="absolute z-10 mt-1 w-full rounded border border-border bg-popover text-foreground shadow-lg max-h-60 overflow-auto"
         >
-            <li v-if="isLoading" class="px-4 py-2 text-sm text-gray-500">
+            <li v-if="isLoading" class="px-4 py-2 text-sm text-muted-foreground">
                 Recherche en cours...
             </li>
-            <li v-else-if="hasError" class="px-4 py-2 text-sm text-red-500">
+            <li v-else-if="hasError" class="px-4 py-2 text-sm text-destructive">
                 Erreur de recherche. Reessaie.
             </li>
-            <li v-else-if="!suggestions.length" class="px-4 py-2 text-sm text-gray-500">
+            <li v-else-if="!suggestions.length" class="px-4 py-2 text-sm text-muted-foreground">
                 Aucun resultat.
             </li>
             <template v-else>
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
                     v-for="(item, index) in suggestions"
                     :key="index"
                     @click="selectSuggestion(item)"
-                    class="px-4 py-2 hover:bg-gray-100 cursor-pointer truncate"
+                    class="px-4 py-2 hover:bg-muted cursor-pointer truncate"
                 >
                     {{ item.display_name || [item.street, item.city, item.country].filter(Boolean).join(', ') || 'Address' }}
                 </li>

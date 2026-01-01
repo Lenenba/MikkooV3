@@ -18,11 +18,11 @@ const pageIndex = computed(() => Math.min(props.table.getState().pagination.page
 
 <template>
     <div class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-gray-500">
+        <p class="text-sm text-muted-foreground">
             {{ totalResults }} {{ resultLabel }}
         </p>
         <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-500">
+            <span class="text-sm text-muted-foreground">
                 {{ pageIndex }} sur {{ pageCount }}
             </span>
             <div class="flex items-center gap-1">

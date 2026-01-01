@@ -280,40 +280,40 @@ const goToStep = (step: number) => {
 <template>
     <Head title="Onboarding" />
 
-    <div class="min-h-svh bg-stone-50 px-4 py-10">
+    <div class="min-h-svh bg-muted/50 px-4 py-10">
         <div class="mx-auto w-full max-w-6xl">
             <div class="text-center">
-                <div class="text-2xl font-semibold tracking-tight text-gray-900">Mikoo</div>
-                <p class="mt-2 text-sm text-gray-500">Complete your setup in 6 steps.</p>
+                <div class="text-2xl font-semibold tracking-tight text-foreground">Mikoo</div>
+                <p class="mt-2 text-sm text-muted-foreground">Complete your setup in 6 steps.</p>
             </div>
 
             <div class="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
                 <aside class="space-y-3">
-                    <div class="rounded-sm border border-gray-200 bg-white p-4 shadow-sm">
+                    <div class="rounded-sm border border-border bg-card p-4 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <p class="text-xs font-semibold uppercase text-gray-500">Progression</p>
-                            <span class="text-xs text-gray-400">Step {{ currentStep }} / 6</span>
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">Progression</p>
+                            <span class="text-xs text-muted-foreground/70">Step {{ currentStep }} / 6</span>
                         </div>
                         <ul class="mt-4 space-y-3">
                             <li v-for="step in steps" :key="step.id">
                                 <button
                                     type="button"
                                     class="flex w-full items-start gap-3 rounded-sm px-2 py-2 text-left transition"
-                                    :class="currentStep === step.id ? 'bg-stone-100' : ''"
+                                    :class="currentStep === step.id ? 'bg-muted' : ''"
                                     :disabled="!isAuthed && step.id > 1"
                                     @click="goToStep(step.id)"
                                 >
                                     <span
                                         class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold"
-                                        :class="currentStep >= step.id ? 'border-emerald-500 text-emerald-600' : 'border-gray-200 text-gray-400'"
+                                        :class="currentStep >= step.id ? 'border-emerald-500 text-emerald-600' : 'border-border text-muted-foreground/70'"
                                     >
                                         {{ step.id }}
                                     </span>
                                     <span>
-                                        <span class="block text-sm font-medium text-gray-900">
+                                        <span class="block text-sm font-medium text-foreground">
                                             {{ step.title }}
                                         </span>
-                                        <span class="block text-xs text-gray-400">{{ step.subtitle }}</span>
+                                        <span class="block text-xs text-muted-foreground/70">{{ step.subtitle }}</span>
                                     </span>
                                 </button>
                             </li>
@@ -321,13 +321,13 @@ const goToStep = (step: number) => {
                     </div>
                 </aside>
 
-                <section class="rounded-sm border border-gray-200 bg-white p-6 shadow-sm">
+                <section class="rounded-sm border border-border bg-card p-6 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-lg font-semibold text-gray-900">{{ steps[currentStep - 1]?.title }}</h1>
-                            <p class="text-sm text-gray-500">{{ steps[currentStep - 1]?.subtitle }}</p>
+                            <h1 class="text-lg font-semibold text-foreground">{{ steps[currentStep - 1]?.title }}</h1>
+                            <p class="text-sm text-muted-foreground">{{ steps[currentStep - 1]?.subtitle }}</p>
                         </div>
-                        <span class="text-xs text-gray-400">Step {{ currentStep }} / 6</span>
+                        <span class="text-xs text-muted-foreground/70">Step {{ currentStep }} / 6</span>
                     </div>
 
                     <form v-if="currentStep === 1" @submit.prevent="submitRegister" class="mt-6 space-y-5">
@@ -386,16 +386,16 @@ const goToStep = (step: number) => {
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-muted-foreground">
                                 Already have an account?
-                                <Link :href="route('login')" class="text-gray-900 underline">Log in</Link>
+                                <Link :href="route('login')" class="text-foreground underline">Log in</Link>
                             </div>
                             <Button type="submit" :disabled="registerForm.processing">Create account</Button>
                         </div>
                     </form>
 
                     <form v-else-if="currentStep === 2" @submit.prevent="submitAddress" class="mt-6 space-y-5">
-                        <div class="rounded-sm border border-gray-100 bg-stone-50 p-4 text-sm text-gray-600">
+                        <div class="rounded-sm border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
                             Search your address to fill the fields quickly.
                         </div>
                         <AddressForm v-model="addressModel" />
@@ -444,12 +444,12 @@ const goToStep = (step: number) => {
 
                         <div v-else class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-gray-900">Children details</p>
+                                <p class="text-sm font-medium text-foreground">Children details</p>
                                 <Button type="button" variant="outline" @click="openChildForm">Add child</Button>
                             </div>
                             <InputError :message="profileForm.errors.children" />
 
-                            <div v-if="showChildForm" class="rounded-sm border border-gray-200 p-4">
+                            <div v-if="showChildForm" class="rounded-sm border border-border p-4">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="space-y-2">
                                         <FloatingInput
@@ -483,13 +483,13 @@ const goToStep = (step: number) => {
                                         />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
-                                        <label class="text-sm font-medium text-gray-700" for="child_photo">Photo</label>
+                                        <label class="text-sm font-medium text-foreground" for="child_photo">Photo</label>
                                         <input
                                             :key="childPhotoKey"
                                             id="child_photo"
                                             type="file"
                                             accept="image/*"
-                                            class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-stone-200"
+                                            class="block w-full text-sm text-foreground file:mr-3 file:rounded-sm file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
                                             @change="setChildPhoto"
                                         />
                                         <div v-if="childDraft.photo" class="mt-3 flex items-center gap-3">
@@ -514,22 +514,22 @@ const goToStep = (step: number) => {
                                 <div
                                     v-for="(child, index) in profileForm.children"
                                     :key="index"
-                                    class="rounded-sm border border-gray-200 p-4"
+                                    class="rounded-sm border border-border p-4"
                                 >
                                     <div class="flex items-start gap-3">
-                                        <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-stone-100">
+                                        <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
                                             <img
                                                 v-if="child.photo"
                                                 :src="child.photo"
                                                 alt="Child photo"
                                                 class="h-full w-full object-cover"
                                             />
-                                            <div v-else class="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                                            <div v-else class="flex h-full w-full items-center justify-center text-xs text-muted-foreground/70">
                                                 No photo
                                             </div>
                                         </div>
-                                        <div class="space-y-1 text-sm text-gray-600">
-                                            <p class="text-sm font-semibold text-gray-900">
+                                        <div class="space-y-1 text-sm text-muted-foreground">
+                                            <p class="text-sm font-semibold text-foreground">
                                                 {{ child.name || `Child ${index + 1}` }}
                                             </p>
                                             <p>Age: {{ child.age || '-' }}</p>
@@ -563,12 +563,12 @@ const goToStep = (step: number) => {
                     </form>
 
                     <div v-else-if="currentStep === 4" class="mt-6 space-y-6">
-                        <div class="rounded-sm border border-gray-100 bg-stone-50 p-4 text-sm text-gray-600">
+                        <div class="rounded-sm border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
                             Upload an avatar and a small gallery. You can update this later in settings.
                         </div>
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-gray-900">Avatar</h3>
+                                <h3 class="text-sm font-semibold text-foreground">Avatar</h3>
                                 <MediaUploadForm
                                     collection-name="avatar"
                                     collection-label="Avatar"
@@ -577,7 +577,7 @@ const goToStep = (step: number) => {
                                 />
                             </div>
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-gray-900">Gallery</h3>
+                                <h3 class="text-sm font-semibold text-foreground">Gallery</h3>
                                 <MediaUploadForm
                                     collection-name="gallery"
                                     collection-label="Gallery"
@@ -616,21 +616,21 @@ const goToStep = (step: number) => {
                     </form>
 
                     <div v-else class="mt-6 space-y-6">
-                        <div class="grid gap-4 rounded-sm border border-gray-100 bg-stone-50 p-4 text-sm text-gray-700">
+                        <div class="grid gap-4 rounded-sm border border-border bg-muted/50 p-4 text-sm text-foreground">
                             <div>
-                                <p class="text-xs font-semibold uppercase text-gray-500">Account</p>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">Account</p>
                                 <p>{{ account.first_name ?? '' }} {{ account.last_name ?? '' }}</p>
-                                <p class="text-gray-500">{{ account.email ?? '' }}</p>
-                                <p class="text-gray-500">Role: {{ role }}</p>
+                                <p class="text-muted-foreground">{{ account.email ?? '' }}</p>
+                                <p class="text-muted-foreground">Role: {{ role }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase text-gray-500">Address</p>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">Address</p>
                                 <p>{{ address.street ?? '' }}</p>
                                 <p>{{ address.city ?? '' }} {{ address.postal_code ?? '' }}</p>
                                 <p>{{ address.country ?? '' }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase text-gray-500">Profile</p>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">Profile</p>
                                 <p v-if="isBabysitter">Price: {{ profile.price_per_hour ?? '-' }}</p>
                                 <p v-else>Children: {{ childrenSummary }}</p>
                             </div>

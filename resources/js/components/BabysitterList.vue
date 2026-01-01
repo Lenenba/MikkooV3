@@ -138,8 +138,8 @@ const truncate = (value: string, max = 120) => {
                     <DialogTrigger as-child>
                         <button type="button" class="w-full text-left">
                             <div
-                                class="group flex flex-col overflow-hidden rounded-sm border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-                                <div class="relative aspect-[3/4] w-full overflow-hidden bg-gray-100">
+                                class="group flex flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+                                <div class="relative aspect-[3/4] w-full overflow-hidden bg-muted">
                                     <img v-if="getProfilePhoto(babysitter)"
                                         class="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.03]"
                                         :src="getProfilePhoto(babysitter)" :alt="getFullName(babysitter)" />
@@ -169,20 +169,20 @@ const truncate = (value: string, max = 120) => {
                                                     </p>
                                                 </div>
                                                 <span
-                                                    class="rounded-full bg-white/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-white/90 opacity-0 transition group-hover:opacity-100">
+                                                    class="rounded-full bg-card/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-white/90 opacity-0 transition group-hover:opacity-100">
                                                     Voir profil
                                                 </span>
                                             </div>
                                             <div class="mt-2 flex items-center gap-2 text-[9px]">
                                                 <span
-                                                    class="rounded-full bg-white/90 px-2.5 py-1 font-semibold text-gray-900">
+                                                    class="rounded-full bg-card/90 px-2.5 py-1 font-semibold text-foreground">
                                                     {{ getPriceLabel(babysitter) }}
                                                 </span>
                                                 <span
-                                                    class="flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 font-semibold text-gray-900">
+                                                    class="flex items-center gap-1 rounded-full bg-card/90 px-2.5 py-1 font-semibold text-foreground">
                                                     <Star class="h-3 w-3 text-amber-500" />
                                                     {{ formatRating(getRatingAverage(babysitter)) }}
-                                                    <span class="text-gray-500">({{ getRatingCount(babysitter) }})</span>
+                                                    <span class="text-muted-foreground">({{ getRatingCount(babysitter) }})</span>
                                                 </span>
                                             </div>
                                         </div>
@@ -193,7 +193,7 @@ const truncate = (value: string, max = 120) => {
                     </DialogTrigger>
                     <DialogContent
                         class="max-h-[92vh] w-[88vw] !max-w-[1200px] gap-6 overflow-y-auto !rounded-sm p-5 sm:w-[86vw] sm:p-6 lg:w-[82vw] lg:p-8 xl:w-[78vw] xl:!max-w-[1280px] 2xl:w-[72vw] 2xl:!max-w-[1320px]">
-                        <DialogHeader class="border-b border-gray-100 pb-4">
+                        <DialogHeader class="border-b border-border pb-4">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <DialogTitle class="text-2xl">
@@ -213,7 +213,7 @@ const truncate = (value: string, max = 120) => {
                         <div class="grid gap-6 lg:grid-cols-[1.15fr_1fr] xl:grid-cols-[1.2fr_1fr] xl:gap-10">
                             <div class="space-y-4">
                                 <div
-                                    class="relative mx-auto w-full max-w-[480px] overflow-hidden rounded-sm bg-gray-100 shadow-sm ring-1 ring-black/5 sm:max-w-[520px] lg:max-w-[560px]">
+                                    class="relative mx-auto w-full max-w-[480px] overflow-hidden rounded-sm bg-muted shadow-sm ring-1 ring-black/5 sm:max-w-[520px] lg:max-w-[560px]">
                                     <div class="aspect-[16/10] w-full">
                                         <img v-if="getProfilePhoto(babysitter)" :src="getProfilePhoto(babysitter)"
                                             :alt="getFullName(babysitter)" class="h-full w-full object-cover" />
@@ -224,7 +224,7 @@ const truncate = (value: string, max = 120) => {
                                     </div>
                                 </div>
                                 <div
-                                    class="rounded-sm border border-gray-100 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                    class="rounded-sm border border-border bg-card p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <MediaScrollingHorizontalV2 :items="babysitter.media ?? []" />
                                 </div>
                             </div>
@@ -234,59 +234,59 @@ const truncate = (value: string, max = 120) => {
                                     <div class="flex items-center gap-1">
                                         <Star v-for="value in ratingStars" :key="value" class="h-4 w-4" :class="getRatingAverage(babysitter) >= value
                                             ? 'text-amber-500'
-                                            : 'text-gray-300'" />
+                                            : 'text-muted-foreground/30'" />
                                     </div>
-                                    <span class="font-semibold text-gray-900">
+                                    <span class="font-semibold text-foreground">
                                         {{ formatRating(getRatingAverage(babysitter)) }}
                                     </span>
-                                    <span class="text-gray-500">
+                                    <span class="text-muted-foreground">
                                         ({{ getRatingCount(babysitter) }} notes)
                                     </span>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                                    <div class="rounded-sm border border-gray-100 bg-white p-3">
-                                        <p class="text-xs text-gray-400">Experience</p>
-                                        <p class="mt-1 font-medium text-gray-900">
+                                    <div class="rounded-sm border border-border bg-card p-3">
+                                        <p class="text-xs text-muted-foreground/70">Experience</p>
+                                        <p class="mt-1 font-medium text-foreground">
                                             {{ getExperience(babysitter) }}
                                         </p>
                                     </div>
-                                    <div class="rounded-sm border border-gray-100 bg-white p-3">
-                                        <p class="text-xs text-gray-400">Paiement</p>
-                                        <p class="mt-1 font-medium text-gray-900">
+                                    <div class="rounded-sm border border-border bg-card p-3">
+                                        <p class="text-xs text-muted-foreground/70">Paiement</p>
+                                        <p class="mt-1 font-medium text-foreground">
                                             {{ getPaymentFrequency(babysitter) }}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 class="text-sm font-semibold text-gray-900">A propos</h4>
-                                    <p class="mt-2 text-sm text-gray-600">
+                                    <h4 class="text-sm font-semibold text-foreground">A propos</h4>
+                                    <p class="mt-2 text-sm text-muted-foreground">
                                         {{ getBio(babysitter) }}
                                     </p>
                                 </div>
 
                                 <div>
                                     <div class="flex items-center justify-between">
-                                        <h4 class="text-sm font-semibold text-gray-900">Avis des parents</h4>
-                                        <span class="text-xs text-gray-500">
+                                        <h4 class="text-sm font-semibold text-foreground">Avis des parents</h4>
+                                        <span class="text-xs text-muted-foreground">
                                             {{ getReviewCount(babysitter) }} avis
                                         </span>
                                     </div>
                                     <div class="mt-3 space-y-3">
                                         <div v-for="review in getReviews(babysitter)" :key="review.id"
-                                            class="rounded-sm border border-gray-100 bg-gray-50 p-4">
+                                            class="rounded-sm border border-border bg-muted/60 p-4">
                                             <div class="flex items-start gap-3">
                                                 <div
-                                                    class="flex h-9 w-9 items-center justify-center rounded-sm bg-white text-xs font-semibold text-gray-600">
+                                                    class="flex h-9 w-9 items-center justify-center rounded-sm bg-card text-xs font-semibold text-muted-foreground">
                                                     {{ getReviewerInitials(review) }}
                                                 </div>
                                                 <div class="flex-1">
                                                     <div class="flex items-center justify-between">
-                                                        <p class="text-sm font-semibold text-gray-900">
+                                                        <p class="text-sm font-semibold text-foreground">
                                                             {{ getReviewerName(review) }}
                                                         </p>
-                                                        <span class="text-xs text-gray-400">
+                                                        <span class="text-xs text-muted-foreground/70">
                                                             {{ formatReviewDate(review.created_at) }}
                                                         </span>
                                                     </div>
@@ -294,15 +294,15 @@ const truncate = (value: string, max = 120) => {
                                                         <Star v-for="value in ratingStars" :key="value"
                                                             class="h-3.5 w-3.5" :class="review.rating >= value
                                                                 ? 'text-amber-500'
-                                                                : 'text-gray-300'" />
+                                                                : 'text-muted-foreground/30'" />
                                                     </div>
-                                                    <p class="mt-2 text-xs text-gray-600">
+                                                    <p class="mt-2 text-xs text-muted-foreground">
                                                         {{ review.comment }}
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
-                                        <p v-if="getReviewCount(babysitter) === 0" class="text-xs text-gray-500">
+                                        <p v-if="getReviewCount(babysitter) === 0" class="text-xs text-muted-foreground">
                                             Pas encore d'avis pour cette babysitter.
                                         </p>
                                     </div>
@@ -322,7 +322,7 @@ const truncate = (value: string, max = 120) => {
             </div>
         </div>
         <div v-else class="text-center py-10">
-            <p class="text-gray-500 dark:text-neutral-400">Aucune babysitter disponible pour le moment.</p>
+            <p class="text-muted-foreground dark:text-neutral-400">Aucune babysitter disponible pour le moment.</p>
         </div>
     </div>
 </template>

@@ -59,11 +59,11 @@ const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
 </script>
 
 <template>
-    <div class="overflow-hidden rounded-sm border border-gray-200 border-t-2 border-t-blue-600 bg-white shadow-sm">
-        <div v-if="props.showToolbar" class="border-b border-gray-100 px-4 py-3">
+    <div class="overflow-hidden rounded-sm border border-border border-t-2 border-t-primary bg-card shadow-sm">
+        <div v-if="props.showToolbar" class="border-b border-border px-4 py-3">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div class="relative w-full lg:flex-1">
-                    <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
                     <Input
                         id="table-search"
                         class="h-9 w-full pl-9"
@@ -86,9 +86,9 @@ const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
         </div>
         <Table class="min-w-[900px]">
             <TableHeader>
-                <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="bg-white hover:bg-transparent">
+                <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="bg-card hover:bg-transparent">
                     <TableHead v-for="header in headerGroup.headers" :key="header.id"
-                        class="h-auto px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        class="h-auto px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
                             :props="header.getContext()" />
                     </TableHead>
@@ -105,14 +105,14 @@ const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
                 </template>
                 <template v-else>
                     <TableRow>
-                        <TableCell :colspan="props.columns.length" class="h-24 text-center text-sm text-gray-500">
+                        <TableCell :colspan="props.columns.length" class="h-24 text-center text-sm text-muted-foreground">
                             {{ props.emptyMessage ?? 'No results.' }}
                         </TableCell>
                     </TableRow>
                 </template>
             </TableBody>
         </Table>
-        <div class="border-t border-gray-100 px-5 py-4">
+        <div class="border-t border-border px-5 py-4">
             <DataTablePagination :table="table" />
         </div>
     </div>

@@ -98,8 +98,8 @@ onBeforeUnmount(() => {
             <div class="grid gap-6 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr]">
                 <aside class="order-2 space-y-4 lg:order-1 lg:sticky lg:top-24">
                     <div
-                        class="rounded-sm border border-gray-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Recherche</h3>
+                        class="rounded-sm border border-border bg-card p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        <h3 class="text-sm font-semibold text-foreground dark:text-neutral-100">Recherche</h3>
                         <div class="relative mt-3">
                             <FloatingInput
                                 id="search"
@@ -114,15 +114,15 @@ onBeforeUnmount(() => {
                                 <Search class="h-4 w-4 text-muted-foreground" />
                             </span>
                         </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+                        <p class="mt-2 text-xs text-muted-foreground dark:text-neutral-400">
                             Nom, ville, ou pays.
                         </p>
                     </div>
 
                     <div
-                        class="rounded-sm border border-gray-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        class="rounded-sm border border-border bg-card p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Filtres</h3>
+                            <h3 class="text-sm font-semibold text-foreground dark:text-neutral-100">Filtres</h3>
                             <Button variant="outline" size="sm" class="h-7 px-2 text-xs" @click="resetFilters">
                                 Reset
                             </Button>

@@ -158,7 +158,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'au total',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: ClipboardList,
             iconClass: 'bg-violet-100 text-violet-600',
@@ -171,7 +171,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'au total',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: CalendarCheck,
             iconClass: 'bg-amber-100 text-amber-600',
@@ -185,7 +185,7 @@ const statCards = computed(() => {
             change: '',
             changeText: 'le plus demande',
             trendIcon: TrendingUp,
-            trendClass: 'text-gray-400',
+            trendClass: 'text-muted-foreground/70',
             showTrend: false,
             icon: Star,
             iconClass: 'bg-rose-100 text-rose-600',
@@ -263,7 +263,7 @@ const deleteService = (service: ServiceItem) => {
     });
 };
 
-const headerClass = 'text-xs font-semibold uppercase tracking-wide text-gray-500';
+const headerClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground';
 
 const columns: ColumnDef<ServiceItem>[] = [
     {
@@ -272,9 +272,9 @@ const columns: ColumnDef<ServiceItem>[] = [
         cell: ({ row }) => {
             const service = row.original;
             return h('div', { class: 'flex flex-col' }, [
-                h('span', { class: 'text-sm font-medium text-gray-900' }, service.name),
+                h('span', { class: 'text-sm font-medium text-foreground' }, service.name),
                 service.description
-                    ? h('span', { class: 'text-xs text-gray-500' }, service.description)
+                    ? h('span', { class: 'text-xs text-muted-foreground' }, service.description)
                     : null,
             ]);
         },
@@ -283,13 +283,13 @@ const columns: ColumnDef<ServiceItem>[] = [
         accessorKey: 'price',
         header: () => h('div', { class: ['text-right', headerClass] }, 'Prix'),
         cell: ({ row }) =>
-            h('div', { class: 'text-right text-sm font-semibold text-gray-900' }, formatPrice(row.original.price)),
+            h('div', { class: 'text-right text-sm font-semibold text-foreground' }, formatPrice(row.original.price)),
     },
     {
         accessorKey: 'bookings_count',
         header: () => h('div', { class: ['text-right', headerClass] }, 'Demandes'),
         cell: ({ row }) =>
-            h('div', { class: 'text-right text-sm text-gray-600' }, formatCount(row.original.bookings_count)),
+            h('div', { class: 'text-right text-sm text-muted-foreground' }, formatCount(row.original.bookings_count)),
     },
     {
         id: 'actions',
@@ -326,9 +326,9 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
         cell: ({ row }) => {
             const service = row.original;
             return h('div', { class: 'flex flex-col' }, [
-                h('span', { class: 'text-sm font-medium text-gray-900' }, service.name),
+                h('span', { class: 'text-sm font-medium text-foreground' }, service.name),
                 service.description
-                    ? h('span', { class: 'text-xs text-gray-500' }, service.description)
+                    ? h('span', { class: 'text-xs text-muted-foreground' }, service.description)
                     : null,
             ]);
         },
@@ -364,17 +364,17 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <div v-for="stat in statCards" :key="stat.title"
-                    class="rounded-sm border border-gray-100 bg-white p-4 shadow-sm">
+                    class="rounded-sm border border-border bg-card p-4 shadow-sm">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div :class="['flex h-10 w-10 items-center justify-center rounded-full', stat.iconClass]">
                                 <component :is="stat.icon" class="h-5 w-5" />
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                     {{ stat.title }}
                                 </p>
-                                <p :class="['font-semibold text-gray-900', stat.valueClass ?? 'text-2xl']">
+                                <p :class="['font-semibold text-foreground', stat.valueClass ?? 'text-2xl']">
                                     {{ stat.value }}
                                 </p>
                             </div>
@@ -388,18 +388,18 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
                     <div class="mt-3 flex items-center gap-1 text-xs">
                         <component v-if="stat.showTrend" :is="stat.trendIcon" :class="['h-3 w-3', stat.trendClass]" />
                         <span v-if="stat.change" :class="stat.trendClass">{{ stat.change }}</span>
-                        <span class="text-gray-400">{{ stat.changeText }}</span>
+                        <span class="text-muted-foreground/70">{{ stat.changeText }}</span>
                     </div>
                 </div>
             </div>
 
             <Dialog v-model:open="isDialogOpen">
                 <DialogContent class="rounded-sm sm:max-w-xl">
-                    <DialogHeader class="border-b border-gray-100 pb-3">
-                        <DialogTitle class="text-lg font-semibold text-gray-900">
+                    <DialogHeader class="border-b border-border pb-3">
+                        <DialogTitle class="text-lg font-semibold text-foreground">
                             {{ dialogTitle }}
                         </DialogTitle>
-                        <DialogDescription class="text-sm text-gray-500">
+                        <DialogDescription class="text-sm text-muted-foreground">
                             {{ dialogDescription }}
                         </DialogDescription>
                     </DialogHeader>
@@ -435,8 +435,8 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
 
             <div class="space-y-3">
                 <div class="flex flex-col gap-1">
-                    <h2 class="text-base font-semibold text-gray-900">Catalogue de services</h2>
-                    <p class="text-sm text-gray-500">
+                    <h2 class="text-base font-semibold text-foreground">Catalogue de services</h2>
+                    <p class="text-sm text-muted-foreground">
                         Selectionnez un service connu puis ajustez votre prix, ou creez votre propre service.
                     </p>
                 </div>

@@ -234,7 +234,7 @@ onUnmounted(() => {
 
 <template>
     <form @submit.prevent="upload" enctype="multipart/form-data" class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-neutral-200">
+        <h2 class="text-lg font-semibold text-foreground">
             Upload Media
         </h2>
         <div v-if="!props.hideCollectionInput" class="grid w-full max-w-sm items-center gap-1.5">
@@ -252,12 +252,12 @@ onUnmounted(() => {
         </div>
 
         <div>
-            <p class="block mb-2 text-sm font-medium text-gray-800 dark:text-neutral-200">
+            <p class="block mb-2 text-sm font-medium text-foreground">
                 Add photos (max {{ resolvedMaxPhotos }}, {{ MIN_WIDTH }}x{{ MIN_HEIGHT }}px min, {{ MAX_FILE_SIZE_MB }}MB max per image)
             </p>
             <div class="flex flex-wrap gap-2">
                 <label :for="inputId"
-                    :class="['flex shrink-0 justify-center items-center w-32 h-32 border-2 border-dotted border-gray-300 rounded-xl text-gray-400 cursor-pointer hover:bg-gray-50 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-700/20',
+                    :class="['flex shrink-0 justify-center items-center w-32 h-32 border-2 border-dotted border-border rounded-xl text-muted-foreground cursor-pointer hover:bg-muted/50',
                         { 'opacity-50 cursor-not-allowed': mediaPreviews.length >= resolvedMaxPhotos || inertiaForm.processing }]">
                     <input ref="fileInputRef" :id="inputId" type="file" accept="image/*" multiple class="hidden"
                         @change="onFileChange"
@@ -266,16 +266,16 @@ onUnmounted(() => {
                 </label>
 
                 <div v-for="(mp, idx) in mediaPreviews" :key="mp.preview"
-                    class="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-300 dark:border-neutral-700">
+                    class="relative w-32 h-32 rounded-xl overflow-hidden border border-border">
                     <img :src="mp.preview" class="object-cover w-full h-full" :alt="`Preview ${idx + 1}`" />
                     <button type="button" @click="() => removePhoto(idx)" :disabled="inertiaForm.processing"
-                        class="absolute top-1 right-1 p-1 bg-white rounded-full shadow-md hover:bg-gray-100 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                        class="absolute top-1 right-1 p-1 bg-card rounded-full shadow-md hover:bg-muted"
                         aria-label="Remove photo">
-                        <XIcon class="w-4 h-4 text-gray-500 dark:text-neutral-400" />
+                        <XIcon class="w-4 h-4 text-muted-foreground" />
                     </button>
                 </div>
             </div>
-            <p class="mt-2 text-xs text-gray-500 dark:text-neutral-500">
+            <p class="mt-2 text-xs text-muted-foreground">
                 Shoppers find images more helpful than text alone.
             </p>
         </div>

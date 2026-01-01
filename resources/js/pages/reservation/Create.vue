@@ -203,28 +203,28 @@ const createReservation = () => {
             <div class="mx-auto w-full lg:w-4/5 space-y-6">
                 <div class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
                     <div class="space-y-6">
-                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                             <div class="flex flex-col gap-4 sm:flex-row">
                                 <div class="w-full sm:w-40">
-                                    <div class="aspect-[4/5] w-full overflow-hidden rounded-sm bg-gray-100">
+                                    <div class="aspect-[4/5] w-full overflow-hidden rounded-sm bg-muted">
                                         <img :src="Babysitter.media.find(p => p.is_profile_picture)?.file_path"
                                             alt="Profile picture" class="h-full w-full object-cover" />
                                     </div>
                                 </div>
                                 <div class="flex-1 space-y-4">
                                     <div>
-                                        <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                             Babysitter
                                         </p>
-                                        <h1 class="text-lg font-semibold text-gray-900 dark:text-neutral-100">
+                                        <h1 class="text-lg font-semibold text-foreground dark:text-neutral-100">
                                             Reservation pour
                                             {{ Babysitter.babysitter_profile.first_name }}
                                             {{ Babysitter.babysitter_profile.last_name }}
                                         </h1>
                                     </div>
-                                    <div class="grid gap-4 text-xs text-gray-600 dark:text-neutral-400 sm:grid-cols-2">
+                                    <div class="grid gap-4 text-xs text-muted-foreground dark:text-neutral-400 sm:grid-cols-2">
                                         <div>
-                                            <p class="font-semibold text-gray-700 dark:text-neutral-200">Adresse</p>
+                                            <p class="font-semibold text-foreground dark:text-neutral-200">Adresse</p>
                                             <p>
                                                 {{ Babysitter.address.street }} {{ Babysitter.address.province }}
                                             </p>
@@ -236,7 +236,7 @@ const createReservation = () => {
                                             </p>
                                         </div>
                                         <div>
-                                            <p class="font-semibold text-gray-700 dark:text-neutral-200">Contact</p>
+                                            <p class="font-semibold text-foreground dark:text-neutral-200">Contact</p>
                                             <p>{{ Babysitter.email }}</p>
                                             <p>{{ Babysitter.babysitter_profile.birthdate }}</p>
                                             <p>{{ Babysitter.babysitter_profile.phone }}</p>
@@ -246,9 +246,9 @@ const createReservation = () => {
                             </div>
                         </div>
 
-                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Notes</p>
-                            <p class="mt-1 text-xs text-gray-500">
+                        <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Notes</p>
+                            <p class="mt-1 text-xs text-muted-foreground">
                                 Ajoute les details importants pour la reservation.
                             </p>
                             <div class="mt-3">
@@ -263,12 +263,12 @@ const createReservation = () => {
                     </div>
 
                     <div class="space-y-6">
-                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Details reservation</p>
-                            <div class="mt-3 space-y-2 text-xs text-gray-600 dark:text-neutral-400">
+                        <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Details reservation</p>
+                            <div class="mt-3 space-y-2 text-xs text-muted-foreground dark:text-neutral-400">
                                 <div class="flex items-center justify-between">
                                     <span>Numero</span>
-                                    <span class="font-medium text-gray-900 dark:text-neutral-100">{{ Numero }}</span>
+                                    <span class="font-medium text-foreground dark:text-neutral-100">{{ Numero }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span>Note</span>
@@ -283,21 +283,21 @@ const createReservation = () => {
                             </div>
                         </div>
 
-                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Date et heure</p>
-                            <p class="mt-1 text-xs text-gray-500">
+                        <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Date et heure</p>
+                            <p class="mt-1 text-xs text-muted-foreground">
                                 Choisis une journee unique ou une recurrence.
                             </p>
                             <div class="mt-4 space-y-4">
                                 <div>
-                                    <p class="text-xs font-medium text-gray-500 mb-2">Type de tache</p>
-                                    <div class="inline-flex rounded-sm border border-gray-200 bg-gray-50 p-1">
+                                    <p class="text-xs font-medium text-muted-foreground mb-2">Type de tache</p>
+                                    <div class="inline-flex rounded-sm border border-border bg-muted/60 p-1">
                                         <button
                                             type="button"
                                             class="px-3 py-1 text-xs font-medium rounded-sm transition"
                                             :class="form.schedule_type === 'single'
-                                                ? 'bg-white text-gray-900 shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-700'"
+                                                ? 'bg-card text-foreground shadow-sm'
+                                                : 'text-muted-foreground hover:text-foreground'"
                                             @click="form.schedule_type = 'single'"
                                         >
                                             Journee unique
@@ -306,8 +306,8 @@ const createReservation = () => {
                                             type="button"
                                             class="px-3 py-1 text-xs font-medium rounded-sm transition"
                                             :class="form.schedule_type === 'recurring'
-                                                ? 'bg-white text-gray-900 shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-700'"
+                                                ? 'bg-card text-foreground shadow-sm'
+                                                : 'text-muted-foreground hover:text-foreground'"
                                             @click="form.schedule_type = 'recurring'"
                                         >
                                             Recurrence
@@ -353,13 +353,13 @@ const createReservation = () => {
                                         v-model="form.recurrence_interval"
                                     />
                                     <div v-if="form.recurrence_frequency === 'weekly'" class="space-y-2">
-                                        <p class="text-xs font-medium text-gray-500">Jours</p>
-                                        <div class="grid grid-cols-7 gap-2 text-xs text-gray-600">
+                                        <p class="text-xs font-medium text-muted-foreground">Jours</p>
+                                        <div class="grid grid-cols-7 gap-2 text-xs text-muted-foreground">
                                             <label v-for="day in weekdayOptions" :key="day.value"
                                                 class="flex items-center gap-1">
                                                 <input
                                                     type="checkbox"
-                                                    class="h-3 w-3 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                                    class="h-3 w-3 rounded border-input accent-primary focus:ring-ring/30"
                                                     :value="day.value"
                                                     v-model="form.recurrence_days"
                                                 />
@@ -380,11 +380,11 @@ const createReservation = () => {
                     </div>
                 </div>
                 <div
-                    class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Services</p>
-                            <p class="mt-1 text-xs text-gray-500">
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Services</p>
+                            <p class="mt-1 text-xs text-muted-foreground">
                                 Ajoute les services et la quantite pour la reservation.
                             </p>
                         </div>
@@ -394,7 +394,7 @@ const createReservation = () => {
                     </div>
 
                     <div
-                        class="mt-4 overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+                        class="mt-4 overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                         <div class="min-w-full inline-block align-middle min-h-[300px]">
                             <!-- Table -->
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
@@ -402,34 +402,34 @@ const createReservation = () => {
                                     <tr>
                                         <th scope="col" class="min-w-[430px] ">
                                             <div
-                                                class="pe-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                                class="pe-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                                 Services
                                             </div>
                                         </th>
 
                                         <th scope="col">
                                             <div
-                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                                 Nbre d'enfant (s)
                                             </div>
                                         </th>
 
                                         <th scope="col">
                                             <div
-                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                                 Unit price
                                             </div>
                                         </th>
 
                                         <th scope="col">
                                             <div
-                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                                 Total
                                             </div>
                                         </th>
                                         <th scope="col" class="size-px whitespace-nowrap text-right">
                                             <div
-                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                                class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
                                                 Actions
                                             </div>
                                         </th>
@@ -440,7 +440,7 @@ const createReservation = () => {
                                     <!-- Ligne de service -->
                                     <tr v-for="(service, index) in form.services" :key="index">
                                         <td class="size-px whitespace-nowrap px-4 py-3 text-left">
-                                            <span class="text-sm text-gray-600 dark:text-neutral-400">
+                                            <span class="text-sm text-muted-foreground dark:text-neutral-400">
                                                 <div class="relative">
                                                     <FloatingInput
                                                         :id="`service-name-${index}`"
@@ -453,10 +453,10 @@ const createReservation = () => {
                                                 </div>
                                                 <div class="relative w-full">
                                                     <ul v-if="searchResults[index]?.length"
-                                                        class="absolute left-0 top-full z-50 w-full max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg dark:bg-neutral-800 dark:border-neutral-700">
+                                                        class="absolute left-0 top-full z-50 w-full max-h-60 overflow-y-auto bg-card border border-border rounded-md shadow-lg dark:bg-neutral-800 dark:border-neutral-700">
                                                         <li v-for="result in searchResults[index]" :key="result.id"
                                                             @click="selectService(result, index)"
-                                                            class="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-700 text-gray-800 dark:text-neutral-200">
+                                                            class="px-3 py-2 cursor-pointer hover:bg-muted dark:hover:bg-neutral-700 text-foreground dark:text-neutral-200">
                                                             {{ result.name }}
                                                         </li>
                                                     </ul>
@@ -509,19 +509,19 @@ const createReservation = () => {
                 </div>
                 <div class="flex justify-end">
                     <div
-                        class="w-full lg:max-w-md rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                        <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Resume</p>
+                        class="w-full lg:max-w-md rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Resume</p>
                         <div class="mt-4 space-y-3 text-sm">
-                            <div class="flex justify-between text-gray-600 dark:text-neutral-400">
+                            <div class="flex justify-between text-muted-foreground dark:text-neutral-400">
                                 <span>Sous-total</span>
-                                <span class="font-medium text-gray-900 dark:text-neutral-100">$ {{ form.subtotal }}</span>
+                                <span class="font-medium text-foreground dark:text-neutral-100">$ {{ form.subtotal }}</span>
                             </div>
-                            <div class="flex justify-between text-gray-600 dark:text-neutral-400">
+                            <div class="flex justify-between text-muted-foreground dark:text-neutral-400">
                                 <span>Taxes</span>
-                                <span class="font-medium text-gray-900 dark:text-neutral-100">$ {{ form.tax }}</span>
+                                <span class="font-medium text-foreground dark:text-neutral-100">$ {{ form.tax }}</span>
                             </div>
                             <div
-                                class="flex justify-between border-t border-gray-200 pt-3 font-semibold text-gray-900 dark:border-neutral-800 dark:text-neutral-100">
+                                class="flex justify-between border-t border-border pt-3 font-semibold text-foreground dark:border-neutral-800 dark:text-neutral-100">
                                 <span>Total</span>
                                 <span>$ {{ form.total_amount }}</span>
                             </div>
@@ -529,7 +529,7 @@ const createReservation = () => {
                     </div>
                 </div>
                 <div
-                    class="rounded-sm border border-gray-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    class="rounded-sm border border-border bg-card p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <Button variant="outline">
                             Cancel

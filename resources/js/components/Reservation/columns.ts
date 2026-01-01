@@ -4,7 +4,7 @@ import type { ColumnDef } from '@tanstack/vue-table'
 import type { Reservation } from '@/types'
 import DataTableColumnHeader from '@/components/columnHeader.vue'
 
-const headerClass = 'text-xs font-semibold uppercase tracking-wide text-gray-500'
+const headerClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -56,24 +56,24 @@ const renderPersonCell = (person?: PersonWithMedia, withAvatar = false) => {
 
     if (!withAvatar) {
         return h('div', { class: 'flex flex-col' }, [
-            h('span', { class: 'text-sm font-medium text-gray-900' }, nameLabel),
-            h('span', { class: 'text-xs text-gray-500' }, person?.email ?? '-'),
+            h('span', { class: 'text-sm font-medium text-foreground' }, nameLabel),
+            h('span', { class: 'text-xs text-muted-foreground' }, person?.email ?? '-'),
         ])
     }
 
     return h('div', { class: 'flex items-center gap-3' }, [
-        h('div', { class: 'h-9 w-9 shrink-0 overflow-hidden rounded-sm bg-gray-100' }, [
+        h('div', { class: 'h-9 w-9 shrink-0 overflow-hidden rounded-sm bg-muted' }, [
             imageUrl
                 ? h('img', {
                     src: imageUrl,
                     alt: nameLabel,
                     class: 'h-full w-full object-cover',
                 })
-                : h('div', { class: 'flex h-full w-full items-center justify-center text-xs font-semibold text-gray-500' }, initial),
+                : h('div', { class: 'flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground' }, initial),
         ]),
         h('div', { class: 'flex flex-col' }, [
-            h('span', { class: 'text-sm font-medium text-gray-900' }, nameLabel),
-            h('span', { class: 'text-xs text-gray-500' }, person?.email ?? '-'),
+            h('span', { class: 'text-sm font-medium text-foreground' }, nameLabel),
+            h('span', { class: 'text-xs text-muted-foreground' }, person?.email ?? '-'),
         ]),
     ])
 }
@@ -86,8 +86,8 @@ const renderDateCell = (details?: { date?: string; start_time?: string; end_time
         : '-'
 
     return h('div', { class: 'flex flex-col' }, [
-        h('span', { class: 'text-sm text-gray-900' }, dateLabel),
-        h('span', { class: 'text-xs text-gray-500' }, timeLabel),
+        h('span', { class: 'text-sm text-foreground' }, dateLabel),
+        h('span', { class: 'text-xs text-muted-foreground' }, timeLabel),
     ])
 }
 
@@ -112,7 +112,7 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
             header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Reference', class: headerClass }),
             cell: ({ row }) => {
                 const refValue = row.getValue('ref') ?? row.original.id
-                return h('span', { class: 'text-sm font-semibold text-gray-900' }, `#${refValue ?? '-'}`)
+                return h('span', { class: 'text-sm font-semibold text-foreground' }, `#${refValue ?? '-'}`)
             },
         },
         personColumn,
@@ -126,7 +126,7 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
             accessorKey: 'total_amount',
             header: () => h('span', { class: headerClass }, 'Total'),
             cell: ({ row }) =>
-                h('span', { class: 'text-sm font-semibold text-gray-900' }, formatCurrency(row.getValue('total_amount'))),
+                h('span', { class: 'text-sm font-semibold text-foreground' }, formatCurrency(row.getValue('total_amount'))),
         },
         {
             accessorKey: 'status',
@@ -150,7 +150,7 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
 
                 const mapped = statusMap[status] ?? {
                     text: status ?? 'Inconnu',
-                    classes: 'bg-gray-100 text-gray-700',
+                    classes: 'bg-muted text-foreground',
                 }
 
                 return h('span', { class: `rounded-full px-2.5 py-1 text-xs font-semibold ${mapped.classes}` }, mapped.text)
@@ -159,7 +159,7 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
         {
             accessorKey: 'created_at',
             header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
-            cell: ({ row }) => h('span', { class: 'text-sm text-gray-600' }, row.getValue('created_at') ?? '-'),
+            cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, row.getValue('created_at') ?? '-'),
         },
         {
             id: 'actions',

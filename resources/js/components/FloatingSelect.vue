@@ -101,15 +101,15 @@ const hasValue = computed(() => model.value !== '' && model.value !== null && mo
 const isFloating = computed(() => isFocused.value || hasValue.value);
 
 const selectClasses = computed(() => [
-    'peer p-4 pe-9 block w-full border-stone-200 border rounded-sm text-sm focus:border-green-600 focus:ring-green-600 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:focus:ring-neutral-600',
+    'peer p-4 pe-9 block w-full rounded-sm border border-input bg-background text-foreground text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 disabled:opacity-50 disabled:pointer-events-none',
     isFloating.value ? 'pt-6 pb-2' : '',
 ]);
 
 const labelClasses = computed(() => [
-    'absolute top-0 left-0 p-4 h-full text-sm truncate pointer-events-none transition ease-in-out duration-100 origin-[0_0] dark:text-white peer-disabled:opacity-50 peer-disabled:pointer-events-none',
+    'absolute top-0 left-0 p-4 h-full text-sm truncate pointer-events-none transition ease-in-out duration-100 origin-[0_0] peer-disabled:opacity-50 peer-disabled:pointer-events-none peer-focus:text-foreground',
     isFloating.value
-        ? 'scale-90 translate-x-0.5 -translate-y-1.5 text-stone-500 dark:text-neutral-500'
-        : 'scale-100 translate-x-0 translate-y-0 text-stone-500 dark:text-neutral-500',
+        ? 'scale-90 translate-x-0.5 -translate-y-1.5 text-muted-foreground'
+        : 'scale-100 translate-x-0 translate-y-0 text-muted-foreground',
 ]);
 
 onMounted(() => {
@@ -129,7 +129,7 @@ defineExpose({ focus: () => input.value.focus() });
             <option v-if="placeholder" value="" :disabled="required">
                 {{ placeholder }}
             </option>
-            <option v-for="option in resolvedOptions" :key="option.value" class="rounded-sm" :value="option.value"
+            <option v-for="option in resolvedOptions" :key="option.value" class="rounded-sm bg-background text-foreground" :value="option.value"
                 :disabled="option.disabled">
                 {{ option.label }}
             </option>
