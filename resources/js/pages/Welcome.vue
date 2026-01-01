@@ -1,41 +1,31 @@
-
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 </script>
 
 <template>
+
     <Head title="Mikoo | Garde d'enfants">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap"
-        />
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" />
     </Head>
 
     <div class="welcome relative min-h-screen overflow-hidden">
-        <div
-            class="absolute -top-24 right-[-10%] h-80 w-80 rounded-full blur-3xl opacity-70"
-            style="background: var(--peach)"
-        ></div>
-        <div
-            class="absolute top-32 -left-24 h-72 w-72 rounded-full blur-3xl opacity-70"
-            style="background: var(--mint)"
-        ></div>
-        <div
-            class="absolute bottom-[-10rem] right-16 h-96 w-96 rounded-full blur-3xl opacity-70"
-            style="background: var(--primary-soft)"
-        ></div>
-        <div
-            class="absolute bottom-24 left-16 h-32 w-32 rounded-full blur-2xl opacity-80"
-            style="background: var(--sun)"
-        ></div>
+        <div class="absolute -top-24 right-[-10%] h-80 w-80 rounded-full blur-3xl opacity-70"
+            style="background: var(--peach)"></div>
+        <div class="absolute top-32 -left-24 h-72 w-72 rounded-full blur-3xl opacity-70"
+            style="background: var(--mint)"></div>
+        <div class="absolute bottom-[-10rem] right-16 h-96 w-96 rounded-full blur-3xl opacity-70"
+            style="background: var(--primary-soft)"></div>
+        <div class="absolute bottom-24 left-16 h-32 w-32 rounded-full blur-2xl opacity-80"
+            style="background: var(--sun)"></div>
 
         <header class="relative z-10">
             <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-6">
                 <div class="flex items-center">
-                    <AppLogoIcon class="h-12 w-auto" />
+                    <AppLogoIcon class="h-10 w-auto" />
                 </div>
 
                 <nav class="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex">
@@ -46,7 +36,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                 </nav>
 
                 <div class="flex items-center gap-2">
-                    <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="btn btn-outline px-4 py-2 text-sm">
+                    <Link v-if="$page.props.auth.user" :href="route('dashboard')"
+                        class="btn btn-outline px-4 py-2 text-sm">
                         Dashboard
                     </Link>
                     <template v-else>
@@ -61,17 +52,18 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
             <section class="mx-auto w-full max-w-6xl px-6 pb-16 pt-12 lg:pb-24 lg:pt-20">
                 <div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                     <div class="space-y-6">
-                        <div class="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+                        <div
+                            class="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
                             <span class="h-2 w-2 rounded-full" style="background: var(--primary)"></span>
                             Garde d'enfants a domicile
                         </div>
                         <h1
-                            class="font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl fade-up"
-                        >
+                            class="font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl fade-up">
                             Des gardiennes douces, verifiees, et toujours proches de vous.
                         </h1>
                         <p class="max-w-xl text-lg text-slate-600 fade-up" style="animation-delay: 0.1s">
-                            Mikoo aide les parents a trouver une gardienne qui respecte le rythme de chaque enfant. Planning
+                            Mikoo aide les parents a trouver une gardienne qui respecte le rythme de chaque enfant.
+                            Planning
                             flexible, messages simples, et une equipe qui veille.
                         </p>
                         <div class="flex flex-wrap gap-3 fade-up" style="animation-delay: 0.2s">
@@ -90,15 +82,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                         <div class="grid gap-4 sm:grid-cols-2 fade-up" style="animation-delay: 0.3s">
                             <div class="feature-pill">
                                 <span class="feature-icon">
-                                    <svg
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="h-4 w-4"
-                                    >
+                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                         <path d="M4 10l4 4 8-8" />
                                     </svg>
                                 </span>
@@ -109,15 +94,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                             </div>
                             <div class="feature-pill">
                                 <span class="feature-icon">
-                                    <svg
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="h-4 w-4"
-                                    >
+                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                         <path d="M4 10l4 4 8-8" />
                                     </svg>
                                 </span>
@@ -127,7 +105,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6 text-sm text-slate-500 fade-up" style="animation-delay: 0.4s">
+                        <div class="flex items-center gap-6 text-sm text-slate-500 fade-up"
+                            style="animation-delay: 0.4s">
                             <div class="flex -space-x-2">
                                 <span class="avatar">EL</span>
                                 <span class="avatar">MA</span>
@@ -147,19 +126,15 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Aujourd'hui</p>
                                     <p class="font-display text-2xl text-slate-900">Disponible</p>
                                 </div>
-                                <div
-                                    class="rounded-full px-3 py-1 text-xs font-semibold"
-                                    style="background: var(--primary-soft); color: var(--primary-strong)"
-                                >
+                                <div class="rounded-full px-3 py-1 text-xs font-semibold"
+                                    style="background: var(--primary-soft); color: var(--primary-strong)">
                                     17:00 - 21:00
                                 </div>
                             </div>
                             <div class="mt-6 rounded-3xl bg-white/80 p-5 shadow-lg shadow-black/10">
                                 <div class="flex items-center gap-4">
-                                    <div
-                                        class="flex h-14 w-14 items-center justify-center rounded-2xl text-sm font-semibold"
-                                        style="background: var(--sun); color: #6b3d00"
-                                    >
+                                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl text-sm font-semibold"
+                                        style="background: var(--sun); color: #6b3d00">
                                         LM
                                     </div>
                                     <div>
@@ -168,13 +143,16 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     </div>
                                 </div>
                                 <div class="mt-4 grid grid-cols-3 gap-2 text-xs text-slate-600">
-                                    <span class="rounded-full px-2 py-1 text-center" style="background: var(--primary-soft)">
+                                    <span class="rounded-full px-2 py-1 text-center"
+                                        style="background: var(--primary-soft)">
                                         Creative
                                     </span>
-                                    <span class="rounded-full px-2 py-1 text-center" style="background: var(--primary-soft)">
+                                    <span class="rounded-full px-2 py-1 text-center"
+                                        style="background: var(--primary-soft)">
                                         Calme
                                     </span>
-                                    <span class="rounded-full px-2 py-1 text-center" style="background: var(--primary-soft)">
+                                    <span class="rounded-full px-2 py-1 text-center"
+                                        style="background: var(--primary-soft)">
                                         Bilingue
                                     </span>
                                 </div>
@@ -182,7 +160,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                             <div class="mt-6 grid gap-4">
                                 <div class="rounded-3xl bg-white/90 p-4 shadow-lg shadow-black/5">
                                     <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Activites</p>
-                                    <p class="mt-2 text-sm text-slate-600">Lecture, dessin, jeux calmes, sortie parc.</p>
+                                    <p class="mt-2 text-sm text-slate-600">Lecture, dessin, jeux calmes, sortie parc.
+                                    </p>
                                 </div>
                                 <div class="rounded-3xl p-4 text-white shadow-lg" style="background: var(--primary)">
                                     <p class="text-xs uppercase tracking-[0.2em] text-white/80">Parents rassures</p>
@@ -205,7 +184,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <p class="section-eyebrow">Nos services</p>
-                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Une solution pour chaque moment</h2>
+                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Une solution pour chaque moment
+                            </h2>
                         </div>
                         <p class="max-w-xl text-sm text-slate-500">
                             Soirees, sorties d'ecole, ou garde reguliere. Mikoo s'adapte a votre rythme de famille.
@@ -214,37 +194,22 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                     <div class="mt-10 grid gap-6 md:grid-cols-3">
                         <div class="service-card">
                             <div class="service-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="h-6 w-6"
-                                >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
                                     <circle cx="12" cy="12" r="4" />
                                     <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4" />
                                     <path d="M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
                                 </svg>
                             </div>
                             <h3 class="font-display text-xl text-slate-900">Apres l'ecole</h3>
-                            <p class="mt-2 text-sm text-slate-500">Retour calme, gouter, devoirs, et activites creatrices.</p>
+                            <p class="mt-2 text-sm text-slate-500">Retour calme, gouter, devoirs, et activites
+                                creatrices.</p>
                         </div>
                         <div class="service-card">
                             <div class="service-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="h-6 w-6"
-                                >
-                                    <path
-                                        d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5Z"
-                                    />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
+                                    <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5Z" />
                                     <path d="M15.5 8.5h0.01M18 10h0.01" />
                                 </svg>
                             </div>
@@ -255,15 +220,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                         </div>
                         <div class="service-card">
                             <div class="service-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="h-6 w-6"
-                                >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
                                     <rect x="4" y="5" width="16" height="15" rx="2" />
                                     <path d="M8 3v4M16 3v4M4 10h16" />
                                 </svg>
@@ -289,7 +247,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                         <div class="mt-6 grid gap-4">
                             <div class="approach-card">
                                 <p class="text-sm font-semibold text-slate-800">Check-in a l'arrivee</p>
-                                <p class="mt-2 text-xs text-slate-500">Notification simple pour savoir que tout va bien.</p>
+                                <p class="mt-2 text-xs text-slate-500">Notification simple pour savoir que tout va bien.
+                                </p>
                             </div>
                             <div class="approach-card">
                                 <p class="text-sm font-semibold text-slate-800">Moments cles</p>
@@ -307,21 +266,15 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                             Une experience agreable et rassurante pour les parents.
                         </h2>
                         <p class="text-sm text-slate-600">
-                            Nous selectionnons des gardiennes attentives, puis nous restons proches pendant toute la garde. Vous
+                            Nous selectionnons des gardiennes attentives, puis nous restons proches pendant toute la
+                            garde. Vous
                             restez au courant sans etre interrompu, avec un suivi clair et bienveillant.
                         </p>
                         <div class="grid gap-4">
                             <div class="flex items-start gap-4">
                                 <span class="feature-icon">
-                                    <svg
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="h-4 w-4"
-                                    >
+                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                         <path d="M4 10l4 4 8-8" />
                                     </svg>
                                 </span>
@@ -332,15 +285,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                             </div>
                             <div class="flex items-start gap-4">
                                 <span class="feature-icon">
-                                    <svg
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="h-4 w-4"
-                                    >
+                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                         <path d="M4 10l4 4 8-8" />
                                     </svg>
                                 </span>
@@ -351,15 +297,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                             </div>
                             <div class="flex items-start gap-4">
                                 <span class="feature-icon">
-                                    <svg
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="h-4 w-4"
-                                    >
+                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                         <path d="M4 10l4 4 8-8" />
                                     </svg>
                                 </span>
@@ -403,7 +342,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                         <div class="step-card">
                             <span class="step-number">2</span>
                             <h3 class="mt-4 font-display text-xl text-slate-900">Choisissez une gardienne</h3>
-                            <p class="mt-2 text-sm text-slate-500">Nous proposons des profils proches et disponibles.</p>
+                            <p class="mt-2 text-sm text-slate-500">Nous proposons des profils proches et disponibles.
+                            </p>
                         </div>
                         <div class="step-card">
                             <span class="step-number">3</span>
@@ -459,14 +399,16 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <p class="section-eyebrow">Pret a commencer</p>
-                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Parlons de votre prochain besoin</h2>
+                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Parlons de votre prochain
+                                besoin</h2>
                             <p class="mt-2 text-sm text-slate-600">
                                 Inscrivez votre famille et recevez une selection de profils adaptes.
                             </p>
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <template v-if="!$page.props.auth.user">
-                                <Link :href="route('register')" class="btn btn-primary px-6 py-3 text-sm">Commencer</Link>
+                                <Link :href="route('register')" class="btn btn-primary px-6 py-3 text-sm">Commencer
+                                </Link>
                                 <Link :href="route('login')" class="btn btn-outline px-6 py-3 text-sm">Connexion</Link>
                             </template>
                             <template v-else>
@@ -481,9 +423,10 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
         </main>
 
         <footer class="border-t border-white/60">
-            <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10 lg:flex-row lg:items-center lg:justify-between">
+            <div
+                class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex items-center">
-                    <AppLogoIcon class="h-10 w-auto" />
+                    <AppLogoIcon class="h-8 w-auto" />
                 </div>
                 <div class="flex flex-wrap gap-6 text-sm text-slate-500">
                     <a class="nav-link" href="#services">Services</a>
@@ -624,6 +567,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
     box-shadow: 0 8px 18px rgba(31, 22, 50, 0.12);
     border: 2px solid #fff;
 }
+
 .hero-card {
     position: relative;
     border-radius: 32px;
@@ -767,6 +711,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -774,10 +719,12 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 }
 
 @keyframes float {
+
     0%,
     100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-12px);
     }
@@ -795,6 +742,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .fade-up,
     .hero-card,
     .floating-card {

@@ -18,7 +18,7 @@ const passthroughAttrs = computed(() => {
 
 <template>
     <span v-bind="passthroughAttrs" :class="logoClass">
-        <img src="/1.svg" alt="Mikoo logo" class="block max-h-full w-full object-contain object-center dark:hidden" />
+        <img src="/2.svg" alt="Mikoo logo" class="block max-h-full w-full object-contain object-center dark:hidden" />
         <img src="/2.svg" alt="Mikoo logo" class="hidden max-h-full w-full object-contain object-center dark:block" />
     </span>
 </template>
