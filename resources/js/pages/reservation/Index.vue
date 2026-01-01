@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { columns } from '@/components/Reservation/columns';
-import FloatingInput from '@/components/FloatingInput.vue';
-import FloatingSelect from '@/components/FloatingSelect.vue';
+import { getReservationColumns } from '@/components/Reservation/columns';
 import { Button } from '@/components/ui/button';
-import DataTableViewOptions from '@/components/columnToggle.vue';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Reservation, type SharedData, type Stats } from '@/types';
 import { Head, usePage, Link } from '@inertiajs/vue3';
@@ -14,11 +18,10 @@ import {
     ClipboardList,
     DollarSign,
     Plus,
-    Search,
     TrendingDown,
     TrendingUp,
+    Users,
     Wallet,
-    XCircle,
 } from 'lucide-vue-next';
 
 // Shared page props
@@ -122,16 +125,9 @@ const statistique = computed<Stats>(
     () => page.props.stats ?? emptyStats
 );
 
-const reservationCountLabel = computed(() =>
-    reservations.value.length === 1 ? 'reservation' : 'reservations'
-);
-const totalReservations = computed(() => {
-    const fromStats = statistique.value.total_count;
-    if (typeof fromStats === 'number' && Number.isFinite(fromStats)) {
-        return fromStats;
-    }
-    return reservations.value.length;
-});
+const role = computed(() => (page.props.auth?.role ?? 'Parent').toString().toLowerCase());
+const isBabysitter = computed(() => role.value === 'babysitter');
+const tableColumns = computed(() => getReservationColumns(role.value));
 
 const statusOptions = [
     { value: 'all', label: 'Tous les statuts' },
@@ -141,30 +137,129 @@ const statusOptions = [
 ];
 
 const statCards = computed(() => {
-    const revenueTrend = getTrendMeta(statistique.value.revenue_change_pct);
-    const countTrend = getTrendMeta(statistique.value.count_change_pct);
-    const currentMonthCount = toNumber(statistique.value.current_month_count);
     const currentMonthRevenue = toNumber(statistique.value.current_month_revenue);
     const totalRevenue = toNumber(statistique.value.total_revenue);
-    const totalCanceled = toNumber(statistique.value.total_canceled_count);
-    const totalCount = totalReservations.value;
+    const pendingCount = toNumber(statistique.value.pending_count);
+    const confirmedCount = toNumber(statistique.value.confirmed_count);
+    const upcomingCount = toNumber(statistique.value.upcoming_count);
+    const uniqueBabysitters = toNumber(statistique.value.unique_babysitters_count);
+    const uniqueParents = toNumber(statistique.value.unique_parents_count);
+    const revenueChange = statistique.value.revenue_change_pct;
+    const revenueTrend = getTrendMeta(revenueChange);
+    const revenueChangeLabel = revenueChange === null ? '' : formatPercent(revenueChange);
+
+    if (isBabysitter.value) {
+        return [
+            {
+                title: 'Reservations confirmees',
+                value: formatCount(confirmedCount),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-gray-400',
+                showTrend: false,
+                icon: CalendarCheck,
+                iconClass: 'bg-amber-100 text-amber-600',
+                sparkline: buildTrendSeries(Math.max(0, confirmedCount - 1), confirmedCount),
+                sparklineClass: 'stroke-amber-400',
+            },
+            {
+                title: 'En attente',
+                value: formatCount(pendingCount),
+                change: '',
+                changeText: 'en cours',
+                trendIcon: TrendingUp,
+                trendClass: 'text-gray-400',
+                showTrend: false,
+                icon: ClipboardList,
+                iconClass: 'bg-violet-100 text-violet-600',
+                sparkline: buildTrendSeries(Math.max(0, pendingCount - 1), pendingCount),
+                sparklineClass: 'stroke-violet-400',
+            },
+            {
+                title: 'Revenu du mois',
+                value: formatCurrency(currentMonthRevenue),
+                change: revenueChangeLabel,
+                changeText: 'vs mois dernier',
+                trendIcon: revenueTrend.icon,
+                trendClass: revenueTrend.className,
+                showTrend: revenueTrend.show,
+                icon: Wallet,
+                iconClass: 'bg-blue-100 text-blue-600',
+                sparkline: buildTrendSeries(statistique.value.previous_month_revenue, currentMonthRevenue),
+                sparklineClass: 'stroke-blue-400',
+            },
+            {
+                title: 'Revenu total',
+                value: formatCurrency(totalRevenue),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-gray-400',
+                showTrend: false,
+                icon: DollarSign,
+                iconClass: 'bg-emerald-100 text-emerald-600',
+                sparkline: buildTrendSeries(Math.max(0, totalRevenue - currentMonthRevenue), totalRevenue),
+                sparklineClass: 'stroke-emerald-400',
+            },
+            {
+                title: 'Parents differents',
+                value: formatCount(uniqueParents),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-gray-400',
+                showTrend: false,
+                icon: Users,
+                iconClass: 'bg-sky-100 text-sky-600',
+                sparkline: buildTrendSeries(Math.max(0, uniqueParents - 1), uniqueParents),
+                sparklineClass: 'stroke-sky-400',
+            },
+        ];
+    }
 
     return [
         {
-            title: 'Total reservations',
-            value: formatCount(totalCount),
+            title: 'Reservations a venir',
+            value: formatCount(upcomingCount),
             change: '',
-            changeText: 'au total',
+            changeText: 'planifiees',
+            trendIcon: TrendingUp,
+            trendClass: 'text-gray-400',
+            showTrend: false,
+            icon: CalendarCheck,
+            iconClass: 'bg-amber-100 text-amber-600',
+            sparkline: buildTrendSeries(Math.max(0, upcomingCount - 1), upcomingCount),
+            sparklineClass: 'stroke-amber-400',
+        },
+        {
+            title: 'En attente',
+            value: formatCount(pendingCount),
+            change: '',
+            changeText: 'en cours',
             trendIcon: TrendingUp,
             trendClass: 'text-gray-400',
             showTrend: false,
             icon: ClipboardList,
             iconClass: 'bg-violet-100 text-violet-600',
-            sparkline: buildTrendSeries(Math.max(0, totalCount - currentMonthCount), totalCount),
+            sparkline: buildTrendSeries(Math.max(0, pendingCount - 1), pendingCount),
             sparklineClass: 'stroke-violet-400',
         },
         {
-            title: 'Revenu total',
+            title: 'Depense du mois',
+            value: formatCurrency(currentMonthRevenue),
+            change: revenueChangeLabel,
+            changeText: 'vs mois dernier',
+            trendIcon: revenueTrend.icon,
+            trendClass: revenueTrend.className,
+            showTrend: revenueTrend.show,
+            icon: Wallet,
+            iconClass: 'bg-blue-100 text-blue-600',
+            sparkline: buildTrendSeries(statistique.value.previous_month_revenue, currentMonthRevenue),
+            sparklineClass: 'stroke-blue-400',
+        },
+        {
+            title: 'Depense totale',
             value: formatCurrency(totalRevenue),
             change: '',
             changeText: 'au total',
@@ -177,43 +272,17 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-emerald-400',
         },
         {
-            title: 'Revenu du mois',
-            value: formatCurrency(currentMonthRevenue),
-            change: formatPercent(statistique.value.revenue_change_pct),
-            changeText: 'vs mois dernier',
-            trendIcon: revenueTrend.icon,
-            trendClass: revenueTrend.className,
-            showTrend: revenueTrend.show,
-            icon: Wallet,
-            iconClass: 'bg-blue-100 text-blue-600',
-            sparkline: buildTrendSeries(statistique.value.previous_month_revenue, currentMonthRevenue),
-            sparklineClass: 'stroke-blue-400',
-        },
-        {
-            title: 'Reservations du mois',
-            value: formatCount(currentMonthCount),
-            change: formatPercent(statistique.value.count_change_pct),
-            changeText: 'vs mois dernier',
-            trendIcon: countTrend.icon,
-            trendClass: countTrend.className,
-            showTrend: countTrend.show,
-            icon: CalendarCheck,
-            iconClass: 'bg-amber-100 text-amber-600',
-            sparkline: buildTrendSeries(statistique.value.previous_month_count, currentMonthCount),
-            sparklineClass: 'stroke-amber-400',
-        },
-        {
-            title: 'Reservations annulees',
-            value: formatCount(totalCanceled),
+            title: 'Babysitters differents',
+            value: formatCount(uniqueBabysitters),
             change: '',
             changeText: 'au total',
-            trendIcon: TrendingDown,
+            trendIcon: TrendingUp,
             trendClass: 'text-gray-400',
             showTrend: false,
-            icon: XCircle,
-            iconClass: 'bg-rose-100 text-rose-600',
-            sparkline: buildTrendSeries(Math.max(0, totalCanceled - 1), totalCanceled),
-            sparklineClass: 'stroke-rose-400',
+            icon: Users,
+            iconClass: 'bg-sky-100 text-sky-600',
+            sparkline: buildTrendSeries(Math.max(0, uniqueBabysitters - 1), uniqueBabysitters),
+            sparklineClass: 'stroke-sky-400',
         },
     ];
 });
@@ -264,49 +333,38 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
 
-            <DataTable :columns="columns" :data="reservations" search-placeholder="Rechercher une reservation..."
+            <DataTable :columns="tableColumns" :data="reservations" search-placeholder="Rechercher une reservation..."
                 empty-message="Aucune reservation pour le moment.">
-                <template #toolbar="{ table }">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div class="flex flex-col gap-1">
-                            <h1 class="text-lg font-semibold text-gray-900">Liste des reservations</h1>
-                            <p class="text-sm text-gray-500">
-                                Vous avez {{ reservations.length }} {{ reservationCountLabel }}
-                            </p>
-                        </div>
-                        <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end lg:w-auto">
-                            <div class="relative w-full sm:w-72">
-                                <Search
-                                    class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                                <FloatingInput
-                                    id="reservation-search"
-                                    label="Recherche"
-                                    label-class="pl-9"
-                                    class="w-full pl-9"
-                                    :model-value="table.getColumn('ref')?.getFilterValue() as string"
-                                    @update:model-value="table.getColumn('ref')?.setFilterValue($event)"
-                                />
-                            </div>
-                            <div class="w-full sm:w-56">
-                                <FloatingSelect
-                                    id="reservation-status"
-                                    label="Statut"
-                                    placeholder="Tous les statuts"
-                                    :options="statusOptions"
-                                    :model-value="(table.getColumn('status')?.getFilterValue() as string) ?? 'all'"
-                                    @update:model-value="value => table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)"
-                                />
-                            </div>
-                            <DataTableViewOptions :table="table" label="Filtrer" menu-label="Colonnes"
-                                button-class="w-full sm:w-auto" />
-                            <Button asChild class="w-full sm:w-auto" size="sm">
-                                <Link :href="route('search.babysitter')">
-                                    <Plus class="mr-2 h-4 w-4" />
-                                    Nouvelle reservation
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
+                <template #toolbar-filters="{ table }">
+                    <Select
+                        :model-value="(table.getColumn('status')?.getFilterValue() as string) ?? 'all'"
+                        @update:model-value="value => table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)"
+                    >
+                        <SelectTrigger class="h-9 w-full sm:w-48">
+                            <SelectValue placeholder="Tous les statuts" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="option in statusOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </template>
+                <template #toolbar-actions="{ table }">
+                    <Button variant="outline" class="h-9 w-full sm:w-auto"
+                        @click="table.resetColumnFilters()">
+                        Effacer
+                    </Button>
+                    <Button asChild size="sm" class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto">
+                        <Link :href="route('search.babysitter')">
+                            <Plus class="mr-2 h-4 w-4" />
+                            Nouvelle reservation
+                        </Link>
+                    </Button>
                 </template>
             </DataTable>
         </div>

@@ -14,6 +14,10 @@ const props = defineProps<{
 
 const page = usePage()
 const role = computed(() => (page.props.auth as { role?: string }).role ?? 'Parent')
+const status = computed(() => (props.reservation.status ?? '').toString().toLowerCase())
+const isBabysitter = computed(() => role.value === 'Babysitter')
+const canAccept = computed(() => isBabysitter.value && status.value === 'pending')
+const canCancel = computed(() => isBabysitter.value && status.value !== 'canceled')
 const canRate = computed(() => role.value === 'Babysitter' || role.value === 'Parent')
 const rateLabel = computed(() => (role.value === 'Babysitter' ? 'Noter le job' : 'Noter la reservation'))
 
@@ -48,13 +52,13 @@ function actionReservation(id: number | string, event: string) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem @click="actionReservation(props.reservation.id, 'accept')">
-                Confirme reservation
+            <DropdownMenuItem v-if="canAccept" @click="actionReservation(props.reservation.id, 'accept')">
+                Confirmer reservation
             </DropdownMenuItem>
-            <DropdownMenuItem @click="actionReservation(props.reservation.id, 'cancel')">
-                Cancel reservation
+            <DropdownMenuItem v-if="canCancel" @click="actionReservation(props.reservation.id, 'cancel')">
+                Annuler reservation
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator v-if="canAccept || canCancel" />
             <DropdownMenuItem @click="actionReservation(props.reservation.id, 'view')">
                 View reservation details
             </DropdownMenuItem>

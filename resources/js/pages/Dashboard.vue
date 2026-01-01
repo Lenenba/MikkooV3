@@ -1,12 +1,28 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Stats, type User } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import InputError from '@/components/InputError.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { type Announcement, type BreadcrumbItem, type Stats, type User } from '@/types';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Plus } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Tableau de bord',
         href: '/dashboard',
     },
 ];
@@ -28,6 +44,11 @@ interface DashboardPayload {
     kpis: DashboardKpi[];
 }
 
+interface AnnouncementsPayload {
+    items: Announcement[];
+    suggestions: string[];
+}
+
 interface AuthPayload {
     user?: User | null;
 }
@@ -35,15 +56,82 @@ interface AuthPayload {
 const page = usePage();
 const dashboard = computed(() => page.props.dashboard as DashboardPayload | undefined);
 const auth = computed(() => page.props.auth as AuthPayload | undefined);
+const announcementsPayload = computed(() => page.props.announcements as AnnouncementsPayload | undefined);
 
 const role = computed(() => dashboard.value?.role ?? 'Parent');
 const userName = computed(() => {
-    const name = auth.value?.user?.name ?? 'there';
+    const name = auth.value?.user?.name ?? 'vous';
     const first = name.trim().split(' ')[0];
-    return first || 'there';
+    return first || 'vous';
 });
 
 const stats = computed(() => dashboard.value?.stats);
+const isParent = computed(() => role.value === 'Parent');
+const isBabysitter = computed(() => role.value === 'Babysitter');
+const announcementItems = computed(() => announcementsPayload.value?.items ?? []);
+const announcementSuggestions = computed(() => announcementsPayload.value?.suggestions ?? []);
+
+const isAnnouncementDialogOpen = ref(false);
+const announcementForm = useForm({
+    title: '',
+    service: '',
+    description: '',
+});
+
+const resetAnnouncementForm = () => {
+    announcementForm.reset();
+    announcementForm.clearErrors();
+};
+
+const openAnnouncementDialog = () => {
+    resetAnnouncementForm();
+    isAnnouncementDialogOpen.value = true;
+};
+
+const submitAnnouncement = () => {
+    announcementForm.post(route('announcements.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            resetAnnouncementForm();
+            isAnnouncementDialogOpen.value = false;
+        },
+    });
+};
+
+const closeAnnouncement = (announcementId: number) => {
+    router.patch(
+        route('announcements.update', { announcement: announcementId }),
+        { status: 'closed' },
+        { preserveScroll: true },
+    );
+};
+
+const statusLabel = (status?: string | null) => {
+    if (status === 'closed') {
+        return 'Fermee';
+    }
+    return 'Ouverte';
+};
+
+const statusBadgeClass = (status?: string | null) =>
+    status === 'closed'
+        ? 'border-transparent bg-slate-100 text-slate-600'
+        : 'border-transparent bg-emerald-100 text-emerald-700';
+
+const formatAnnouncementDate = (value?: string | null) => {
+    if (!value) {
+        return '';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+    return new Intl.DateTimeFormat('fr-CA', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    }).format(date);
+};
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -57,18 +145,25 @@ const formatNumber = (value: number | null | undefined) => numberFormatter.forma
 const formatPercent = (value: number | null | undefined) =>
     value === null || value === undefined ? '' : `${percentFormatter.format(value)}%`;
 
-const welcomeTitle = 'Welcome Back';
-const welcomeSummary =
-    "Here is a quick look at your store's performance today. Stay on top of your sales, orders, and customers.";
+const welcomeTitle = computed(() => (role.value === 'Admin' ? 'Tableau de bord' : 'Bon retour'));
+const welcomeSummary = computed(() => {
+    if (role.value === 'Babysitter') {
+        return 'Suivez vos missions, vos gains et les annonces qui vous correspondent.';
+    }
+    if (role.value === 'Admin') {
+        return "Vue d'ensemble de l'activite des reservations, revenus et utilisateurs.";
+    }
+    return 'Suivez vos reservations, vos depenses et vos annonces.';
+});
 
 const monthlyLabel = computed(() => {
     if (role.value === 'Babysitter') {
-        return 'Monthly Earnings';
+        return 'Gains du mois';
     }
     if (role.value === 'Admin') {
-        return 'Monthly Revenue';
+        return 'Revenu du mois';
     }
-    return 'Monthly Spend';
+    return 'Depenses du mois';
 });
 
 const monthlyValue = computed(() => formatCurrency(stats.value?.current_month_revenue ?? 0));
@@ -77,20 +172,26 @@ const monthlyChangeLabel = computed(() =>
     monthlyChange.value === null ? null : formatPercent(monthlyChange.value)
 );
 const monthlyTrendUp = computed(() => (monthlyChange.value ?? 0) >= 0);
+const monthlyCount = computed(() => formatNumber(stats.value?.current_month_count ?? 0));
+const monthlyCountChange = computed(() => stats.value?.count_change_pct ?? null);
+const monthlyCountChangeLabel = computed(() =>
+    monthlyCountChange.value === null ? null : formatPercent(monthlyCountChange.value)
+);
+const monthlyCountTrendUp = computed(() => (monthlyCountChange.value ?? 0) >= 0);
 
 const monthlyBars = [
-    { label: 'Jan', value: 3.4 },
-    { label: 'Feb', value: 5.2 },
-    { label: 'Mar', value: 8.0 },
-    { label: 'Apr', value: 11.1 },
-    { label: 'May', value: 7.0 },
-    { label: 'Jun', value: 5.7 },
-    { label: 'Jul', value: 4.3 },
-    { label: 'Aug', value: 3.4 },
-    { label: 'Sep', value: 2.5 },
-    { label: 'Oct', value: 1.5 },
-    { label: 'Nov', value: 1.0 },
-    { label: 'Dec', value: 0.7 },
+    { label: 'Jan', value: 12 },
+    { label: 'Fev', value: 16 },
+    { label: 'Mar', value: 20 },
+    { label: 'Avr', value: 24 },
+    { label: 'Mai', value: 18 },
+    { label: 'Juin', value: 15 },
+    { label: 'Juil', value: 17 },
+    { label: 'Aou', value: 14 },
+    { label: 'Sep', value: 11 },
+    { label: 'Oct', value: 13 },
+    { label: 'Nov', value: 9 },
+    { label: 'Dec', value: 7 },
 ];
 
 const maxMonthly = Math.max(...monthlyBars.map((bar) => bar.value));
@@ -117,6 +218,26 @@ const kpiMeta: Record<string, { icon: string; tone: keyof typeof kpiToneClasses 
     canceled_jobs: { icon: 'CN', tone: 'rose' },
     active_babysitters: { icon: 'BS', tone: 'lime' },
     active_parents: { icon: 'PR', tone: 'cyan' },
+};
+
+const kpiLabelMap: Record<string, string> = {
+    total_revenue: 'Revenu total',
+    total_reservations: 'Reservations totales',
+    total_spend: 'Depenses totales',
+    total_jobs: 'Missions totales',
+    total_earnings: 'Gains totaux',
+    upcoming_reservations: 'Reservations a venir',
+    upcoming_jobs: 'Missions a venir',
+    canceled_reservations: 'Reservations annulees',
+    canceled_jobs: 'Missions annulees',
+    active_babysitters: 'Babysitters actifs',
+    active_parents: 'Parents actifs',
+};
+
+const kpiPeriodMap: Record<string, string> = {
+    'vs last month': 'vs mois dernier',
+    scheduled: 'planifiees',
+    'all time': 'au total',
 };
 
 const fallbackKpis = computed<DashboardKpi[]>(() => {
@@ -250,9 +371,13 @@ const kpiCards = computed(() => {
             : kpi.change_pct >= 0
                 ? 'up'
                 : 'down';
+        const label = kpiLabelMap[kpi.key] ?? kpi.label;
+        const period = kpi.period ? (kpiPeriodMap[kpi.period] ?? kpi.period) : '';
 
         return {
             ...kpi,
+            label,
+            period,
             icon: meta.icon,
             iconClass: kpiToneClasses[meta.tone] ?? kpiToneClasses.slate,
             changeLabel,
@@ -265,131 +390,131 @@ const kpiCards = computed(() => {
 
 const platforms = [
     {
-        name: 'Amazon',
-        orders: '12.43k Orders',
-        progress: 45,
-        badge: 'Top Seller',
+        name: 'Garde du soir',
+        orders: '18 demandes',
+        progress: 52,
+        badge: 'Populaire',
         badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
         barClass: 'bg-emerald-500',
         iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
-        icon: 'A',
+        icon: 'GS',
     },
     {
-        name: 'eBay',
-        orders: '8.92k Orders',
-        progress: 32,
-        badge: 'Trending',
+        name: "Sortie d'ecole",
+        orders: '12 demandes',
+        progress: 38,
+        badge: 'Regulier',
         badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
         barClass: 'bg-sky-500',
         iconClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
-        icon: 'E',
+        icon: 'SE',
     },
     {
-        name: 'Shopify',
-        orders: '6.14k Orders',
-        progress: 25,
-        badge: 'Fast Growth',
+        name: 'Garde de nuit',
+        orders: '9 demandes',
+        progress: 28,
+        badge: 'Urgent',
         badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
         barClass: 'bg-amber-500',
         iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
-        icon: 'S',
+        icon: 'GN',
     },
     {
-        name: 'Flipkart',
-        orders: '4.85k Orders',
-        progress: 18,
-        badge: 'Growing',
+        name: 'Garde weekend',
+        orders: '14 demandes',
+        progress: 34,
+        badge: 'En hausse',
         badgeClass: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
         barClass: 'bg-lime-500',
         iconClass: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
-        icon: 'F',
+        icon: 'GW',
     },
     {
-        name: 'Walmart',
-        orders: '7.56k Orders',
-        progress: 28,
-        badge: 'Low Stock',
+        name: 'Aide aux devoirs',
+        orders: '8 demandes',
+        progress: 22,
+        badge: 'Nouveau',
         badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
         barClass: 'bg-rose-500',
         iconClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
-        icon: 'W',
+        icon: 'AD',
     },
 ];
 
 const countries = [
-    { name: 'United States', share: 65, code: 'US', barClass: 'bg-sky-500' },
-    { name: 'India', share: 45, code: 'IN', barClass: 'bg-amber-500' },
-    { name: 'Canada', share: 74, code: 'CA', barClass: 'bg-rose-500' },
-    { name: 'Australia', share: 56, code: 'AU', barClass: 'bg-cyan-500' },
-    { name: 'Germany', share: 48, code: 'DE', barClass: 'bg-emerald-500' },
+    { name: 'Montreal', share: 68, code: 'MT', barClass: 'bg-sky-500' },
+    { name: 'Laval', share: 44, code: 'LV', barClass: 'bg-amber-500' },
+    { name: 'Longueuil', share: 36, code: 'LG', barClass: 'bg-rose-500' },
+    { name: 'Brossard', share: 29, code: 'BR', barClass: 'bg-cyan-500' },
+    { name: 'Terrebonne', share: 22, code: 'TB', barClass: 'bg-emerald-500' },
 ];
 
 const products = [
     {
-        name: 'Wireless Earbuds',
-        category: 'Electronics',
-        units: '1,240 Units Sold',
-        revenue: '$24,800',
-        badge: 'WE',
+        name: 'Garde du soir',
+        category: 'Duree moyenne',
+        units: '4h',
+        revenue: '$72',
+        badge: 'GS',
         badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
     },
     {
-        name: 'Organic Honey',
-        category: 'Grocery',
-        units: '1,520 Units Sold',
-        revenue: '$91,200',
-        badge: 'OH',
+        name: "Sortie d'ecole",
+        category: 'Duree moyenne',
+        units: '2h',
+        revenue: '$36',
+        badge: 'SE',
         badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
     },
     {
-        name: 'Gaming Laptop',
-        category: 'Electronics',
-        units: '750 Units Sold',
-        revenue: '$375,000',
-        badge: 'GL',
+        name: 'Garde de nuit',
+        category: 'Duree moyenne',
+        units: '8h',
+        revenue: '$160',
+        badge: 'GN',
         badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
     },
     {
-        name: 'Leather Jacket',
-        category: 'Clothing',
-        units: '1,100 Units Sold',
-        revenue: '$1,320,000',
-        badge: 'LJ',
+        name: 'Week-end',
+        category: 'Duree moyenne',
+        units: '5h',
+        revenue: '$90',
+        badge: 'WE',
         badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
     },
 ];
 
 const customers = [
     {
-        name: 'Alice Johnson',
-        type: 'Premium Customer',
-        orders: '45 Orders',
-        spend: '$12,500',
-        badge: 'AJ',
+        name: 'Camille Morel',
+        type: 'Parent regulier',
+        orders: '12 reservations',
+        spend: '$320',
+        badge: 'CM',
         badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
     },
     {
-        name: 'Daniel Carter',
-        type: 'Regular Customer',
-        orders: '32 Orders',
-        spend: '$8,200',
-        badge: 'DC',
+        name: 'Lucas Perrin',
+        type: 'Parent nouveau',
+        orders: '6 reservations',
+        spend: '$180',
+        badge: 'LP',
         badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
     },
     {
-        name: 'Emma Wilson',
-        type: 'Premium Customer',
-        orders: '28 Orders',
-        spend: '$9,750',
-        badge: 'EW',
+        name: 'Sarah Leblanc',
+        type: 'Parent fidele',
+        orders: '9 reservations',
+        spend: '$240',
+        badge: 'SL',
         badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
     },
     {
-        name: 'Liam Johnson',
-        type: 'Regular Customer',
-        orders: '20 Orders',
-        spend: '$5,400',
-        badge: 'LJ',
+        name: 'Nadia Roy',
+        type: 'Parent actif',
+        orders: '7 reservations',
+        spend: '$210',
+        badge: 'NR',
         badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-200',
     },
 ];
@@ -401,7 +526,7 @@ const quickTeam = [
     { initials: 'KT', class: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200' },
 ];
 
-const orderTrend = [18, 22, 16, 26, 14, 28, 20, 30, 18, 26];
+const orderTrend = [12, 16, 14, 18, 15, 20, 17, 22, 16, 19];
 const chartSize = { width: 120, height: 56, padding: 6 };
 
 const orderTrendPoints = computed(() => {
@@ -437,7 +562,7 @@ const orderTrendArea = computed(() => {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Tableau de bord" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="relative overflow-hidden">
@@ -497,7 +622,7 @@ const orderTrendArea = computed(() => {
                                 class="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
                                 type="button"
                             >
-                                View Reports
+                                Voir les reservations
                             </button>
                         </div>
 
@@ -524,14 +649,14 @@ const orderTrendArea = computed(() => {
                     >
                         <div class="flex items-center justify-between">
                             <div>
-                                <h2 class="text-lg font-semibold">Sales Summary</h2>
-                                <p class="text-sm text-muted-foreground">Monthly performance overview</p>
+                                <h2 class="text-lg font-semibold">Resume des reservations</h2>
+                                <p class="text-sm text-muted-foreground">Evolution mensuelle des reservations</p>
                             </div>
                             <button
                                 class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
                                 type="button"
                             >
-                                Monthly
+                                Ce mois
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path
                                         d="M5.5 7.5a1 1 0 0 1 1.5-1.34l3 2.6 3-2.6a1 1 0 1 1 1.32 1.5l-3.66 3.2a1 1 0 0 1-1.32 0l-3.84-3.36Z"
@@ -546,7 +671,7 @@ const orderTrendArea = computed(() => {
                                 :key="bar.label"
                                 class="group flex flex-col items-center gap-2 text-xs text-muted-foreground"
                             >
-                                <span class="font-medium text-foreground/80">${{ bar.value }}k</span>
+                                <span class="font-medium text-foreground/80">{{ bar.value }} res</span>
                                 <div class="flex h-28 w-full items-end justify-center">
                                     <div
                                         class="w-3 rounded-full bg-muted/60"
@@ -567,8 +692,8 @@ const orderTrendArea = computed(() => {
                         style="animation-delay: 140ms"
                     >
                         <div class="flex items-center justify-between">
-                            <h2 class="text-lg font-semibold">Platforms</h2>
-                            <span class="text-xs text-muted-foreground">Last 30 days</span>
+                            <h2 class="text-lg font-semibold">Services demandes</h2>
+                            <span class="text-xs text-muted-foreground">30 derniers jours</span>
                         </div>
 
                         <div class="mt-5 flex flex-col gap-4">
@@ -645,6 +770,110 @@ const orderTrendArea = computed(() => {
                     </div>
                 </section>
 
+                <section id="annonces" v-if="isParent || isBabysitter" class="grid gap-6 lg:grid-cols-12">
+                    <div
+                        class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-12"
+                        style="animation-delay: 360ms"
+                    >
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 class="text-lg font-semibold">
+                                    {{ isBabysitter ? 'Annonces correspondantes' : 'Vos annonces' }}
+                                </h2>
+                                <p class="text-sm text-muted-foreground">
+                                    <span v-if="isBabysitter">
+                                        Les demandes qui correspondent aux services que vous proposez.
+                                    </span>
+                                    <span v-else>
+                                        Publiez une annonce pour trouver un babysitter adapte.
+                                    </span>
+                                </p>
+                            </div>
+                            <Button
+                                v-if="isParent"
+                                class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
+                                size="sm"
+                                @click="openAnnouncementDialog"
+                            >
+                                <Plus class="h-4 w-4" />
+                                Nouvelle annonce
+                            </Button>
+                        </div>
+
+                        <div class="mt-5 grid gap-3">
+                            <template v-if="announcementItems.length">
+                                <div
+                                    v-for="announcement in announcementItems"
+                                    :key="announcement.id"
+                                    class="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/60 p-4"
+                                >
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                        <div class="space-y-2">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p class="text-sm font-semibold text-foreground">
+                                                    {{ announcement.title }}
+                                                </p>
+                                                <Badge class="border-transparent bg-sky-100 text-sky-700">
+                                                    {{ announcement.service }}
+                                                </Badge>
+                                                <Badge
+                                                    v-if="isParent"
+                                                    :class="statusBadgeClass(announcement.status)"
+                                                >
+                                                    {{ statusLabel(announcement.status) }}
+                                                </Badge>
+                                            </div>
+                                            <p v-if="announcement.description" class="text-sm text-muted-foreground">
+                                                {{ announcement.description }}
+                                            </p>
+                                        </div>
+                                        <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:items-end">
+                                            <span v-if="isBabysitter && announcement.parent">
+                                                Parent: {{ announcement.parent?.name }}
+                                                <span v-if="announcement.parent?.city">- {{ announcement.parent.city }}</span>
+                                            </span>
+                                            <span v-if="announcement.created_at">
+                                                {{ formatAnnouncementDate(announcement.created_at) }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div v-if="isParent && announcement.status !== 'closed'" class="flex flex-wrap items-center gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            @click="closeAnnouncement(announcement.id)"
+                                        >
+                                            Fermer l'annonce
+                                        </Button>
+                                    </div>
+                                </div>
+                            </template>
+                            <div v-else class="rounded-xl border border-dashed border-border/70 bg-background/60 p-6 text-center">
+                                <p class="text-sm font-semibold text-foreground">
+                                    {{ isBabysitter ? 'Aucune annonce correspondante' : 'Aucune annonce publiee' }}
+                                </p>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    <span v-if="isBabysitter">
+                                        Ajoutez plus de services pour recevoir des demandes adaptees.
+                                    </span>
+                                    <span v-else>
+                                        Commencez par publier votre premiere annonce.
+                                    </span>
+                                </p>
+                                <Button
+                                    v-if="isParent"
+                                    class="mt-4 h-9 bg-emerald-500 text-white hover:bg-emerald-600"
+                                    size="sm"
+                                    @click="openAnnouncementDialog"
+                                >
+                                    Publier une annonce
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="grid gap-6 lg:grid-cols-12">
                     <div class="lg:col-span-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         <div
@@ -652,9 +881,9 @@ const orderTrendArea = computed(() => {
                             style="animation-delay: 460ms"
                         >
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Sales by Country</h2>
+                                <h2 class="text-lg font-semibold">Zones actives</h2>
                                 <button class="text-sm font-medium text-muted-foreground transition hover:text-foreground" type="button">
-                                    See All
+                                    Tout voir
                                 </button>
                             </div>
                             <div class="mt-5 flex flex-col gap-4">
@@ -684,8 +913,8 @@ const orderTrendArea = computed(() => {
                             style="animation-delay: 520ms"
                         >
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Top Products</h2>
-                                <span class="text-xs text-muted-foreground">Weekly</span>
+                                <h2 class="text-lg font-semibold">Tarifs moyens</h2>
+                                <span class="text-xs text-muted-foreground">Cette semaine</span>
                             </div>
                             <div class="mt-5 flex flex-col gap-4">
                                 <div v-for="product in products" :key="product.name" class="flex items-center gap-3">
@@ -711,8 +940,8 @@ const orderTrendArea = computed(() => {
                             style="animation-delay: 580ms"
                         >
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Top Customers</h2>
-                                <span class="text-xs text-muted-foreground">This month</span>
+                                <h2 class="text-lg font-semibold">Parents actifs</h2>
+                                <span class="text-xs text-muted-foreground">Ce mois-ci</span>
                             </div>
                             <div class="mt-5 flex flex-col gap-4">
                                 <div v-for="customer in customers" :key="customer.name" class="flex items-center gap-3">
@@ -739,12 +968,19 @@ const orderTrendArea = computed(() => {
                         >
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-lg font-semibold">Order Statistics</h2>
-                                    <p class="text-sm text-muted-foreground">Monthly earnings</p>
+                                    <h2 class="text-lg font-semibold">Reservations du mois</h2>
+                                    <p class="text-sm text-muted-foreground">Reservations ce mois</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-xl font-semibold">$71.5k</p>
-                                    <p class="text-xs text-emerald-600 dark:text-emerald-300">25% increased</p>
+                                    <p class="text-xl font-semibold">{{ monthlyCount }}</p>
+                                    <p
+                                        v-if="monthlyCountChangeLabel"
+                                        class="text-xs"
+                                        :class="monthlyCountTrendUp ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'"
+                                    >
+                                        {{ monthlyCountChangeLabel }} vs mois dernier
+                                    </p>
+                                    <p v-else class="text-xs text-muted-foreground">Pas de comparaison</p>
                                 </div>
                             </div>
                             <div class="mt-6 h-40 w-full rounded-2xl bg-muted/50 p-4">
@@ -773,9 +1009,9 @@ const orderTrendArea = computed(() => {
                             style="animation-delay: 700ms"
                         >
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Quick Transition</h2>
+                                <h2 class="text-lg font-semibold">Contacts rapides</h2>
                                 <button class="text-sm text-muted-foreground transition hover:text-foreground" type="button">
-                                    View All
+                                    Voir tout
                                 </button>
                             </div>
                             <div class="mt-5 flex items-center gap-3">
@@ -795,13 +1031,78 @@ const orderTrendArea = computed(() => {
                                 </button>
                             </div>
                             <div class="mt-6 rounded-2xl border border-border/60 bg-background/60 p-4 text-sm text-muted-foreground">
-                                Need a faster handoff? Create a smart flow and assign teammates in one click.
+                                Besoin d'un coup de main? Ajoutez des contacts pour partager vos reservations.
                             </div>
                         </div>
                     </div>
                 </section>
             </div>
         </div>
+
+        <Dialog v-if="isParent" v-model:open="isAnnouncementDialogOpen">
+            <DialogContent class="rounded-2xl sm:max-w-xl">
+                <DialogHeader class="border-b border-border/60 pb-3">
+                    <DialogTitle class="text-lg font-semibold text-foreground">
+                        Nouvelle annonce
+                    </DialogTitle>
+                    <DialogDescription class="text-sm text-muted-foreground">
+                        Decrivez rapidement le service dont vous avez besoin.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form @submit.prevent="submitAnnouncement" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="announcement-title">Titre</Label>
+                        <Input
+                            id="announcement-title"
+                            v-model="announcementForm.title"
+                            placeholder="ex: Garde de nuit pour samedi"
+                        />
+                        <InputError :message="announcementForm.errors.title" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="announcement-service">Service recherche</Label>
+                        <Input
+                            id="announcement-service"
+                            v-model="announcementForm.service"
+                            list="service-suggestions"
+                            placeholder="ex: Lavage, Garde reguliere"
+                        />
+                        <datalist id="service-suggestions">
+                            <option
+                                v-for="suggestion in announcementSuggestions"
+                                :key="suggestion"
+                                :value="suggestion"
+                            />
+                        </datalist>
+                        <InputError :message="announcementForm.errors.service" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="announcement-description">Details</Label>
+                        <Textarea
+                            id="announcement-description"
+                            v-model="announcementForm.description"
+                            rows="3"
+                            placeholder="Precisez le contexte, les horaires, et toute information utile."
+                        />
+                        <InputError :message="announcementForm.errors.description" />
+                    </div>
+
+                    <DialogFooter class="mt-4">
+                        <DialogClose as-child>
+                            <Button type="button" variant="outline" @click="resetAnnouncementForm">
+                                Annuler
+                            </Button>
+                        </DialogClose>
+                        <Button type="submit" :disabled="announcementForm.processing">
+                            Publier
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 

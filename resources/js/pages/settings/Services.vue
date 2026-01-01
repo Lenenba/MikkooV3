@@ -7,7 +7,6 @@ import FloatingInput from '@/components/FloatingInput.vue';
 import FloatingTextarea from '@/components/FloatingTextarea.vue';
 import InputError from '@/components/InputError.vue';
 import DataTable from '@/components/Reservation/data-table.vue';
-import DataTableViewOptions from '@/components/columnToggle.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -24,7 +23,6 @@ import {
     CalendarCheck,
     ClipboardList,
     Plus,
-    Search,
     Star,
     TrendingUp,
 } from 'lucide-vue-next';
@@ -372,31 +370,16 @@ const columns: ColumnDef<ServiceItem>[] = [
 
             <DataTable :columns="columns" :data="props.services" search-column="name"
                 search-placeholder="Rechercher un service..." empty-message="Aucun service ajoute pour le moment.">
-                <template #toolbar="{ table }">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div class="flex flex-col gap-1">
-                            <h1 class="text-lg font-semibold text-gray-900">Liste des services</h1>
-                            <p class="text-sm text-gray-500">
-                                Vous avez {{ props.services.length }} {{ serviceCountLabel }}
-                            </p>
-                        </div>
-                        <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end lg:w-auto">
-                            <div class="relative w-full sm:w-72">
-                                <Search
-                                    class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                                <FloatingInput id="service-search" label="Recherche" label-class="pl-9"
-                                    class="w-full pl-9"
-                                    :model-value="table.getColumn('name')?.getFilterValue() as string"
-                                    @update:model-value="table.getColumn('name')?.setFilterValue($event)" />
-                            </div>
-                            <DataTableViewOptions :table="table" label="Filtrer" menu-label="Colonnes"
-                                button-class="w-full sm:w-auto" />
-                            <Button class="w-full sm:w-auto" size="sm" @click="openCreateDialog">
-                                <Plus class="mr-2 h-4 w-4" />
-                                Nouveau service
-                            </Button>
-                        </div>
-                    </div>
+                <template #toolbar-actions="{ table }">
+                    <Button variant="outline" class="h-9 w-full sm:w-auto"
+                        @click="table.resetColumnFilters()">
+                        Effacer
+                    </Button>
+                    <Button class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
+                        size="sm" @click="openCreateDialog">
+                        <Plus class="mr-2 h-4 w-4" />
+                        Nouveau service
+                    </Button>
                 </template>
             </DataTable>
         </div>

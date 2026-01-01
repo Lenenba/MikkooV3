@@ -54,12 +54,39 @@ class ReservationStatsService
      */
     public function getAllStats(): array
     {
+        $baseQuery = Reservation::forUser(Auth::user());
         $current  = $this->statsForMonth(0);
         $previous = $this->statsForMonth(1);
 
-        $countCanceled = Reservation::forUser(Auth::user())
+        $pendingCount = (clone $baseQuery)
+            ->whereHas('details', fn($q) => $q->where('status', 'pending'))
+            ->count();
+
+        $confirmedCount = (clone $baseQuery)
+            ->whereHas('details', fn($q) => $q->where('status', 'confirmed'))
+            ->count();
+
+        $countCanceled = (clone $baseQuery)
             ->canceled()
             ->count();
+
+        $totalRequests = (clone $baseQuery)->count();
+
+        $upcomingCount = (clone $baseQuery)
+            ->whereHas('details', function ($query) {
+                $query
+                    ->whereDate('date', '>=', $this->now->toDateString())
+                    ->whereIn('status', ['pending', 'confirmed']);
+            })
+            ->count();
+
+        $uniqueBabysitters = (clone $baseQuery)
+            ->distinct('babysitter_id')
+            ->count('babysitter_id');
+
+        $uniqueParents = (clone $baseQuery)
+            ->distinct('parent_id')
+            ->count('parent_id');
 
         $revenue = $this->statsForMonth();
 
@@ -84,7 +111,13 @@ class ReservationStatsService
                 : null,
             'total_revenue'         => $revenue['revenue'],
             'total_count'           => $revenue['count'],
+            'total_requests_count'  => $totalRequests,
+            'pending_count'         => $pendingCount,
+            'confirmed_count'       => $confirmedCount,
             'total_canceled_count'  => $countCanceled,
+            'upcoming_count'        => $upcomingCount,
+            'unique_babysitters_count' => $uniqueBabysitters,
+            'unique_parents_count'  => $uniqueParents,
             // vous pouvez ajouter ici d'autres métriques…
         ];
     }

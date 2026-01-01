@@ -91,69 +91,82 @@ const renderDateCell = (details?: { date?: string; start_time?: string; end_time
     ])
 }
 
-export const columns: ColumnDef<Reservation>[] = [
-    {
-        accessorKey: 'ref',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Reference', class: headerClass }),
-        cell: ({ row }) => {
-            const refValue = row.getValue('ref') ?? row.original.id
-            return h('span', { class: 'text-sm font-semibold text-gray-900' }, `#${refValue ?? '-'}`)
-        },
-    },
-    {
-        id: 'babysitter',
-        header: () => h('span', { class: headerClass }, 'Babysitter'),
-        cell: ({ row }) => renderPersonCell(row.original.babysitter as PersonWithMedia, true),
-        enableSorting: false,
-    },
-    {
-        id: 'details',
-        header: () => h('span', { class: headerClass }, 'Date'),
-        cell: ({ row }) => renderDateCell(row.original.details as { date?: string; start_time?: string; end_time?: string }),
-        enableSorting: false,
-    },
-    {
-        accessorKey: 'total_amount',
-        header: () => h('span', { class: headerClass }, 'Total'),
-        cell: ({ row }) =>
-            h('span', { class: 'text-sm font-semibold text-gray-900' }, formatCurrency(row.getValue('total_amount'))),
-    },
-    {
-        accessorKey: 'status',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
-        cell: ({ row }) => {
-            const status = row.getValue<string>('status')
-            const statusMap: Record<string, { text: string; classes: string }> = {
-                pending: {
-                    text: 'En attente',
-                    classes: 'bg-amber-50 text-amber-700',
-                },
-                confirmed: {
-                    text: 'Confirmee',
-                    classes: 'bg-emerald-50 text-emerald-700',
-                },
-                canceled: {
-                    text: 'Annulee',
-                    classes: 'bg-red-50 text-red-700',
-                },
-            }
+const getPersonColumn = (key: 'babysitter' | 'parent', label: string): ColumnDef<Reservation> => ({
+    id: key,
+    header: () => h('span', { class: headerClass }, label),
+    cell: ({ row }) => renderPersonCell(row.original[key] as PersonWithMedia, true),
+    enableSorting: false,
+})
 
-            const mapped = statusMap[status] ?? {
-                text: status ?? 'Inconnu',
-                classes: 'bg-gray-100 text-gray-700',
-            }
+const getRoleKey = (role?: string) => (role ?? '').toString().toLowerCase()
 
-            return h('span', { class: `rounded-full px-2.5 py-1 text-xs font-semibold ${mapped.classes}` }, mapped.text)
+export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] => {
+    const roleKey = getRoleKey(role)
+    const personColumn = roleKey === 'babysitter'
+        ? getPersonColumn('parent', 'Parent')
+        : getPersonColumn('babysitter', 'Babysitter')
+
+    return [
+        {
+            accessorKey: 'ref',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Reference', class: headerClass }),
+            cell: ({ row }) => {
+                const refValue = row.getValue('ref') ?? row.original.id
+                return h('span', { class: 'text-sm font-semibold text-gray-900' }, `#${refValue ?? '-'}`)
+            },
         },
-    },
-    {
-        accessorKey: 'created_at',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
-        cell: ({ row }) => h('span', { class: 'text-sm text-gray-600' }, row.getValue('created_at') ?? '-'),
-    },
-    {
-        id: 'actions',
-        enableHiding: false,
-        cell: ({ row }) => h('div', { class: 'flex justify-end' }, h(DropdownAction, { reservation: row.original })),
-    },
-]
+        personColumn,
+        {
+            id: 'details',
+            header: () => h('span', { class: headerClass }, 'Date'),
+            cell: ({ row }) => renderDateCell(row.original.details as { date?: string; start_time?: string; end_time?: string }),
+            enableSorting: false,
+        },
+        {
+            accessorKey: 'total_amount',
+            header: () => h('span', { class: headerClass }, 'Total'),
+            cell: ({ row }) =>
+                h('span', { class: 'text-sm font-semibold text-gray-900' }, formatCurrency(row.getValue('total_amount'))),
+        },
+        {
+            accessorKey: 'status',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
+            cell: ({ row }) => {
+                const status = row.getValue<string>('status')
+                const statusMap: Record<string, { text: string; classes: string }> = {
+                    pending: {
+                        text: 'En attente',
+                        classes: 'bg-amber-50 text-amber-700',
+                    },
+                    confirmed: {
+                        text: 'Confirmee',
+                        classes: 'bg-emerald-50 text-emerald-700',
+                    },
+                    canceled: {
+                        text: 'Annulee',
+                        classes: 'bg-red-50 text-red-700',
+                    },
+                }
+
+                const mapped = statusMap[status] ?? {
+                    text: status ?? 'Inconnu',
+                    classes: 'bg-gray-100 text-gray-700',
+                }
+
+                return h('span', { class: `rounded-full px-2.5 py-1 text-xs font-semibold ${mapped.classes}` }, mapped.text)
+            },
+        },
+        {
+            accessorKey: 'created_at',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
+            cell: ({ row }) => h('span', { class: 'text-sm text-gray-600' }, row.getValue('created_at') ?? '-'),
+        },
+        {
+            id: 'actions',
+            enableHiding: false,
+            cell: ({ row }) => h('div', { class: 'flex justify-end' }, h(DropdownAction, { reservation: row.original })),
+        },
+    ]
+}
+
+export const columns = getReservationColumns()

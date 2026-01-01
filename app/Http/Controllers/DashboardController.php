@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Reservation;
+use App\Models\Service;
 use App\Models\User;
 use App\Services\ReservationStatsService;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +32,7 @@ class DashboardController extends Controller
                 'stats' => $stats,
                 'kpis' => $this->buildKpis($role, $stats, $upcomingCount),
             ],
+            'announcements' => $this->buildAnnouncements($user, $role),
         ]);
     }
 
@@ -166,5 +169,105 @@ class DashboardController extends Controller
                 'period' => 'all time',
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function buildAnnouncements(?User $user, string $role): array
+    {
+        if (!$user) {
+            return ['items' => [], 'suggestions' => []];
+        }
+
+        if ($role === 'Parent') {
+            $items = Announcement::query()
+                ->where('parent_id', $user->id)
+                ->latest()
+                ->get()
+                ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement))
+                ->values();
+
+            $suggestions = Service::query()
+                ->select('name')
+                ->distinct()
+                ->orderBy('name')
+                ->limit(50)
+                ->pluck('name')
+                ->map(fn($name) => trim((string) $name))
+                ->filter()
+                ->values();
+
+            return [
+                'items' => $items,
+                'suggestions' => $suggestions,
+            ];
+        }
+
+        if ($role === 'Babysitter') {
+            $serviceNames = Service::query()
+                ->where('user_id', $user->id)
+                ->pluck('name')
+                ->map(fn($name) => trim((string) $name))
+                ->filter()
+                ->values();
+
+            if ($serviceNames->isEmpty()) {
+                return ['items' => [], 'suggestions' => []];
+            }
+
+            $items = Announcement::query()
+                ->with(['parent.address'])
+                ->where('status', 'open')
+                ->where(function ($query) use ($serviceNames) {
+                    foreach ($serviceNames as $serviceName) {
+                        $query->orWhere(function ($innerQuery) use ($serviceName) {
+                            $innerQuery
+                                ->where('service', 'like', '%' . $serviceName . '%')
+                                ->orWhereRaw('? LIKE CONCAT("%", service, "%")', [$serviceName]);
+                        });
+                    }
+                })
+                ->latest()
+                ->limit(12)
+                ->get()
+                ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement, true))
+                ->values();
+
+            return [
+                'items' => $items,
+                'suggestions' => [],
+            ];
+        }
+
+        return ['items' => [], 'suggestions' => []];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function formatAnnouncement(Announcement $announcement, bool $includeParent = false): array
+    {
+        $payload = [
+            'id' => $announcement->id,
+            'title' => $announcement->title,
+            'service' => $announcement->service,
+            'description' => $announcement->description,
+            'status' => $announcement->status,
+            'created_at' => $announcement->created_at?->toDateTimeString(),
+        ];
+
+        if ($includeParent) {
+            $parent = $announcement->parent;
+            $payload['parent'] = $parent
+                ? [
+                    'id' => $parent->id,
+                    'name' => $parent->name,
+                    'city' => $parent->address?->city,
+                ]
+                : null;
+        }
+
+        return $payload;
     }
 }

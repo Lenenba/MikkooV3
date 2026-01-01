@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Address;
+use App\Models\Announcement;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -148,6 +149,16 @@ class User extends Authenticatable
     public function parentReservations(): HasMany
     {
         return $this->hasMany(Reservation::class, 'parent_id');
+    }
+
+    /**
+     * Announcements created by the parent.
+     *
+     * @return HasMany
+     */
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class, 'parent_id');
     }
 
     /**

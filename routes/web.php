@@ -8,6 +8,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ReservationRatingController;
 use App\Http\Controllers\ServicesSearchController;
 use App\Http\Controllers\SearchBabysitterController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AddressOnboardingController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
@@ -67,6 +68,13 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
             ->name('reservations.create');
         Route::get('/service/search', ServicesSearchController::class)
             ->name('service.search');
+
+        Route::post('/announcements', [AnnouncementController::class, 'store'])
+            ->name('announcements.store');
+        Route::patch('/announcements/{announcement}', [AnnouncementController::class, 'update'])
+            ->name('announcements.update');
+        Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])
+            ->name('announcements.destroy');
     }
 );
 

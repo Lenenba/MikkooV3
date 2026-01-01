@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { BookOpen, Briefcase, Calendar, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Briefcase, Calendar, LayoutGrid, Megaphone } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage();
@@ -18,7 +18,7 @@ const role = computed(() => {
 const mainNavItems = computed(() => {
     const items: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'Tableau de bord',
             href: '/dashboard',
             icon: LayoutGrid,
         },
@@ -33,6 +33,14 @@ const mainNavItems = computed(() => {
             icon: Calendar,
         },
     ];
+
+    if (role.value === 'parent') {
+        items.push({
+            title: 'Mes annonces',
+            href: '/dashboard#annonces',
+            icon: Megaphone,
+        });
+    }
 
     if (role.value === 'babysitter') {
         items.push({

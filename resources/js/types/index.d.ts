@@ -4,6 +4,8 @@ import type { Config } from 'ziggy-js';
 
 export interface Auth {
     user: User;
+    profilPicture?: string;
+    role?: string;
 }
 
 export interface BreadcrumbItem {
@@ -91,6 +93,28 @@ export interface Stats {
     total_revenue: number;
     total_count?: number;
     total_canceled_count: number;
+    total_requests_count?: number;
+    pending_count?: number;
+    confirmed_count?: number;
+    upcoming_count?: number;
+    unique_babysitters_count?: number;
+    unique_parents_count?: number;
+}
+
+export interface AnnouncementParent {
+    id: number;
+    name: string;
+    city?: string | null;
+}
+
+export interface Announcement {
+    id: number;
+    title: string;
+    service: string;
+    description?: string | null;
+    status?: string;
+    created_at?: string;
+    parent?: AnnouncementParent | null;
 }
 
 

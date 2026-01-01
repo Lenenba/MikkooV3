@@ -2,7 +2,7 @@
 import DataTablePagination from '@/components/pagination.vue'
 import DataTableViewOptions from '@/components/columnToggle.vue'
 import { Search } from 'lucide-vue-next'
-import FloatingInput from '@/components/FloatingInput.vue'
+import { Input } from '@/components/ui/input'
 import { computed, ref } from 'vue'
 import {
     Table,
@@ -26,14 +26,16 @@ import {
     useVueTable,
 } from '@tanstack/vue-table'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
     searchColumn?: string
     searchPlaceholder?: string
     showToolbar?: boolean
     emptyMessage?: string
-}>()
+}>(), {
+    showToolbar: true,
+})
 
 const columnFilters = ref<ColumnFiltersState>([])
 const rowSelection = ref({})
@@ -53,34 +55,40 @@ const table = useVueTable({
 })
 
 const searchColumn = computed(() => table.getColumn(props.searchColumn ?? 'ref'))
-const searchLabel = computed(() => props.searchPlaceholder ?? 'Search')
+const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
 </script>
 
 <template>
-    <div class="rounded-sm border border-gray-200 bg-white shadow-sm">
-        <div v-if="props.showToolbar !== false" class="border-b border-gray-100 px-5 py-4">
-            <slot name="toolbar" :table="table">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="relative w-full sm:max-w-xs">
-                        <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        <FloatingInput
-                            id="table-search"
-                            class="w-full pl-9"
-                            :label="searchLabel"
-                            label-class="pl-9"
-                            :model-value="searchColumn?.getFilterValue() as string"
-                            @update:model-value="searchColumn?.setFilterValue($event)"
-                        />
-                    </div>
-                    <DataTableViewOptions :table="table" />
+    <div class="overflow-hidden rounded-sm border border-gray-200 border-t-2 border-t-blue-600 bg-white shadow-sm">
+        <div v-if="props.showToolbar" class="border-b border-gray-100 px-4 py-3">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div class="relative w-full lg:flex-1">
+                    <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Input
+                        id="table-search"
+                        class="h-9 w-full pl-9"
+                        :placeholder="searchPlaceholder"
+                        :model-value="searchColumn?.getFilterValue() as string"
+                        @update:model-value="searchColumn?.setFilterValue($event)"
+                    />
                 </div>
-            </slot>
+                <div class="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+                    <slot name="toolbar-filters" :table="table" />
+                    <DataTableViewOptions
+                        :table="table"
+                        label="Filtres"
+                        menu-label="Colonnes"
+                        button-class="h-9 w-full sm:w-auto"
+                    />
+                    <slot name="toolbar-actions" :table="table" />
+                </div>
+            </div>
         </div>
         <Table class="min-w-[900px]">
             <TableHeader>
-                <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="bg-gray-50">
+                <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="bg-white hover:bg-transparent">
                     <TableHead v-for="header in headerGroup.headers" :key="header.id"
-                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        class="h-auto px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                         <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
                             :props="header.getContext()" />
                     </TableHead>
@@ -90,7 +98,7 @@ const searchLabel = computed(() => props.searchPlaceholder ?? 'Search')
                 <template v-if="table.getRowModel().rows?.length">
                     <TableRow v-for="row in table.getRowModel().rows" :key="row.id"
                         :data-state="row.getIsSelected() ? 'selected' : undefined">
-                        <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                        <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="px-4 py-3">
                             <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                         </TableCell>
                     </TableRow>
