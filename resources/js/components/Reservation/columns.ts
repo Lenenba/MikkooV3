@@ -148,6 +148,10 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
                         text: 'Confirmee',
                         classes: 'bg-emerald-50 text-emerald-700',
                     },
+                    completed: {
+                        text: 'Terminee',
+                        classes: 'bg-sky-50 text-sky-700',
+                    },
                     canceled: {
                         text: 'Annulee',
                         classes: 'bg-red-50 text-red-700',

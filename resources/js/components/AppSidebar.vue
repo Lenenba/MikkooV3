@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { BookOpen, Briefcase, Calendar, LayoutGrid, Megaphone } from 'lucide-vue-next';
+import { BookOpen, Briefcase, Calendar, LayoutGrid, Megaphone, Receipt } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage();
@@ -33,6 +33,14 @@ const mainNavItems = computed(() => {
             icon: Calendar,
         },
     ];
+
+    if (role.value === 'parent' || role.value === 'babysitter') {
+        items.push({
+            title: 'Factures',
+            href: '/invoices',
+            icon: Receipt,
+        });
+    }
 
     if (role.value === 'parent') {
         items.push({

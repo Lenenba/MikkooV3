@@ -102,7 +102,7 @@ class Reservation extends Model
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'reservation_services')
-            ->withPivot('quantity')
+            ->withPivot('quantity', 'total')
             ->withTimestamps();
     }
     /**
@@ -122,6 +122,14 @@ class Reservation extends Model
     public function ratings(): HasMany
     {
         return $this->hasMany(Rating::class);
+    }
+
+    /**
+     * Invoice item linked to this reservation (if invoiced).
+     */
+    public function invoiceItem(): HasOne
+    {
+        return $this->hasOne(InvoiceItem::class);
     }
 
     /**

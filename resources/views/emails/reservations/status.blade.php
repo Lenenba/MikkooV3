@@ -8,7 +8,7 @@
 @php
     $statusLabel = $status === 'confirmed'
         ? 'confirmee'
-        : ($status === 'canceled' ? 'annulee' : 'mise a jour');
+        : ($status === 'completed' ? 'terminee' : ($status === 'canceled' ? 'annulee' : 'mise a jour'));
 @endphp
 
 # Reservation {{ $statusLabel }}

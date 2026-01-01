@@ -15,6 +15,8 @@ class ReservationDetailFactory extends Factory
         $date      = $this->faker->dateTimeBetween('now', '+1 month');
         $startTime = (clone $date)->modify('+' . $this->faker->numberBetween(1, 3) . ' hours');
         $endTime   = (clone $startTime)->modify('+' . $this->faker->numberBetween(1, 3) . ' hours');
+        $status    = $this->faker->randomElement(['pending', 'confirmed', 'completed', 'canceled']);
+        $completedAt = $status === 'completed' ? $endTime : null;
 
         return [
             // Link to reservation header
@@ -25,7 +27,8 @@ class ReservationDetailFactory extends Factory
             'start_time'     => $startTime->format('H:i:s'),
             'end_time'       => $endTime->format('H:i:s'),
             // Status of this detail line
-            'status'         => $this->faker->randomElement(['pending', 'confirmed', 'canceled']),
+            'status'         => $status,
+            'completed_at'   => $completedAt,
         ];
     }
 }

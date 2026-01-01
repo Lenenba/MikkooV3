@@ -33,7 +33,7 @@ class BabysitterProfileFactory extends Factory
             'phone'             => $this->faker->phoneNumber(),
             'bio'               => $this->faker->paragraph(),
             'experience'        => $this->faker->paragraph(),
-            'price_per_hour'    => $this->faker->numberBetween(10, 50),
+            'price_per_hour'    => $this->faker->randomFloat(2, 10, 50),
             'payment_frequency' => $this->faker->randomElement([
                 'per_task',
                 'daily',

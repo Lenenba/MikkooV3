@@ -21,6 +21,8 @@ type ReservationShow = Reservation & {
 
 const reservation = computed<ReservationShow | null>(() => page.props.reservation ?? null);
 const reservationId = computed(() => reservation.value?.id ?? null);
+const currency = computed(() => (page.props as { currency?: string }).currency ?? 'USD');
+const taxRate = computed(() => Number((page.props as { tax_rate?: number }).tax_rate ?? 0));
 const ratings = computed<RatingsPayload | null>(() => page.props.ratings ?? null);
 const canRate = computed(() => ratings.value?.can_rate ?? false);
 const myRating = computed(() => ratings.value?.mine ?? null);
@@ -48,6 +50,9 @@ const statusMeta = computed(() => {
     if (current === 'confirmed') {
         return { label: 'Confirmee', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
+    if (current === 'completed') {
+        return { label: 'Terminee', className: 'bg-sky-50 text-sky-700 border-sky-200' };
+    }
     if (current === 'pending') {
         return { label: 'En attente', className: 'bg-amber-50 text-amber-700 border-amber-200' };
     }
@@ -59,12 +64,7 @@ const statusMeta = computed(() => {
 
 const canCancel = computed(() => {
     const current = status.value;
-    return current !== 'canceled' && current !== 'cancelled';
-});
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+    return current !== 'canceled' && current !== 'cancelled' && current !== 'completed';
 });
 
 const toNumber = (value: number | string | null | undefined) => {
@@ -79,7 +79,7 @@ const toNumber = (value: number | string | null | undefined) => {
 };
 
 const formatCurrency = (value: number | string | null | undefined) =>
-    currencyFormatter.format(toNumber(value));
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency.value }).format(toNumber(value));
 
 const formatDate = (value: string | null | undefined) => {
     if (!value) {
@@ -132,8 +132,7 @@ const caculSubtotal = computed(() =>
 );
 
 const calculTax = computed(() => {
-    const TAX_RATE = 0.14975;
-    return Number((caculSubtotal.value * TAX_RATE).toFixed(2));
+    return Number((caculSubtotal.value * taxRate.value).toFixed(2));
 });
 
 const totalAmount = computed(() =>

@@ -27,7 +27,7 @@ class ReservationStatsService
     {
         // English comment: start with the base query (for this user, only confirmed)
         $query = Reservation::forUser(Auth::user())
-            ->confirmed();
+            ->whereHas('details', fn($q) => $q->where('status', 'completed'));
 
         if ($monthOffset !== null) {
             // English comment: calculate the start and end of the target month
@@ -76,7 +76,7 @@ class ReservationStatsService
             }
 
             $count = Reservation::forUser(Auth::user())
-                ->confirmed()
+                ->whereHas('details', fn($q) => $q->where('status', 'completed'))
                 ->createdBetween($bucketStart, $bucketEnd)
                 ->count();
 
@@ -100,7 +100,7 @@ class ReservationStatsService
             ->count();
 
         $confirmedCount = (clone $baseQuery)
-            ->whereHas('details', fn($q) => $q->where('status', 'confirmed'))
+            ->whereHas('details', fn($q) => $q->whereIn('status', ['confirmed', 'completed']))
             ->count();
 
         $countCanceled = (clone $baseQuery)

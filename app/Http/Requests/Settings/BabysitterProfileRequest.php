@@ -20,7 +20,7 @@ class BabysitterProfileRequest extends FormRequest
             'phone'        => ['required', 'string', 'max:15'],
             'bio'          => ['nullable', 'string'],
             'experience'   => ['nullable', 'string'],
-            'price_per_hour' => ['required', 'integer', 'min:5'],
+            'price_per_hour' => ['required', 'numeric', 'min:5'],
             'payment_frequency' => ['required', 'string', 'in:per_task,daily,weekly,biweekly,monthly'],
             'services'     => ['nullable', 'string', 'max:1000'],
             'availability' => ['nullable', 'string', 'max:1000'],

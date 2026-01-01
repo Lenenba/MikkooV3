@@ -133,6 +133,7 @@ const statusOptions = [
     { value: 'all', label: 'Tous les statuts' },
     { value: 'pending', label: 'En attente' },
     { value: 'confirmed', label: 'Confirmee' },
+    { value: 'completed', label: 'Terminee' },
     { value: 'canceled', label: 'Annulee' },
 ];
 

@@ -28,6 +28,7 @@ class ReservationDetail extends Model
         'start_time',
         'end_time',
         'status',
+        'completed_at',
         'schedule_type',
         'recurrence_frequency',
         'recurrence_interval',
@@ -43,6 +44,7 @@ class ReservationDetail extends Model
     protected $casts = [
         'recurrence_days' => 'array',
         'recurrence_end_date' => 'date',
+        'completed_at' => 'datetime',
     ];
 
     /**

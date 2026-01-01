@@ -4,7 +4,9 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use App\Models\AnnouncementApplication;
+use App\Models\Invoice;
 use App\Notifications\AnnouncementApplicationStatusNotification;
+use App\Notifications\InvoiceIssuedNotification;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -45,3 +47,36 @@ Artisan::command('announcements:expire-applications', function () {
 
     $this->info('Expired applications processed: ' . $expired->count());
 })->purpose('Expire pending announcement applications');
+
+Artisan::command('invoices:issue', function () {
+    $dueDays = (int) config('billing.invoice_due_days', 14);
+    $today = now()->startOfDay();
+
+    $invoices = Invoice::query()
+        ->where('status', 'draft')
+        ->whereNotNull('period_end')
+        ->whereDate('period_end', '<=', $today->toDateString())
+        ->whereHas('items')
+        ->with(['parent', 'items'])
+        ->get();
+
+    foreach ($invoices as $invoice) {
+        $invoice->update([
+            'status' => 'issued',
+            'issued_at' => now(),
+            'due_at' => $invoice->due_at ?? now()->addDays($dueDays),
+        ]);
+
+        try {
+            $invoice->parent?->notify(new InvoiceIssuedNotification($invoice));
+        } catch (\Throwable $exception) {
+            Log::warning('Invoice issue notification failed.', [
+                'invoice_id' => $invoice->id,
+                'parent_id' => $invoice->parent_id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    $this->info('Issued invoices: ' . $invoices->count());
+})->purpose('Issue draft invoices whose period has ended');

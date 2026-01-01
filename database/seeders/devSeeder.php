@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\ParentProfile;
 use App\Models\BabysitterProfile;
 use App\Models\Reservation;
+use App\Services\InvoiceService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Arr;
@@ -136,6 +137,27 @@ class DevSeeder extends Seeder
 
             $this->command->info("Created 12 reservations for parent: {$parent->name}");
         }
+
+        $this->command->info('Generating invoices from completed reservations...');
+        $invoiceService = app(InvoiceService::class);
+        $completedReservations = Reservation::with([
+            'details',
+            'reservationServices',
+            'babysitter.address',
+            'babysitter.babysitterProfile',
+            'parent',
+        ])
+            ->whereHas('details', fn($query) => $query->where('status', 'completed'))
+            ->get();
+
+        $createdInvoices = 0;
+        foreach ($completedReservations as $reservation) {
+            $invoice = $invoiceService->createFromReservation($reservation);
+            if ($invoice) {
+                $createdInvoices++;
+            }
+        }
+        $this->command->info("Invoices created: {$createdInvoices}");
 
         $this->command->info('Reservations seeding completed successfully!');
     }

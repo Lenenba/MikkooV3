@@ -171,6 +171,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Invoices issued by the babysitter.
+     */
+    public function issuedInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'babysitter_id');
+    }
+
+    /**
+     * Invoices received by the parent.
+     */
+    public function receivedInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'parent_id');
+    }
+
+    /**
      * Ratings received by this user.
      *
      * @return HasMany

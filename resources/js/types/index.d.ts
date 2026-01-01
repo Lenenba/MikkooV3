@@ -45,6 +45,23 @@ export interface Reservation {
     end_time?: string;
 }
 
+export interface Invoice {
+    id: number;
+    number?: string | null;
+    status: string;
+    currency?: string | null;
+    subtotal_amount?: number | string | null;
+    tax_amount?: number | string | null;
+    total_amount?: number | string | null;
+    period_start?: string | null;
+    period_end?: string | null;
+    issued_at?: string | null;
+    due_at?: string | null;
+    paid_at?: string | null;
+    parent?: User;
+    babysitter?: User;
+}
+
 export interface Services {
     id: number;
     description: string;
@@ -187,6 +204,8 @@ export interface SharedData extends PageProps {
     auth: Auth;
     ratings?: RatingsPayload;
     filters?: SearchFilters;
+    tax_rate?: number;
+    currency?: string;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
 }

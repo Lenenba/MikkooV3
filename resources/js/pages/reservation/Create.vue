@@ -46,6 +46,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+const taxRate = computed(() => Number((page.props as { tax_rate?: number }).tax_rate ?? 0));
+const currency = computed(() => (page.props as { currency?: string }).currency ?? 'USD');
+const formatCurrency = (value: number | string) => {
+    const amount = Number(value) || 0;
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency.value }).format(amount);
+};
+
 
 const form = useForm({
     babysitter_id: Babysitter.value.id,
@@ -166,10 +173,9 @@ watch(
         form.subtotal = newServices.reduce((acc, service) => acc + service.total, 0);
 
         // Calculate taxes, total, and deposit
-        const TAX_RATE = 0.14975;   // TPS + TVQ in Quebec (14.975%)
         const DEPOSIT_RATE = 0.25;  // 25% deposit
 
-        form.tax = parseFloat((form.subtotal * TAX_RATE).toFixed(2));
+        form.tax = parseFloat((form.subtotal * taxRate.value).toFixed(2));
         form.total_amount = parseFloat((form.subtotal + form.tax - form.discount).toFixed(2));
         form.deposit = parseFloat((form.total_amount * DEPOSIT_RATE).toFixed(2));
 
@@ -523,16 +529,16 @@ const createReservation = () => {
                         <div class="mt-4 space-y-3 text-sm">
                             <div class="flex justify-between text-muted-foreground dark:text-neutral-400">
                                 <span>Sous-total</span>
-                                <span class="font-medium text-foreground dark:text-neutral-100">$ {{ form.subtotal }}</span>
+                                <span class="font-medium text-foreground dark:text-neutral-100">{{ formatCurrency(form.subtotal) }}</span>
                             </div>
                             <div class="flex justify-between text-muted-foreground dark:text-neutral-400">
                                 <span>Taxes</span>
-                                <span class="font-medium text-foreground dark:text-neutral-100">$ {{ form.tax }}</span>
+                                <span class="font-medium text-foreground dark:text-neutral-100">{{ formatCurrency(form.tax) }}</span>
                             </div>
                             <div
                                 class="flex justify-between border-t border-border pt-3 font-semibold text-foreground dark:border-neutral-800 dark:text-neutral-100">
                                 <span>Total</span>
-                                <span>$ {{ form.total_amount }}</span>
+                                <span>{{ formatCurrency(form.total_amount) }}</span>
                             </div>
                         </div>
                     </div>

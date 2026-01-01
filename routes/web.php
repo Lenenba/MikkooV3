@@ -10,9 +10,11 @@ use App\Http\Controllers\ServicesSearchController;
 use App\Http\Controllers\SearchBabysitterController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AnnouncementApplicationController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AddressOnboardingController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
+use App\Http\Controllers\CompleteReservationController;
 use App\Http\Middleware\EnsureUserHasAddress;
 
 Route::get('/', function () {
@@ -65,10 +67,14 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
             ->name('reservations.accept');
         Route::post('/reservations/{reservationId}/cancel', CancelReservationController::class)
             ->name('reservations.cancel');
+        Route::post('/reservations/{reservationId}/complete', CompleteReservationController::class)
+            ->name('reservations.complete');
         Route::get('/reservations/{id}/create', [ReservationController::class, 'create'])
             ->name('reservations.create');
         Route::get('/service/search', ServicesSearchController::class)
             ->name('service.search');
+        Route::get('/invoices', [InvoiceController::class, 'index'])
+            ->name('invoices.index');
 
         Route::get('/announcements', [AnnouncementController::class, 'index'])
             ->name('announcements.index');

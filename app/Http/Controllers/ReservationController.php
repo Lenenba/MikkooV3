@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Service;
 use Inertia\Inertia;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ReservationRequest;
 use App\Services\ReservationStatsService;
 use App\Notifications\ReservationRequestedNotification;
+use App\Support\Billing;
 
 class ReservationController extends Controller
 {
@@ -92,6 +94,9 @@ class ReservationController extends Controller
         ])
             ->findOrFail($id);
 
+        $taxRate = Billing::vatRateForCountry($reservation->babysitter?->address?->country);
+        $currency = Billing::currencyForCountry($reservation->babysitter?->address?->country);
+
         $ratingsPayload = [
             'can_rate' => false,
             'mine' => null,
@@ -130,6 +135,8 @@ class ReservationController extends Controller
         return Inertia::render('reservation/Show', [
             'reservation' => $reservation,
             'ratings' => $ratingsPayload,
+            'tax_rate' => $taxRate,
+            'currency' => $currency,
         ]);
     }
 
@@ -143,6 +150,8 @@ class ReservationController extends Controller
             ->with(['address', 'babysitterProfile', 'media'])
             ->where('id', $id)
             ->firstOrFail();
+        $taxRate = Billing::vatRateForCountry($user->address?->country);
+        $currency = Billing::currencyForCountry($user->address?->country);
         $myReservations = Reservation::where('parent_id', Auth::id())
             ->where('babysitter_id', $id)
             ->with(['parent', 'babysitter', 'services', 'details'])
@@ -153,6 +162,8 @@ class ReservationController extends Controller
             'babysitter'     => $user,
             'myReservations' => $myReservations,
             'numero'    => Reservation::generateNextNumber($user->babysitterReservations->last()->number ?? null),
+            'tax_rate' => $taxRate,
+            'currency' => $currency,
         ]);
     }
 
@@ -170,13 +181,66 @@ class ReservationController extends Controller
         // Associate the reservation with the authenticated parent user
         $data['parent_id'] = Auth::id();
 
-        // Create the reservation
-        $reservation = Reservation::create($data);
+        $babysitter = User::with('address')->findOrFail($data['babysitter_id']);
+        $taxRate = Billing::vatRateForCountry($babysitter->address?->country);
 
-        // Attach selected services if provided
-        if (!empty($data['services']) && is_array($data['services'])) {
-            $serviceIds = array_column($data['services'], 'id');
-            $reservation->services()->attach($serviceIds);
+        $servicePayload = collect($data['services'] ?? [])
+            ->map(fn(array $service) => [
+                'id' => (int) ($service['id'] ?? 0),
+                'quantity' => max(1, (int) ($service['quantity'] ?? 1)),
+            ])
+            ->filter(fn(array $service) => $service['id'] > 0)
+            ->values();
+
+        $servicePrices = Service::query()
+            ->where('user_id', $babysitter->id)
+            ->whereIn('id', $servicePayload->pluck('id'))
+            ->pluck('price', 'id')
+            ->map(fn($price) => (float) $price);
+
+        $serviceLines = $servicePayload
+            ->map(function (array $service) use ($servicePrices): ?array {
+                if (! $servicePrices->has($service['id'])) {
+                    return null;
+                }
+
+                $unitPrice = (float) $servicePrices[$service['id']];
+                $total = round($unitPrice * $service['quantity'], 2);
+
+                return [
+                    'id' => $service['id'],
+                    'quantity' => $service['quantity'],
+                    'total' => $total,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        if ($serviceLines->isEmpty()) {
+            return redirect()->back()->withErrors([
+                'services' => 'Aucun service valide pour cette babysitter.',
+            ]);
+        }
+
+        $subtotal = (float) $serviceLines->sum('total');
+        $taxAmount = round($subtotal * $taxRate, 2);
+        $totalAmount = round($subtotal + $taxAmount, 2);
+
+        // Create the reservation with server-calculated totals
+        $reservation = Reservation::create([
+            'parent_id' => $data['parent_id'],
+            'babysitter_id' => $data['babysitter_id'],
+            'total_amount' => $totalAmount,
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        if ($serviceLines->isNotEmpty()) {
+            foreach ($serviceLines as $line) {
+                $reservation->services()->attach($line['id'], [
+                    'quantity' => $line['quantity'],
+                    'total' => $line['total'],
+                ]);
+            }
         }
 
         // Create reservation details

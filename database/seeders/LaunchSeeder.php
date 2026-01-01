@@ -8,6 +8,8 @@ use App\Models\ReservationDetail;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
+use App\Services\InvoiceService;
+use App\Support\Billing;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
@@ -141,6 +143,17 @@ class LaunchSeeder extends Seeder
             return Carbon::createFromTimestamp(mt_rand($min, $max))->format('Y-m-d');
         };
 
+        $randomPrice = function (float $minPrice, float $maxPrice) use ($faker): float {
+            if ($faker) {
+                return (float) $faker->randomFloat(2, $minPrice, $maxPrice);
+            }
+
+            $minCents = (int) round($minPrice * 100);
+            $maxCents = (int) round($maxPrice * 100);
+            $value = mt_rand($minCents, $maxCents);
+            return $value / 100;
+        };
+
         $randomStreet = function () use ($randomElement, $streetNames, $streetTypes): string {
             return sprintf('%d %s %s', mt_rand(10, 220), $randomElement($streetNames), $randomElement($streetTypes));
         };
@@ -208,7 +221,8 @@ class LaunchSeeder extends Seeder
             $randomName,
             $randomPhone,
             $randomPostal,
-            $randomStreet
+            $randomStreet,
+            $randomPrice
         ): User {
             if (! $firstName || ! $lastName) {
                 [$firstName, $lastName] = $randomName();
@@ -236,7 +250,7 @@ class LaunchSeeder extends Seeder
                         'phone' => $randomPhone($country),
                         'bio' => $randomElement($bioSnippets),
                         'experience' => $randomElement($experienceSnippets),
-                        'price_per_hour' => mt_rand($minPrice, $maxPrice),
+                        'price_per_hour' => $randomPrice($minPrice, $maxPrice),
                         'payment_frequency' => $randomElement($paymentFrequencies),
                     ]);
                 }
@@ -353,12 +367,16 @@ class LaunchSeeder extends Seeder
                     $end = $period->copy()->endOfMonth();
 
                     for ($j = 0; $j < $reservationsPerMonth; $j++) {
-                        $randomBabysitter = Arr::random($countryBabysitters);
-                        $randomDate = Carbon::createFromTimestamp(mt_rand($start->timestamp, $end->timestamp));
-                        $startHour = mt_rand(8, 18);
-                        $startTime = Carbon::createFromTime($startHour, 0);
-                        $endTime = $startTime->copy()->addHours(mt_rand(2, 5));
-                        $status = $randomBool(70) ? 'confirmed' : 'pending';
+                    $randomBabysitter = Arr::random($countryBabysitters);
+                    $randomDate = Carbon::createFromTimestamp(mt_rand($start->timestamp, $end->timestamp));
+                    $startHour = mt_rand(8, 18);
+                    $startTime = Carbon::createFromTime($startHour, 0);
+                    $endTime = $startTime->copy()->addHours(mt_rand(2, 5));
+                    $roll = mt_rand(1, 100);
+                    $status = $roll <= 50 ? 'completed' : ($roll <= 80 ? 'confirmed' : 'pending');
+                    $completedAt = $status === 'completed'
+                        ? $randomDate->copy()->setTimeFromTimeString($endTime->format('H:i:s'))
+                        : null;
 
                         $reservation = Reservation::create([
                             'parent_id' => $parent->id,
@@ -378,6 +396,7 @@ class LaunchSeeder extends Seeder
                             'start_time' => $startTime->format('H:i:s'),
                             'end_time' => $endTime->format('H:i:s'),
                             'status' => $status,
+                            'completed_at' => $completedAt,
                         ]);
 
                         $servicePool = Service::query()
@@ -418,11 +437,34 @@ class LaunchSeeder extends Seeder
                             ]);
                         }
 
-                        $reservation->update(['total_amount' => $total]);
+                        $taxRate = Billing::vatRateForCountry($country);
+                        $taxAmount = round($total * $taxRate, 2);
+                        $reservation->update(['total_amount' => round($total + $taxAmount, 2)]);
                     }
                 }
             }
         }
+
+        $this->command->info('Generating invoices from completed reservations...');
+        $invoiceService = app(InvoiceService::class);
+        $completedReservations = Reservation::with([
+            'details',
+            'reservationServices',
+            'babysitter.address',
+            'babysitter.babysitterProfile',
+            'parent',
+        ])
+            ->whereHas('details', fn($query) => $query->where('status', 'completed'))
+            ->get();
+
+        $createdInvoices = 0;
+        foreach ($completedReservations as $reservation) {
+            $invoice = $invoiceService->createFromReservation($reservation);
+            if ($invoice) {
+                $createdInvoices++;
+            }
+        }
+        $this->command->info("Invoices created: {$createdInvoices}");
 
         $this->call([
             AnnouncementSeeder::class,

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\AnnouncementApplicationReceivedNotification;
 use App\Notifications\AnnouncementApplicationStatusNotification;
 use App\Notifications\AnnouncementApplicationSubmittedNotification;
+use App\Support\Billing;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -73,12 +74,15 @@ class AnnouncementApplicationController extends Controller
 
         $quantity = $this->resolveServiceQuantity($announcement);
         $unitPrice = (float) $matchedService->price;
-        $totalAmount = round($unitPrice * $quantity, 2);
+        $subtotal = round($unitPrice * $quantity, 2);
+        $taxRate = Billing::vatRateForCountry($user->address?->country);
+        $taxAmount = round($subtotal * $taxRate, 2);
+        $totalAmount = round($subtotal + $taxAmount, 2);
 
         $expiryHours = (int) config('announcements.application_expiry_hours', 24);
         $expiresAt = $expiryHours > 0 ? now()->addHours($expiryHours) : null;
 
-        $application = DB::transaction(function () use ($announcement, $user, $message, $schedule, $expiresAt, $matchedService, $quantity, $totalAmount) {
+        $application = DB::transaction(function () use ($announcement, $user, $message, $schedule, $expiresAt, $matchedService, $quantity, $subtotal, $totalAmount) {
             $reservation = Reservation::create([
                 'parent_id' => $announcement->parent_id,
                 'babysitter_id' => $user->id,
@@ -89,7 +93,7 @@ class AnnouncementApplicationController extends Controller
 
             $reservation->services()->attach($matchedService->id, [
                 'quantity' => $quantity,
-                'total' => $totalAmount,
+                'total' => $subtotal,
             ]);
 
             $reservation->details()->create([
@@ -191,10 +195,13 @@ class AnnouncementApplicationController extends Controller
                     if ($matchedService) {
                         $quantity = $this->resolveServiceQuantity($announcement);
                         $unitPrice = (float) $matchedService->price;
-                        $totalAmount = round($unitPrice * $quantity, 2);
+                        $subtotal = round($unitPrice * $quantity, 2);
+                        $taxRate = Billing::vatRateForCountry($application->babysitter?->address?->country);
+                        $taxAmount = round($subtotal * $taxRate, 2);
+                        $totalAmount = round($subtotal + $taxAmount, 2);
                         $application->reservation->services()->attach($matchedService->id, [
                             'quantity' => $quantity,
-                            'total' => $totalAmount,
+                            'total' => $subtotal,
                         ]);
                         if ((float) $application->reservation->total_amount <= 0) {
                             $application->reservation->update([
