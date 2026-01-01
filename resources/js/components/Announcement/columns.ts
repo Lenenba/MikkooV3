@@ -24,16 +24,23 @@ const renderServiceCell = (service?: string | null) => {
 }
 
 const renderChildCell = (announcement: Announcement) => {
-    const name = announcement.child_name?.trim() || ''
-    const age = announcement.child_age?.trim() || ''
-    const label = [name, age].filter(Boolean).join(' · ') || '-'
+    const children = (announcement.children ?? []).filter(Boolean)
+    const names = children
+        .map((child) => (child?.name ?? '').toString().trim())
+        .filter(Boolean)
+    const nameLabel = names.length ? names.join(', ') : (announcement.child_name?.trim() || '')
+    const ageValue = announcement.child_age?.toString().trim() || ''
+    const label = [nameLabel, ageValue].filter(Boolean).join(' · ') || '-'
     const notes = announcement.child_notes?.trim() || ''
+    const countLabel = names.length > 1 ? `${names.length} enfants` : ''
 
     return h('div', { class: 'flex max-w-[220px] flex-col' }, [
         h('span', { class: 'text-sm font-medium text-gray-900' }, label),
         notes
             ? h('span', { class: 'text-xs text-gray-500' }, notes)
-            : h('span', { class: 'text-xs text-gray-400' }, '-'),
+            : countLabel
+                ? h('span', { class: 'text-xs text-gray-500' }, countLabel)
+                : h('span', { class: 'text-xs text-gray-400' }, '-'),
     ])
 }
 

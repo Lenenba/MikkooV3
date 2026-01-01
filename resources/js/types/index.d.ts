@@ -99,6 +99,7 @@ export interface Stats {
     upcoming_count?: number;
     unique_babysitters_count?: number;
     unique_parents_count?: number;
+    current_month_trend?: number[];
 }
 
 export interface AnnouncementParent {
@@ -107,10 +108,20 @@ export interface AnnouncementParent {
     city?: string | null;
 }
 
+export interface AnnouncementChild {
+    id?: number;
+    name?: string | null;
+    age?: string | number | null;
+    allergies?: string | null;
+    details?: string | null;
+    photo?: string | null;
+}
+
 export interface Announcement {
     id: number;
     title: string;
     service: string;
+    children?: AnnouncementChild[] | null;
     child_name?: string | null;
     child_age?: string | null;
     child_notes?: string | null;

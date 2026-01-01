@@ -50,6 +50,43 @@ class ReservationStatsService
     }
 
     /**
+     * Build a trend series for the current month.
+     *
+     * @return array<int, int>
+     */
+    protected function buildCurrentMonthTrend(int $points = 10): array
+    {
+        $points = max(1, $points);
+        $start = $this->now->copy()->startOfMonth()->startOfDay();
+        $end = $this->now->copy()->endOfMonth()->endOfDay();
+        $daysInMonth = $start->diffInDays($end) + 1;
+        $bucketSize = max(1, (int) ceil($daysInMonth / $points));
+
+        $series = [];
+        for ($i = 0; $i < $points; $i++) {
+            $bucketStart = $start->copy()->addDays($i * $bucketSize)->startOfDay();
+            if ($bucketStart->greaterThan($end)) {
+                $series[] = 0;
+                continue;
+            }
+
+            $bucketEnd = $bucketStart->copy()->addDays($bucketSize - 1)->endOfDay();
+            if ($bucketEnd->greaterThan($end)) {
+                $bucketEnd = $end->copy();
+            }
+
+            $count = Reservation::forUser(Auth::user())
+                ->confirmed()
+                ->createdBetween($bucketStart, $bucketEnd)
+                ->count();
+
+            $series[] = (int) $count;
+        }
+
+        return $series;
+    }
+
+    /**
      * Compute all the stats needed by the controller.
      */
     public function getAllStats(): array
@@ -118,6 +155,7 @@ class ReservationStatsService
             'upcoming_count'        => $upcomingCount,
             'unique_babysitters_count' => $uniqueBabysitters,
             'unique_parents_count'  => $uniqueParents,
+            'current_month_trend'   => $this->buildCurrentMonthTrend(),
             // vous pouvez ajouter ici d'autres métriques…
         ];
     }

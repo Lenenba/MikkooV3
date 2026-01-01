@@ -19,11 +19,21 @@ class Announcement extends Model
         'parent_id',
         'title',
         'service',
+        'children',
         'child_name',
         'child_age',
         'child_notes',
         'description',
         'status',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'children' => 'array',
     ];
 
     /**

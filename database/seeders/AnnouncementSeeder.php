@@ -1,0 +1,98 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Announcement;
+use App\Models\Service;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+class AnnouncementSeeder extends Seeder
+{
+    /**
+     * Seed announcements with child details for demo data.
+     */
+    public function run(): void
+    {
+        $parents = User::parents()->get();
+        if ($parents->isEmpty()) {
+            $this->command->warn('No parents found. Skipping announcements seeding.');
+            return;
+        }
+
+        $services = Service::query()
+            ->whereNull('user_id')
+            ->orderBy('name')
+            ->pluck('name')
+            ->map(fn($name) => trim((string) $name))
+            ->filter()
+            ->values();
+
+        if ($services->isEmpty()) {
+            $this->command->warn('No catalog services found. Skipping announcements seeding.');
+            return;
+        }
+
+        $childNames = ['Lina', 'Noah', 'Maya', 'Adam', 'Sara', 'Leo', 'Mila', 'Ilyes'];
+        $childAges = ['2 ans', '3 ans', '4 ans', '5 ans', '6 ans', '7 ans'];
+        $childNotes = [
+            'Aime les jeux calmes et les histoires.',
+            'Allergie aux arachides.',
+            'Besoin de routine pour le coucher.',
+            'Aime les activites en plein air.',
+            'Aide aux devoirs apres ecole.',
+        ];
+        $titleTemplates = [
+            'Besoin de %s',
+            'Recherche %s',
+            'Demande: %s',
+            '%s pour cette semaine',
+            '%s pour ce week-end',
+        ];
+        $descriptions = [
+            'Horaires flexibles, merci de preciser vos disponibilites.',
+            'Nous cherchons une personne calme et attentive.',
+            'Sortie d\'ecole et retour a la maison.',
+            'Garde ponctuelle, maison non fumeur.',
+            'Possibilite de garde recurrente.',
+        ];
+
+        $count = min(12, max(6, $parents->count() * 2));
+        $created = 0;
+
+        for ($i = 0; $i < $count; $i++) {
+            $parent = $parents->random();
+            $service = $services->random();
+            $title = sprintf(fake()->randomElement($titleTemplates), $service);
+            $childName = fake()->randomElement($childNames);
+            $childAge = fake()->randomElement($childAges);
+            $childNote = fake()->boolean(70) ? fake()->randomElement($childNotes) : null;
+            $description = fake()->boolean(85) ? fake()->randomElement($descriptions) : null;
+
+            Announcement::create([
+                'parent_id' => $parent->id,
+                'title' => $title,
+                'service' => $service,
+                'children' => [
+                    [
+                        'id' => 0,
+                        'name' => $childName,
+                        'age' => $childAge,
+                        'allergies' => null,
+                        'details' => null,
+                        'photo' => null,
+                    ],
+                ],
+                'child_name' => $childName,
+                'child_age' => $childAge,
+                'child_notes' => $childNote,
+                'description' => $description,
+                'status' => fake()->boolean(75) ? 'open' : 'closed',
+            ]);
+
+            $created++;
+        }
+
+        $this->command->info("Announcements seeded: {$created}.");
+    }
+}

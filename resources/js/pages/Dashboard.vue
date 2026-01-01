@@ -53,6 +53,7 @@ const userName = computed(() => {
 
 const stats = computed(() => dashboard.value?.stats);
 const isBabysitter = computed(() => role.value === 'Babysitter');
+const isAdmin = computed(() => role.value === 'Admin');
 const announcementItems = computed(() => announcementsPayload.value?.items ?? []);
 
 const formatAnnouncementDate = (value?: string | null) => {
@@ -71,10 +72,19 @@ const formatAnnouncementDate = (value?: string | null) => {
 };
 
 const formatChildLabel = (announcement: Announcement) => {
+    const children = (announcement.children ?? []).map((child) => (child?.name ?? '').toString().trim()).filter(Boolean);
+    if (children.length) {
+        return children.join(', ');
+    }
     const parts = [announcement.child_name, announcement.child_age]
         .map((value) => (value ?? '').toString().trim())
         .filter(Boolean);
     return parts.join(' · ');
+};
+
+const childInitial = (name?: string | null) => {
+    const value = (name ?? '').toString().trim();
+    return value ? value.charAt(0).toUpperCase() : '?';
 };
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -470,16 +480,17 @@ const quickTeam = [
     { initials: 'KT', class: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200' },
 ];
 
-const orderTrend = [12, 16, 14, 18, 15, 20, 17, 22, 16, 19];
+const orderTrend = computed(() => stats.value?.current_month_trend ?? []);
 const chartSize = { width: 120, height: 56, padding: 6 };
 
 const orderTrendPoints = computed(() => {
-    const maxValue = Math.max(...orderTrend);
-    const minValue = Math.min(...orderTrend);
+    const values = orderTrend.value.length ? orderTrend.value : Array.from({ length: 10 }, () => 0);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
     const range = maxValue - minValue || 1;
 
-    return orderTrend.map((value, index) => {
-        const x = (index / (orderTrend.length - 1)) * (chartSize.width - chartSize.padding * 2) + chartSize.padding;
+    return values.map((value, index) => {
+        const x = (index / Math.max(values.length - 1, 1)) * (chartSize.width - chartSize.padding * 2) + chartSize.padding;
         const y =
             chartSize.height -
             chartSize.padding -
@@ -749,6 +760,24 @@ const orderTrendArea = computed(() => {
                                         <p v-if="formatChildLabel(announcement)" class="text-xs text-muted-foreground">
                                             Enfant: {{ formatChildLabel(announcement) }}
                                         </p>
+                                        <div v-if="announcement.children?.length" class="flex flex-wrap items-center gap-2">
+                                            <div
+                                                v-for="(child, index) in announcement.children"
+                                                :key="child.id ?? `${child.name ?? 'child'}-${index}`"
+                                                class="flex items-center gap-2 rounded-full bg-muted/60 pr-2"
+                                            >
+                                                <div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">
+                                                    <img
+                                                        v-if="child.photo"
+                                                        :src="child.photo"
+                                                        :alt="child.name ?? 'Enfant'"
+                                                        class="h-full w-full object-cover"
+                                                    />
+                                                    <span v-else>{{ childInitial(child.name) }}</span>
+                                                </div>
+                                                <span class="text-xs text-muted-foreground">{{ child.name || 'Enfant' }}</span>
+                                            </div>
+                                        </div>
                                         <p v-if="announcement.child_notes" class="text-sm text-muted-foreground">
                                             {{ announcement.child_notes }}
                                         </p>
@@ -840,6 +869,7 @@ const orderTrendArea = computed(() => {
                         </div>
 
                         <div
+                            v-if="isAdmin"
                             class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
                             style="animation-delay: 580ms"
                         >

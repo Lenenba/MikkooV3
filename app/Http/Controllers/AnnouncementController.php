@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -23,6 +24,8 @@ class AnnouncementController extends Controller
             ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement))
             ->values();
 
+        $children = $this->getParentChildren($user);
+
         $suggestions = Service::query()
             ->select('name')
             ->distinct()
@@ -37,6 +40,7 @@ class AnnouncementController extends Controller
             'announcements' => [
                 'items' => $items,
                 'suggestions' => $suggestions,
+                'children' => $children,
             ],
         ]);
     }
@@ -51,13 +55,29 @@ class AnnouncementController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:120'],
             'service' => ['required', 'string', 'max:120'],
-            'child_name' => ['required', 'string', 'max:120'],
-            'child_age' => ['nullable', 'string', 'max:40'],
+            'child_ids' => ['required', 'array', 'min:1'],
+            'child_ids.*' => ['integer', 'min:0'],
             'child_notes' => ['nullable', 'string', 'max:1000'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $childAge = isset($data['child_age']) ? trim((string) $data['child_age']) : null;
+        $availableChildren = collect($this->getParentChildren($user))->keyBy('id');
+        $selectedChildren = collect($data['child_ids'] ?? [])
+            ->unique()
+            ->map(fn($id) => $availableChildren->get((int) $id))
+            ->filter()
+            ->values();
+
+        if ($selectedChildren->isEmpty()) {
+            return back()->withErrors([
+                'child_ids' => 'Selectionnez au moins un enfant existant.',
+            ]);
+        }
+
+        $primaryChild = $selectedChildren->first() ?? [];
+        $childName = trim((string) ($primaryChild['name'] ?? 'Enfant'));
+        $childName = $childName !== '' ? $childName : 'Enfant';
+        $childAge = isset($primaryChild['age']) ? trim((string) $primaryChild['age']) : null;
         $childAge = $childAge !== '' ? $childAge : null;
 
         $childNotes = isset($data['child_notes']) ? trim((string) $data['child_notes']) : null;
@@ -70,7 +90,8 @@ class AnnouncementController extends Controller
             'parent_id' => $user->id,
             'title' => trim($data['title']),
             'service' => trim($data['service']),
-            'child_name' => trim($data['child_name']),
+            'children' => $selectedChildren->all(),
+            'child_name' => $childName,
             'child_age' => $childAge,
             'child_notes' => $childNotes,
             'description' => $description,
@@ -173,6 +194,7 @@ class AnnouncementController extends Controller
             'id' => $announcement->id,
             'title' => $announcement->title,
             'service' => $announcement->service,
+            'children' => $announcement->children ?? [],
             'child_name' => $announcement->child_name,
             'child_age' => $announcement->child_age,
             'child_notes' => $announcement->child_notes,
@@ -193,6 +215,58 @@ class AnnouncementController extends Controller
         }
 
         return $payload;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function getParentChildren(User $user): array
+    {
+        $children = $user->parentProfile?->settings['children'] ?? [];
+        if (!is_array($children)) {
+            return [];
+        }
+
+        return collect($children)
+            ->map(function ($child) {
+                if (!is_array($child)) {
+                    return null;
+                }
+
+                $name = trim((string) ($child['name'] ?? ''));
+                $age = $child['age'] ?? null;
+                $age = $age !== null ? trim((string) $age) : null;
+
+                return [
+                    'name' => $name !== '' ? $name : null,
+                    'age' => $age !== '' ? $age : null,
+                    'allergies' => isset($child['allergies']) ? trim((string) $child['allergies']) : null,
+                    'details' => isset($child['details']) ? trim((string) $child['details']) : null,
+                    'photo' => $child['photo'] ?? null,
+                ];
+            })
+            ->filter(function ($child) {
+                if (!$child) {
+                    return false;
+                }
+                return $child['name'] !== null
+                    || $child['age'] !== null
+                    || $child['allergies'] !== null
+                    || $child['details'] !== null
+                    || $child['photo'] !== null;
+            })
+            ->values()
+            ->map(function (array $child, int $index) {
+                return [
+                    'id' => $index,
+                    'name' => $child['name'],
+                    'age' => $child['age'],
+                    'allergies' => $child['allergies'],
+                    'details' => $child['details'],
+                    'photo' => $child['photo'],
+                ];
+            })
+            ->all();
     }
 
     protected function serviceMatches(?string $announcementService, string $serviceName): bool

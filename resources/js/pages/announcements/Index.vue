@@ -15,8 +15,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { type Announcement, type BreadcrumbItem } from '@/types'
-import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { type Announcement, type AnnouncementChild, type BreadcrumbItem } from '@/types'
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import DataTable from '@/components/Reservation/data-table.vue'
 import { getAnnouncementColumns } from '@/components/Announcement/columns'
 import {
@@ -35,10 +35,12 @@ import {
     TrendingUp,
     XCircle,
 } from 'lucide-vue-next'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface AnnouncementsPayload {
     items: Announcement[]
     suggestions: string[]
+    children?: AnnouncementChild[]
 }
 
 const page = usePage()
@@ -46,6 +48,7 @@ const announcementsPayload = computed(() => page.props.announcements as Announce
 
 const announcements = computed(() => announcementsPayload.value?.items ?? [])
 const announcementSuggestions = computed(() => announcementsPayload.value?.suggestions ?? [])
+const availableChildren = computed(() => announcementsPayload.value?.children ?? [])
 
 const tableColumns = computed(() => getAnnouncementColumns())
 
@@ -199,8 +202,7 @@ const isAnnouncementDialogOpen = ref(false)
 const announcementForm = useForm({
     title: '',
     service: '',
-    child_name: '',
-    child_age: '',
+    child_ids: [] as number[],
     child_notes: '',
     description: '',
 })
@@ -212,7 +214,37 @@ const resetAnnouncementForm = () => {
 
 const openAnnouncementDialog = () => {
     resetAnnouncementForm()
+    if (availableChildren.value.length === 1 && availableChildren.value[0].id !== undefined) {
+        announcementForm.child_ids = [availableChildren.value[0].id]
+    }
     isAnnouncementDialogOpen.value = true
+}
+
+const toggleChildSelection = (childId: number, checked: boolean | 'indeterminate') => {
+    const isChecked = checked === true
+    const ids = new Set(announcementForm.child_ids)
+    if (isChecked) {
+        ids.add(childId)
+    } else {
+        ids.delete(childId)
+    }
+    announcementForm.child_ids = Array.from(ids)
+}
+
+const formatChildAge = (value?: string | number | null) => {
+    if (value === null || value === undefined || value === '') {
+        return ''
+    }
+    const raw = value.toString().trim()
+    if (!raw) {
+        return ''
+    }
+    return /^\d+$/.test(raw) ? `${raw} ans` : raw
+}
+
+const childPhotoFallback = (child: AnnouncementChild) => {
+    const name = (child.name ?? '').toString().trim()
+    return name ? name.charAt(0).toUpperCase() : '?'
 }
 
 const submitAnnouncement = () => {
@@ -351,23 +383,46 @@ const submitAnnouncement = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="announcement-child-name">Enfant concerne</Label>
-                        <Input
-                            id="announcement-child-name"
-                            v-model="announcementForm.child_name"
-                            placeholder="ex: Lina"
-                        />
-                        <InputError :message="announcementForm.errors.child_name" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <Label for="announcement-child-age">Age</Label>
-                        <Input
-                            id="announcement-child-age"
-                            v-model="announcementForm.child_age"
-                            placeholder="ex: 4 ans"
-                        />
-                        <InputError :message="announcementForm.errors.child_age" />
+                        <Label>Enfant(s) concernes</Label>
+                        <div v-if="availableChildren.length" class="grid gap-3 sm:grid-cols-2">
+                            <label
+                                v-for="child in availableChildren"
+                                :key="child.id ?? child.name ?? 'child'"
+                                class="flex items-center gap-3 rounded-md border border-border/70 bg-background/60 p-3"
+                            >
+                                <Checkbox
+                                    :id="`child-${child.id ?? 'x'}`"
+                                    :checked="child.id !== undefined && announcementForm.child_ids.includes(child.id)"
+                                    @update:checked="value => child.id !== undefined && toggleChildSelection(child.id, value)"
+                                />
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-600">
+                                        <img
+                                            v-if="child.photo"
+                                            :src="child.photo"
+                                            :alt="child.name ?? 'Enfant'"
+                                            class="h-full w-full object-cover"
+                                        />
+                                        <span v-else>{{ childPhotoFallback(child) }}</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-foreground">
+                                            {{ child.name || 'Enfant' }}
+                                        </p>
+                                        <p v-if="formatChildAge(child.age)" class="text-xs text-muted-foreground">
+                                            {{ formatChildAge(child.age) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <div v-else class="rounded-md border border-dashed border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
+                            <p>Ajoutez au moins un enfant dans votre profil pour publier une annonce.</p>
+                            <Button variant="outline" size="sm" class="mt-3" as-child>
+                                <Link href="/settings/profile">Ajouter un enfant</Link>
+                            </Button>
+                        </div>
+                        <InputError :message="announcementForm.errors.child_ids" />
                     </div>
 
                     <div class="space-y-2">

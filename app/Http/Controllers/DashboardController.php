@@ -252,6 +252,7 @@ class DashboardController extends Controller
             'id' => $announcement->id,
             'title' => $announcement->title,
             'service' => $announcement->service,
+            'children' => $announcement->children ?? [],
             'child_name' => $announcement->child_name,
             'child_age' => $announcement->child_age,
             'child_notes' => $announcement->child_notes,

@@ -13,6 +13,8 @@ class LaunchSeeder extends Seeder
     {
         $this->call([
             DevSeeder::class,
+            BabysitterServicesSeeder::class,
+            AnnouncementSeeder::class,
             RatingSeeder::class,
         ]);
     }

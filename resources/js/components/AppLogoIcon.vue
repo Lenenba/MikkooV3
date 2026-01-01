@@ -9,7 +9,7 @@ interface Props {
 }
 const props = defineProps<Props>();
 const attrs = useAttrs();
-const logoClass = computed(() => ['inline-flex h-full w-full items-center justify-center', props.className, attrs.class]);
+const logoClass = computed(() => ['inline-flex h-full w-full items-center justify-center leading-none overflow-visible', props.className, attrs.class]);
 const passthroughAttrs = computed(() => {
     const { class: _class, ...rest } = attrs;
     return rest;
@@ -18,7 +18,7 @@ const passthroughAttrs = computed(() => {
 
 <template>
     <span v-bind="passthroughAttrs" :class="logoClass">
-        <img src="/1.svg" alt="Mikoo logo" class="block h-full w-full object-contain dark:hidden" />
-        <img src="/2.svg" alt="Mikoo logo" class="hidden h-full w-full object-contain dark:block" />
+        <img src="/1.svg" alt="Mikoo logo" class="block max-h-full w-full object-contain object-center dark:hidden" />
+        <img src="/2.svg" alt="Mikoo logo" class="hidden max-h-full w-full object-contain object-center dark:block" />
     </span>
 </template>

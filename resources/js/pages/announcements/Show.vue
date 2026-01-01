@@ -42,7 +42,26 @@ const formatDate = (value?: string | null) => {
     return new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium' }).format(parsed);
 };
 
+const children = computed(() => announcement.value?.children ?? []);
+
+const formatChildAge = (value?: string | number | null) => {
+    if (value === null || value === undefined || value === '') {
+        return '';
+    }
+    const raw = value.toString().trim();
+    if (!raw) {
+        return '';
+    }
+    return /^\d+$/.test(raw) ? `${raw} ans` : raw;
+};
+
 const childLabel = computed(() => {
+    const names = children.value
+        .map((child) => (child?.name ?? '').toString().trim())
+        .filter(Boolean);
+    if (names.length) {
+        return names.join(', ');
+    }
     const parts = [announcement.value?.child_name, announcement.value?.child_age]
         .map((item) => (item ?? '').toString().trim())
         .filter(Boolean);
@@ -91,7 +110,38 @@ const statusMeta = computed(() => {
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Enfant concerne
                         </p>
-                        <p class="mt-2 text-lg font-semibold text-gray-900">
+                        <div v-if="children.length" class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div
+                                v-for="(child, index) in children"
+                                :key="child.id ?? `${child.name ?? 'child'}-${index}`"
+                                class="flex items-center gap-3 rounded-md border border-border/60 bg-background/70 p-3"
+                            >
+                                <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-600">
+                                    <img
+                                        v-if="child.photo"
+                                        :src="child.photo"
+                                        :alt="child.name ?? 'Enfant'"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <span v-else>{{ child.name?.charAt(0) ?? '?' }}</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        {{ child.name || 'Enfant' }}
+                                    </p>
+                                    <p v-if="formatChildAge(child.age)" class="text-xs text-gray-500">
+                                        {{ formatChildAge(child.age) }}
+                                    </p>
+                                    <p v-if="child.allergies" class="text-xs text-gray-500">
+                                        Allergies: {{ child.allergies }}
+                                    </p>
+                                    <p v-if="child.details" class="text-xs text-gray-500">
+                                        {{ child.details }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-else class="mt-2 text-lg font-semibold text-gray-900">
                             {{ childLabel || '-' }}
                         </p>
                         <p v-if="announcement?.child_notes" class="mt-2 text-sm text-gray-600">
