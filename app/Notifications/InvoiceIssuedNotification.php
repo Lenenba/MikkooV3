@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Invoice;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class InvoiceIssuedNotification extends Notification
+{
+    use Queueable;
+
+    protected Invoice $invoice;
+
+    public function __construct(Invoice $invoice)
+    {
+        $this->invoice = $invoice;
+    }
+
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $invoice = $this->invoice->loadMissing([
+            'parent.parentProfile',
+            'babysitter.babysitterProfile',
+            'items',
+        ]);
+
+        $parentName = $this->resolveName($invoice->parent);
+        $babysitterName = $this->resolveName($invoice->babysitter, 'Babysitter');
+        $vatPercent = round(((float) $invoice->vat_rate) * 100, 2);
+
+        return (new MailMessage)
+            ->subject('Facture ' . ($invoice->number ?? $invoice->id))
+            ->markdown('emails.invoices.issued', [
+                'invoice' => $invoice,
+                'parentName' => $parentName,
+                'babysitterName' => $babysitterName,
+                'vatPercent' => $vatPercent,
+            ]);
+    }
+
+    private function resolveName(?User $user, string $fallback = 'Parent'): string
+    {
+        if (! $user) {
+            return $fallback;
+        }
+
+        $profile = $user->parentProfile ?? $user->babysitterProfile;
+        $first = trim((string) ($profile?->first_name ?? ''));
+        $last = trim((string) ($profile?->last_name ?? ''));
+        $full = trim($first . ' ' . $last);
+
+        if ($full !== '') {
+            return $full;
+        }
+
+        $name = trim((string) $user->name);
+
+        return $name !== '' ? $name : $fallback;
+    }
+}
