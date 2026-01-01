@@ -31,7 +31,11 @@ class AddressOnboardingController extends Controller
     public function store(AddressOnboardingRequest $request): RedirectResponse
     {
         $address = $request->validated();
-        $request->user()->address()->updateOrCreate([], $address);
+        $user = $request->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+        $user->address()->updateOrCreate([], $address);
 
         return to_route('onboarding.index', ['step' => 3]);
     }

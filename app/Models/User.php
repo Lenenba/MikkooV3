@@ -199,7 +199,7 @@ class User extends Authenticatable
      */
     public function scopeParents($query)
     {
-        return $query->whereHas('roles', fn($q) => $q->where('name', env('PARENT_ROLE_NAME')));
+        return $query->whereHas('roles', fn($q) => $q->where('name', env('PARENT_ROLE_NAME', 'Parent')));
     }
 
     /**
@@ -210,7 +210,7 @@ class User extends Authenticatable
      */
     public function scopeBabysitters($query)
     {
-        return $query->whereHas('roles', fn($q) => $q->where('name', env('BABYSITTER_ROLE_NAME')));
+        return $query->whereHas('roles', fn($q) => $q->where('name', env('BABYSITTER_ROLE_NAME', 'Babysitter')));
     }
 
     /**
@@ -319,8 +319,12 @@ class User extends Authenticatable
      * @param  string  $roleName
      * @return bool
      */
-    public function hasRole(string $roleName): bool
+    public function hasRole(?string $roleName): bool
     {
+        if (! $roleName) {
+            return false;
+        }
+
         return $this->roles->contains('name', $roleName);
     }
 
@@ -342,7 +346,7 @@ class User extends Authenticatable
      */
     public function isParent(): bool
     {
-        return $this->hasRole(env('PARENT_ROLE_NAME'));
+        return $this->hasRole(env('PARENT_ROLE_NAME', 'Parent'));
     }
 
     /**
@@ -352,7 +356,7 @@ class User extends Authenticatable
      */
     public function isBabysitter(): bool
     {
-        return $this->hasRole(env('BABYSITTER_ROLE_NAME'));
+        return $this->hasRole(env('BABYSITTER_ROLE_NAME', 'Babysitter'));
     }
 
     /**
@@ -362,6 +366,6 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->hasRole(env('SUPER_ADMIN_ROLE_NAME'));
+        return $this->hasRole(env('SUPER_ADMIN_ROLE_NAME', 'SuperAdmin'));
     }
 }

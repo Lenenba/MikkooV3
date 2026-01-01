@@ -13,12 +13,16 @@ class GeocodingService
             return [];
         }
 
-        $response = Http::get('https://api.geoapify.com/v1/geocode/autocomplete', [
-            'text' => $query,
-            'limit' => $limit,
-            'lang' => 'fr',
-            'apiKey' => $apiKey,
-        ]);
+        try {
+            $response = Http::get('https://api.geoapify.com/v1/geocode/autocomplete', [
+                'text' => $query,
+                'limit' => $limit,
+                'lang' => 'fr',
+                'apiKey' => $apiKey,
+            ]);
+        } catch (\Throwable $exception) {
+            return [];
+        }
 
         if (! $response->ok()) {
             return [];
