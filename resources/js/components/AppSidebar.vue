@@ -4,27 +4,46 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Calendar, LayoutGrid } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { BookOpen, Briefcase, Calendar, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Babysitters',
-        href: '/search',
-        icon: BookOpen,
-    },
-    {
-        title: 'Mes réservations',
-        href: '/reservations',
-        icon: Calendar
-    },
-];
+const page = usePage();
+const role = computed(() => {
+    const props = page.props as { role?: string; auth?: { role?: string } };
+    return (props.role ?? props.auth?.role ?? '').toString().toLowerCase();
+});
+
+const mainNavItems = computed(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Babysitters',
+            href: '/search',
+            icon: BookOpen,
+        },
+        {
+            title: 'Mes reservations',
+            href: '/reservations',
+            icon: Calendar,
+        },
+    ];
+
+    if (role.value === 'babysitter') {
+        items.push({
+            title: 'Services',
+            href: '/settings/services',
+            icon: Briefcase,
+        });
+    }
+
+    return items;
+});
 </script>
 
 <template>

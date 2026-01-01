@@ -100,6 +100,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Services offered by the babysitter.
+     *
+     * @return HasMany
+     */
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class, 'user_id');
+    }
+
+    /**
      * One-to-one relation to parent profile.
      *
      * @return HasOne

@@ -28,6 +28,11 @@ class ReservationDetail extends Model
         'start_time',
         'end_time',
         'status',
+        'schedule_type',
+        'recurrence_frequency',
+        'recurrence_interval',
+        'recurrence_days',
+        'recurrence_end_date',
     ];
 
     /**
@@ -35,7 +40,10 @@ class ReservationDetail extends Model
      *
      * @var array<string, string>
      */
-    protected $casts = [];
+    protected $casts = [
+        'recurrence_days' => 'array',
+        'recurrence_end_date' => 'date',
+    ];
 
     /**
      * Obtient la réservation parente de ce détail.

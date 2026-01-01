@@ -17,7 +17,14 @@ class ServicesSearchController extends Controller
     public function __invoke(Request $request)
     {
         $query = $request->input('query');
-        $services = Service::where('name', 'like', "%{$query}%")
+        $babysitterId = $request->input('babysitter_id');
+
+        $servicesQuery = Service::where('name', 'like', "%{$query}%");
+        if ($babysitterId) {
+            $servicesQuery->where('user_id', $babysitterId);
+        }
+
+        $services = $servicesQuery
             ->limit(5)
             ->get();
 

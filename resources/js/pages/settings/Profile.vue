@@ -10,11 +10,12 @@ import FloatingTextarea from '@/components/FloatingTextarea.vue';
 import FloatingSelect from '@/components/FloatingSelect.vue';
 import AddressForm from '@/components/AddressForm.vue';
 import MediaUploadForm from '@/components/MediaUploadForm.vue';
+import MediaScrollingHorizontal from '@/components/MediaScrollingHorizontal.vue';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem, type SharedData, type User, type ParentProfile, type BabysitterProfile, type Address } from '@/types';
+import { type BreadcrumbItem, type SharedData, type User, type ParentProfile, type BabysitterProfile, type Address, type MediaItem } from '@/types';
 
 interface Props {
     mustVerifyEmail: boolean;
@@ -23,6 +24,7 @@ interface Props {
     parentProfile?: ParentProfile | null;
     babysitterProfile?: BabysitterProfile | null;
     address?: Address | null;
+    media?: MediaItem[];
 }
 
 const props = defineProps<Props>();
@@ -48,6 +50,7 @@ const resolvedRole = computed(() => {
 const isBabysitter = computed(() => resolvedRole.value === 'babysitter');
 const profile = computed(() => (isBabysitter.value ? props.babysitterProfile : props.parentProfile) ?? null);
 const profileSettings = computed(() => (profile.value?.settings ?? {}) as Record<string, any>);
+const mediaItems = computed(() => props.media ?? []);
 
 const paymentOptions = [
     { value: 'per_task', label: 'Per task' },
@@ -277,6 +280,7 @@ const tabItems = computed(() => {
 
     items.push({ value: 'availability', label: 'Availability' });
     items.push({ value: 'media', label: 'Media' });
+    items.push({ value: 'gallery', label: 'Gallery' });
 
     return items;
 });
@@ -627,6 +631,13 @@ const tabItems = computed(() => {
                                 />
                             </div>
                         </div>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="gallery">
+                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                        <HeadingSmall title="Gallery" description="Browse your uploaded photos" />
+                        <MediaScrollingHorizontal :items="mediaItems" />
                     </div>
                 </TabsContent>
 

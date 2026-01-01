@@ -7,6 +7,7 @@ use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ParentProfileController;
 use App\Http\Controllers\Settings\BabysitterProfileController;
+use App\Http\Controllers\Settings\BabysitterServicesController;
 use App\Http\Controllers\Settings\SetAsProfilePhotoController;
 use App\Http\Controllers\Settings\DeleteProfilePhotoController;
 
@@ -19,6 +20,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
+
+    // Babysitter services
+    Route::get('settings/services', [BabysitterServicesController::class, 'index'])->name('services.index');
+    Route::post('settings/services', [BabysitterServicesController::class, 'store'])->name('services.store');
+    Route::patch('settings/services/{service}', [BabysitterServicesController::class, 'update'])->name('services.update');
+    Route::delete('settings/services/{service}', [BabysitterServicesController::class, 'destroy'])->name('services.destroy');
 
     // Media management
     Route::get('settings/media', [MediaController::class, 'index'])->name('media.list');

@@ -174,11 +174,17 @@ class ReservationController extends Controller
         }
 
         // Create reservation details
+        $scheduleType = $data['schedule_type'] ?? 'single';
         $reservation->details()->create([
-            'date'          => $data['start_date'],
-            'start_time'    => $data['start_time'],
-            'end_time'      => $data['end_time'],
-            'status'        => 'pending', // Default status
+            'date'                  => $data['start_date'],
+            'start_time'            => $data['start_time'],
+            'end_time'              => $data['end_time'],
+            'status'                => 'pending', // Default status
+            'schedule_type'         => $scheduleType,
+            'recurrence_frequency'  => $scheduleType === 'recurring' ? ($data['recurrence_frequency'] ?? null) : null,
+            'recurrence_interval'   => $scheduleType === 'recurring' ? ($data['recurrence_interval'] ?? null) : null,
+            'recurrence_days'       => $scheduleType === 'recurring' ? ($data['recurrence_days'] ?? null) : null,
+            'recurrence_end_date'   => $scheduleType === 'recurring' ? ($data['recurrence_end_date'] ?? null) : null,
         ]);
 
         // Redirect back with a success message

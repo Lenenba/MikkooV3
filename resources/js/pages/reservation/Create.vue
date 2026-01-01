@@ -2,6 +2,7 @@
 import { Head, usePage, useForm } from '@inertiajs/vue3';
 import FloatingInput from '@/components/FloatingInput.vue'
 import FloatingTextarea from '@/components/FloatingTextarea.vue'
+import FloatingSelect from '@/components/FloatingSelect.vue'
 import { computed, watch, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
@@ -43,10 +44,14 @@ const form = useForm({
     services: [
         { id: null, name: '', quantity: 1, price: 0, total: 0 },
     ],
+    schedule_type: 'single',
     start_date: '',
-    end_date: '',
     start_time: '',
     end_time: '',
+    recurrence_frequency: 'weekly',
+    recurrence_interval: 1,
+    recurrence_days: [] as number[],
+    recurrence_end_date: '',
     notes: '',
     status: 'draft',
     subtotal: 0,
@@ -56,6 +61,48 @@ const form = useForm({
     deposit: 0,
     payment_method: '',
 });
+
+const recurrenceOptions = [
+    { value: 'daily', label: 'Chaque jour' },
+    { value: 'weekly', label: 'Chaque semaine' },
+    { value: 'monthly', label: 'Chaque mois' },
+];
+
+const weekdayOptions = [
+    { value: 1, label: 'Lun' },
+    { value: 2, label: 'Mar' },
+    { value: 3, label: 'Mer' },
+    { value: 4, label: 'Jeu' },
+    { value: 5, label: 'Ven' },
+    { value: 6, label: 'Sam' },
+    { value: 7, label: 'Dim' },
+];
+
+const getIsoWeekday = (value: string) => {
+    if (!value) return null;
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const day = parsed.getDay();
+    return day === 0 ? 7 : day;
+};
+
+watch(
+    () => [form.schedule_type, form.recurrence_frequency, form.start_date],
+    () => {
+        if (form.schedule_type !== 'recurring') {
+            return;
+        }
+        if (!form.recurrence_interval || Number(form.recurrence_interval) < 1) {
+            form.recurrence_interval = 1;
+        }
+        if (form.recurrence_frequency === 'weekly' && form.recurrence_days.length === 0) {
+            const defaultDay = getIsoWeekday(form.start_date);
+            if (defaultDay) {
+                form.recurrence_days = [defaultDay];
+            }
+        }
+    }
+);
 
 // Ajouter une nouvelle ligne de produit
 const addNewLine = () => {
@@ -73,7 +120,9 @@ const searchResults = ref([]);
 const searchServices = async (query, index) => {
     if (query.length > 0) {
         try {
-            const response = await axios.get(route('service.search'), { params: { query } });
+            const response = await axios.get(route('service.search'), {
+                params: { query, babysitter_id: form.babysitter_id },
+            });
             searchResults.value[index] = response.data;
         } catch (error) {
             console.error('Error fetching Services:', error);
@@ -120,7 +169,18 @@ watch(
 );
 
 const createReservation = () => {
-    form.post(route('reservations.store'), {
+    form.transform((data) => {
+        if (data.schedule_type !== 'recurring') {
+            return {
+                ...data,
+                recurrence_frequency: null,
+                recurrence_interval: null,
+                recurrence_days: [],
+                recurrence_end_date: null,
+            };
+        }
+        return data;
+    }).post(route('reservations.store'), {
         preserveScroll: true,
         onSuccess: () => {
             // Reset the form after successful submission
@@ -139,81 +199,79 @@ const createReservation = () => {
     <Head title="Create new reservation" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <form @submit.prevent="createReservation" class="space-y-4">
-            <!-- Container centered, 100% wide on mobile and 75% on large screens -->
-            <div class="mx-auto w-full lg:w-3/4">
-                <div
-                    class="p-5 space-y-4 flex flex-col lg:flex-row bg-gray-100 border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
-                    <!-- Left: profile image -->
-                    <div class="lg:w-1/4 mb-4 lg:mb-0">
-                        <img :src="Babysitter.media.find(p => p.is_profile_picture)?.file_path" alt="Profile picture"
-                            class="w-full" />
-                    </div>
-
-                    <!-- Right: content -->
-                    <div class="flex-1 space-y-6 ml-4">
-                        <!-- Header -->
-                        <div class="flex justify-between items-center">
-                            <h1 class="text-xl font-semibold text-gray-800 dark:text-green-100">
-                                Reservation For
-                                {{ Babysitter.babysitter_profile.first_name }}
-                                {{ Babysitter.babysitter_profile.last_name }}
-                            </h1>
-                        </div>
-
-                        <!-- Main grid -->
-                        <div class="grid grid-cols-2 lg:grid-cols-5 gap-6">
-                            <!-- Left side (2/3) -->
-                            <div class="col-span-3 space-y-4">
-                                <div class="">
-                                    <!-- Notes -->
-                                    <div class="mb-8">
-                                        <FloatingTextarea
-                                            id="note"
-                                            label="Notes pour la reservation"
-                                            rows="3"
-                                            v-model="form.notes"
-                                        />
+        <form @submit.prevent="createReservation" class="space-y-6">
+            <div class="mx-auto w-full lg:w-4/5 space-y-6">
+                <div class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+                    <div class="space-y-6">
+                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <div class="flex flex-col gap-4 sm:flex-row">
+                                <div class="w-full sm:w-40">
+                                    <div class="aspect-[4/5] w-full overflow-hidden rounded-sm bg-gray-100">
+                                        <img :src="Babysitter.media.find(p => p.is_profile_picture)?.file_path"
+                                            alt="Profile picture" class="h-full w-full object-cover" />
                                     </div>
-                                    <!-- Address & contact -->
-                                    <div class="flex flex-col lg:flex-row lg:space-x-6">
-                                        <!-- Property address -->
-                                        <div class="flex-1">
-                                            <p class="font-semibold text-gray-700">Property address</p>
-                                            <p class="text-xs text-gray-600">
+                                </div>
+                                <div class="flex-1 space-y-4">
+                                    <div>
+                                        <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                            Babysitter
+                                        </p>
+                                        <h1 class="text-lg font-semibold text-gray-900 dark:text-neutral-100">
+                                            Reservation pour
+                                            {{ Babysitter.babysitter_profile.first_name }}
+                                            {{ Babysitter.babysitter_profile.last_name }}
+                                        </h1>
+                                    </div>
+                                    <div class="grid gap-4 text-xs text-gray-600 dark:text-neutral-400 sm:grid-cols-2">
+                                        <div>
+                                            <p class="font-semibold text-gray-700 dark:text-neutral-200">Adresse</p>
+                                            <p>
                                                 {{ Babysitter.address.street }} {{ Babysitter.address.province }}
                                             </p>
-                                            <p class="text-xs text-gray-600">
+                                            <p>
                                                 {{ Babysitter.address.city }} {{ Babysitter.address.postal_code }}
                                             </p>
-                                            <p class="text-xs text-gray-600">
+                                            <p>
                                                 {{ Babysitter.address.country }}
                                             </p>
                                         </div>
-                                        <!-- Contact details -->
-                                        <div class="flex-1">
-                                            <p class="font-semibold text-gray-700">Contact details</p>
-                                            <p class="text-xs text-gray-600">{{ Babysitter.email }}</p>
-                                            <p class="text-xs text-gray-600">
-                                                {{ Babysitter.babysitter_profile.birthdate }}
-                                            </p>
-                                            <p class="text-xs text-gray-600">
-                                                {{ Babysitter.babysitter_profile.phone }}
-                                            </p>
+                                        <div>
+                                            <p class="font-semibold text-gray-700 dark:text-neutral-200">Contact</p>
+                                            <p>{{ Babysitter.email }}</p>
+                                            <p>{{ Babysitter.babysitter_profile.birthdate }}</p>
+                                            <p>{{ Babysitter.babysitter_profile.phone }}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Right side (1/3) -->
-                            <div class="bg-white p-4 rounded col-span-2">
-                                <p class="font-semibold text-gray-700 mb-2">Reservation details</p>
-                                <div class="text-xs text-gray-600 flex justify-between">
-                                    <span>Numero :</span>
-                                    <span>{{ Numero }}</span>
+                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Notes</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Ajoute les details importants pour la reservation.
+                            </p>
+                            <div class="mt-3">
+                                <FloatingTextarea
+                                    id="note"
+                                    label="Notes pour la reservation"
+                                    rows="4"
+                                    v-model="form.notes"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Details reservation</p>
+                            <div class="mt-3 space-y-2 text-xs text-gray-600 dark:text-neutral-400">
+                                <div class="flex items-center justify-between">
+                                    <span>Numero</span>
+                                    <span class="font-medium text-gray-900 dark:text-neutral-100">{{ Numero }}</span>
                                 </div>
-                                <div class="text-xs text-gray-600 flex justify-between mt-2">
-                                    <span>Rate :</span>
+                                <div class="flex items-center justify-between">
+                                    <span>Note</span>
                                     <span class="flex space-x-1">
                                         <Star class="h-4 w-4 text-yellow-400" />
                                         <Star class="h-4 w-4 text-yellow-400" />
@@ -222,46 +280,121 @@ const createReservation = () => {
                                         <Star class="h-4 w-4 text-yellow-400" />
                                     </span>
                                 </div>
-                                <!-- Reservation date input -->
-                                <div class="mt-12">
-                                    <p class="font-semibold text-gray-700 mb-2">Date et heure</p>
-                                    <FloatingInput
-                                        id="reservation-date"
-                                        label="Date"
-                                        type="date"
-                                        name="reservation-date"
-                                        v-model="form.start_date"
-                                    />
-                                    <div class="mt-2 grid grid-cols-2 gap-4">
-                                        <FloatingInput
-                                            id="reservation-start-time"
-                                            label="Start time"
-                                            type="time"
-                                            name="reservation-start-time"
-                                            v-model="form.start_time"
-                                        />
-                                        <FloatingInput
-                                            id="reservation-end-time"
-                                            label="End time"
-                                            type="time"
-                                            name="reservation-end-time"
-                                            v-model="form.end_time"
-                                        />
+                            </div>
+                        </div>
+
+                        <div class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Date et heure</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Choisis une journee unique ou une recurrence.
+                            </p>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <p class="text-xs font-medium text-gray-500 mb-2">Type de tache</p>
+                                    <div class="inline-flex rounded-sm border border-gray-200 bg-gray-50 p-1">
+                                        <button
+                                            type="button"
+                                            class="px-3 py-1 text-xs font-medium rounded-sm transition"
+                                            :class="form.schedule_type === 'single'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-700'"
+                                            @click="form.schedule_type = 'single'"
+                                        >
+                                            Journee unique
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="px-3 py-1 text-xs font-medium rounded-sm transition"
+                                            :class="form.schedule_type === 'recurring'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-700'"
+                                            @click="form.schedule_type = 'recurring'"
+                                        >
+                                            Recurrence
+                                        </button>
                                     </div>
                                 </div>
-                                <button type="button" disabled
-                                    class="mt-5 w-full py-2 px-3 text-sm font-medium rounded border border-green-200 bg-white text-green-800 shadow-sm hover:bg-green-50 disabled:opacity-50">
-                                    Add custom fields
-                                </button>
+                                <FloatingInput
+                                    id="reservation-date"
+                                    :label="form.schedule_type === 'recurring' ? 'Date de debut' : 'Date'"
+                                    type="date"
+                                    name="reservation-date"
+                                    v-model="form.start_date"
+                                />
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FloatingInput
+                                        id="reservation-start-time"
+                                        label="Heure debut"
+                                        type="time"
+                                        name="reservation-start-time"
+                                        v-model="form.start_time"
+                                    />
+                                    <FloatingInput
+                                        id="reservation-end-time"
+                                        label="Heure fin"
+                                        type="time"
+                                        name="reservation-end-time"
+                                        v-model="form.end_time"
+                                    />
+                                </div>
+                                <div v-if="form.schedule_type === 'recurring'" class="space-y-3">
+                                    <FloatingSelect
+                                        id="recurrence-frequency"
+                                        label="Frequence"
+                                        :options="recurrenceOptions"
+                                        :required="form.schedule_type === 'recurring'"
+                                        v-model="form.recurrence_frequency"
+                                    />
+                                    <FloatingInput
+                                        id="recurrence-interval"
+                                        label="Intervalle (ex: 1 = chaque)"
+                                        type="number"
+                                        min="1"
+                                        v-model="form.recurrence_interval"
+                                    />
+                                    <div v-if="form.recurrence_frequency === 'weekly'" class="space-y-2">
+                                        <p class="text-xs font-medium text-gray-500">Jours</p>
+                                        <div class="grid grid-cols-7 gap-2 text-xs text-gray-600">
+                                            <label v-for="day in weekdayOptions" :key="day.value"
+                                                class="flex items-center gap-1">
+                                                <input
+                                                    type="checkbox"
+                                                    class="h-3 w-3 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                                    :value="day.value"
+                                                    v-model="form.recurrence_days"
+                                                />
+                                                <span>{{ day.label }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <FloatingInput
+                                        id="recurrence-end-date"
+                                        label="Fin de recurrence"
+                                        type="date"
+                                        :required="form.schedule_type === 'recurring'"
+                                        v-model="form.recurrence_end_date"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div
-                    class="p-5 space-y-3 flex flex-col bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
-                    <!-- Table Section -->
+                    class="rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Services</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Ajoute les services et la quantite pour la reservation.
+                            </p>
+                        </div>
+                        <Button variant="outline" size="sm" @click="addNewLine">
+                            Ajouter un service
+                        </Button>
+                    </div>
+
                     <div
-                        class="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+                        class="mt-4 overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                         <div class="min-w-full inline-block align-middle min-h-[300px]">
                             <!-- Table -->
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
@@ -373,113 +506,36 @@ const createReservation = () => {
                             <!-- End Table -->
                         </div>
                     </div>
-                    <!-- End Table Section -->
-                    <div class="text-xs text-gray-600 flex justify-between mt-5">
-                        <Button @click="addNewLine">
-                            Add new service line
-                        </Button>
+                </div>
+                <div class="flex justify-end">
+                    <div
+                        class="w-full lg:max-w-md rounded-sm border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-neutral-100">Resume</p>
+                        <div class="mt-4 space-y-3 text-sm">
+                            <div class="flex justify-between text-gray-600 dark:text-neutral-400">
+                                <span>Sous-total</span>
+                                <span class="font-medium text-gray-900 dark:text-neutral-100">$ {{ form.subtotal }}</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600 dark:text-neutral-400">
+                                <span>Taxes</span>
+                                <span class="font-medium text-gray-900 dark:text-neutral-100">$ {{ form.tax }}</span>
+                            </div>
+                            <div
+                                class="flex justify-between border-t border-gray-200 pt-3 font-semibold text-gray-900 dark:border-neutral-800 dark:text-neutral-100">
+                                <span>Total</span>
+                                <span>$ {{ form.total_amount }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div
-                    class="p-5 grid grid-cols-2 gap-4 justify-between bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
-
-                    <div>
-
-                    </div>
-                    <div class="border-l border-gray-200 dark:border-neutral-700 rounded-sm p-4">
-                        <!-- List Item -->
-                        <div class="py-4 grid grid-cols-2 gap-x-4  dark:border-neutral-700">
-                            <div class="col-span-1">
-                                <p class="text-sm text-gray-500 dark:text-neutral-500">
-                                    Subtotal:
-                                </p>
-                            </div>
-                            <div class="col-span-1 flex justify-end">
-                                <p class="text-sm text-green-600 decoration-2 hover:underline font-medium focus:outline-none focus:underline dark:text-green-400 dark:hover:text-green-500"
-                                    href="#">
-                                    $ {{ form.subtotal }}
-                                </p>
-                            </div>
-                        </div>
-                        <!-- End List Item -->
-
-                        <!-- List Item -->
-                        <!-- <div class="py-4 grid grid-cols-2 gap-x-4 border-t border-gray-200 dark:border-neutral-700">
-                        <div class="col-span-1">
-                            <p class="text-sm text-gray-500 dark:text-neutral-500">
-                                Discount (%):
-                            </p>
-                        </div>
-                        <div class="flex justify-end">
-                            <p class="text-sm text-gray-800 dark:text-neutral-200">
-                                Add discount
-                            </p>
-                        </div>
-                    </div> -->
-                        <!-- End List Item -->
-
-                        <!-- List Item -->
-                        <!-- <div class="py-4 grid grid-cols-2 gap-x-4 border-t border-gray-200 dark:border-neutral-700">  -->
-                        <!-- <div class="col-span-1">
-                            <p class="text-sm text-gray-500 dark:text-neutral-500">
-                                Tax:
-                            </p>
-                        </div>
-                        <div class="flex justify-end">
-                            <div class="flex items-center gap-x-2">
-                                <Button variant="outline" size="icon"
-                                    class="py-1.5 ps-1.5 pe-2.5 inline-flex items-center gap-x-1 text-xs font-medium border border-green-500 text-green-800 rounded-sm dark:bg-green-500/10 dark:text-green-500">
-
-                                </Button>
-                            </div>
-                        </div>
-                    </div> -->
-                        <!-- Section des détails des taxes (affichée ou masquée) -->
-                        <div class="space-y-2 py-4 border-t border-gray-200 dark:border-neutral-700">
-                            <div class="flex justify-between font-bold">
-                                <p class="text-sm text-gray-800 dark:text-neutral-200">Total taxes :</p>
-                                <p class="text-sm text-gray-800 dark:text-neutral-200"> $ {{ form.tax }}</p>
-                            </div>
-                        </div>
-                        <!-- End List Item -->
-
-                        <!-- List Item -->
-                        <div class="py-4 grid grid-cols-2 gap-x-4 border-t border-gray-200 dark:border-neutral-700">
-                            <div class="col-span-1">
-                                <p class="text-sm text-gray-800 font-bold dark:text-neutral-500">
-                                    Total amount:
-                                </p>
-                            </div>
-                            <div class="flex justify-end">
-                                <p class="text-sm text-gray-800 font-bold dark:text-neutral-200">
-                                    $ {{ form.total_amount }}
-                                </p>
-                            </div>
-                        </div>
-
-
-                        <!-- End List Item -->
-
-                        <!-- List Item -->
-                        <!-- <div
-                        class="py-4 grid grid-cols-2 items-center gap-x-4 border-t border-gray-600 dark:border-neutral-700">
-                        <div class="col-span-1">
-                            <p class="text-sm text-gray-500 dark:text-neutral-500">Required deposit:</p>
-                        </div>
-                    </div> -->
-                        <!-- End List Item -->
-                    </div>
-                </div>
-                <div
-                    class="p-5 grid grid-cols-1 gap-4 justify-between bg-white border border-gray-100 rounded-sm shadow-sm xl:shadow-none dark:bg-green-800 dark:border-green-700">
-
-
-                    <div class="flex justify-between">
+                    class="rounded-sm border border-gray-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <Button variant="outline">
                             Cancel
                         </Button>
-                        <div class="flex gap-x-2">
-                            <Button>
+                        <div class="flex flex-wrap gap-2">
+                            <Button variant="outline">
                                 Save and create another
                             </Button>
                             <Button type="submit">

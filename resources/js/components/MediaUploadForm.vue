@@ -23,8 +23,10 @@ const MIN_WIDTH = 500;
 const MIN_HEIGHT = 500;
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_LONG_EDGE = 2000;
 
 
+const inputId = `media-file-input-${Math.random().toString(36).slice(2)}`;
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const mediaPreviews = ref<Preview[]>([]);
 const clientSideErrors = ref<string[]>([]);
@@ -50,20 +52,83 @@ watch(
     }
 );
 
-const validateImageDimensions = (file: File): Promise<boolean> => {
-    return new Promise((resolve) => {
+const loadImageElement = (file: File): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
         const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
         img.onload = () => {
-            const isValid = img.naturalWidth >= MIN_WIDTH && img.naturalHeight >= MIN_HEIGHT;
-            URL.revokeObjectURL(img.src);
-            resolve(isValid);
+            URL.revokeObjectURL(objectUrl);
+            resolve(img);
         };
         img.onerror = () => {
-            URL.revokeObjectURL(img.src);
-            resolve(false);
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Invalid image'));
         };
-        img.src = URL.createObjectURL(file);
+        img.src = objectUrl;
     });
+};
+
+const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), type, quality);
+    });
+};
+
+const buildCompressedFileName = (originalName: string, mimeType: string) => {
+    const base = originalName.replace(/\.[^/.]+$/, '');
+    const extension = mimeType === 'image/jpeg'
+        ? 'jpg'
+        : mimeType === 'image/png'
+            ? 'png'
+            : 'webp';
+    return `${base}.${extension}`;
+};
+
+const compressImageToLimit = async (
+    file: File,
+    img: HTMLImageElement
+): Promise<{ file: File; wasCompressed: boolean } | null> => {
+    const outputType = 'image/jpeg';
+    const qualitySteps = [0.9, 0.82, 0.74, 0.66, 0.6];
+    const maxEdge = Math.max(img.naturalWidth, img.naturalHeight);
+    const scale = maxEdge > MAX_LONG_EDGE ? MAX_LONG_EDGE / maxEdge : 1;
+
+    let targetWidth = Math.round(img.naturalWidth * scale);
+    let targetHeight = Math.round(img.naturalHeight * scale);
+
+    for (let scaleAttempt = 0; scaleAttempt < 4; scaleAttempt += 1) {
+        if (targetWidth < MIN_WIDTH || targetHeight < MIN_HEIGHT) {
+            break;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            return null;
+        }
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        for (const quality of qualitySteps) {
+            const blob = await canvasToBlob(canvas, outputType, quality);
+            if (!blob) {
+                continue;
+            }
+            if (blob.size <= MAX_FILE_SIZE_BYTES) {
+                const fileName = buildCompressedFileName(file.name, outputType);
+                return {
+                    file: new File([blob], fileName, { type: outputType }),
+                    wasCompressed: true,
+                };
+            }
+        }
+
+        targetWidth = Math.round(targetWidth * 0.85);
+        targetHeight = Math.round(targetHeight * 0.85);
+    }
+
+    return null;
 };
 
 const onFileChange = async (event: Event) => {
@@ -83,18 +148,31 @@ const onFileChange = async (event: Event) => {
             currentClientErrors.push(`File ${file.name} is not an image.`);
             continue;
         }
-        if (file.size > MAX_FILE_SIZE_BYTES) {
-            currentClientErrors.push(`File ${file.name} exceeds the maximum size of ${MAX_FILE_SIZE_MB}MB.`);
+        let img: HTMLImageElement | null = null;
+        try {
+            img = await loadImageElement(file);
+        } catch (error) {
+            currentClientErrors.push(`File ${file.name} could not be read as an image.`);
             continue;
         }
 
-        const validDimensions = await validateImageDimensions(file);
-        if (!validDimensions) {
+        if (img.naturalWidth < MIN_WIDTH || img.naturalHeight < MIN_HEIGHT) {
             currentClientErrors.push(`Image ${file.name} dimensions must be at least ${MIN_WIDTH}x${MIN_HEIGHT}px.`);
             continue;
         }
-        const url = URL.createObjectURL(file);
-        newPreviewsToAdd.push({ file, preview: url });
+
+        let fileToUse = file;
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            const compressed = await compressImageToLimit(file, img);
+            if (!compressed) {
+                currentClientErrors.push(`File ${file.name} exceeds the maximum size of ${MAX_FILE_SIZE_MB}MB.`);
+                continue;
+            }
+            fileToUse = compressed.file;
+        }
+
+        const url = URL.createObjectURL(fileToUse);
+        newPreviewsToAdd.push({ file: fileToUse, preview: url });
     }
 
     clientSideErrors.value = currentClientErrors;
@@ -178,10 +256,10 @@ onUnmounted(() => {
                 Add photos (max {{ resolvedMaxPhotos }}, {{ MIN_WIDTH }}x{{ MIN_HEIGHT }}px min, {{ MAX_FILE_SIZE_MB }}MB max per image)
             </p>
             <div class="flex flex-wrap gap-2">
-                <label for="media-file-input"
+                <label :for="inputId"
                     :class="['flex shrink-0 justify-center items-center w-32 h-32 border-2 border-dotted border-gray-300 rounded-xl text-gray-400 cursor-pointer hover:bg-gray-50 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-700/20',
                         { 'opacity-50 cursor-not-allowed': mediaPreviews.length >= resolvedMaxPhotos || inertiaForm.processing }]">
-                    <input ref="fileInputRef" id="media-file-input" type="file" accept="image/*" multiple class="hidden"
+                    <input ref="fileInputRef" :id="inputId" type="file" accept="image/*" multiple class="hidden"
                         @change="onFileChange"
                         :disabled="mediaPreviews.length >= resolvedMaxPhotos || inertiaForm.processing" />
                     <PlusIcon class="w-6 h-6" />
@@ -205,7 +283,6 @@ onUnmounted(() => {
         <div v-if="clientSideErrors.length > 0" class="text-red-500 text-sm space-y-1">
             <div v-for="(error, i) in clientSideErrors" :key="`client-err-${i}`">{{ error }}</div>
         </div>
-
         <div v-if="inertiaForm.hasErrors" class="text-red-500 text-sm space-y-1 mt-2">
             <div v-if="inertiaForm.errors.images && typeof inertiaForm.errors.images === 'string'">{{
                 inertiaForm.errors.images }}</div>

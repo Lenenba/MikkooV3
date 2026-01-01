@@ -132,76 +132,59 @@ const truncate = (value: string, max = 120) => {
 <template>
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div v-if="props.babysitters.length > 0"
-            class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <div v-for="babysitter in props.babysitters" :key="babysitter.id" class="h-full">
+            class="grid items-start grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            <div v-for="babysitter in props.babysitters" :key="babysitter.id">
                 <Dialog>
                     <DialogTrigger as-child>
-                        <button type="button" class="h-full w-full text-left">
+                        <button type="button" class="w-full text-left">
                             <div
-                                class="group flex h-full min-h-[420px] flex-col overflow-hidden rounded-sm border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg sm:min-h-[440px] lg:min-h-[460px] dark:border-neutral-800 dark:bg-neutral-900">
-                                <div class="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
-                                    <img v-if="getProfilePhoto(babysitter)" class="h-full w-full object-cover"
+                                class="group flex flex-col overflow-hidden rounded-sm border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+                                <div class="relative aspect-[3/4] w-full overflow-hidden bg-gray-100">
+                                    <img v-if="getProfilePhoto(babysitter)"
+                                        class="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.03]"
                                         :src="getProfilePhoto(babysitter)" :alt="getFullName(babysitter)" />
                                     <div v-else
                                         class="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-100 to-sky-100 text-3xl font-semibold text-emerald-700">
                                         {{ getInitials(babysitter) }}
                                     </div>
+                                    <Badge v-if="isTopRated(babysitter)"
+                                        class="absolute left-3 top-3 bg-amber-100 text-amber-700 shadow-sm backdrop-blur dark:bg-amber-500/20 dark:text-amber-200">
+                                        <Sparkles class="mr-1 h-3.5 w-3.5" />
+                                        Top rated
+                                    </Badge>
                                     <div
-                                        class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                                    <div
-                                        class="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 text-xs">
-                                        <span class="rounded-full bg-white/90 px-3 py-1 font-semibold text-gray-900">
-                                            {{ getPriceLabel(babysitter) }}
-                                        </span>
-                                        <span
-                                            class="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 font-semibold text-gray-900">
-                                            <Star class="h-3.5 w-3.5 text-amber-500" />
-                                            {{ formatRating(getRatingAverage(babysitter)) }}
-                                            <span class="text-gray-500">({{ getRatingCount(babysitter) }})</span>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="flex flex-1 flex-col gap-3 p-4">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h3 class="text-base font-semibold text-gray-900 dark:text-neutral-100">
-                                                {{ getFullName(babysitter) }}
-                                            </h3>
-                                            <p
-                                                class="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-neutral-400">
-                                                <MapPin class="h-3.5 w-3.5" />
-                                                {{ getLocation(babysitter) }}
-                                            </p>
-                                        </div>
-                                        <Badge v-if="isTopRated(babysitter)"
-                                            class="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
-                                            <Sparkles class="mr-1 h-3.5 w-3.5" />
-                                            Top rated
-                                        </Badge>
-                                    </div>
-
-                                    <p
-                                        class="max-h-[52px] min-h-[52px] overflow-hidden text-xs text-gray-600 dark:text-neutral-300">
-                                        {{ truncate(getBio(babysitter), 120) }}
-                                    </p>
-
-                                    <div class="grid grid-cols-2 gap-2 text-xs">
-                                        <div class="min-h-[64px] rounded-sm bg-gray-50 px-2 py-2 dark:bg-neutral-800">
-                                            <p class="text-[11px] uppercase tracking-wide text-gray-400">
-                                                Experience
-                                            </p>
-                                            <p class="mt-1 font-medium text-gray-700 dark:text-neutral-100">
-                                                {{ truncate(getExperience(babysitter), 40) }}
-                                            </p>
-                                        </div>
-                                        <div class="min-h-[64px] rounded-sm bg-gray-50 px-2 py-2 dark:bg-neutral-800">
-                                            <p class="text-[11px] uppercase tracking-wide text-gray-400">
-                                                Paiement
-                                            </p>
-                                            <p class="mt-1 font-medium text-gray-700 dark:text-neutral-100">
-                                                {{ getPaymentFrequency(babysitter) }}
-                                            </p>
+                                        class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                                    <div class="absolute bottom-3 left-3 right-3 text-white">
+                                        <div
+                                            class="rounded-sm bg-black/45 px-3 py-2 backdrop-blur-sm shadow-sm">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <div class="min-w-0">
+                                                    <p class="text-xs font-semibold leading-tight text-white truncate">
+                                                        {{ getFullName(babysitter) }}
+                                                    </p>
+                                                    <p
+                                                        class="mt-0.5 flex items-center gap-1 text-[10px] text-white/80 truncate">
+                                                        <MapPin class="h-3 w-3" />
+                                                        {{ getLocation(babysitter) }}
+                                                    </p>
+                                                </div>
+                                                <span
+                                                    class="rounded-full bg-white/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-white/90 opacity-0 transition group-hover:opacity-100">
+                                                    Voir profil
+                                                </span>
+                                            </div>
+                                            <div class="mt-2 flex items-center gap-2 text-[9px]">
+                                                <span
+                                                    class="rounded-full bg-white/90 px-2.5 py-1 font-semibold text-gray-900">
+                                                    {{ getPriceLabel(babysitter) }}
+                                                </span>
+                                                <span
+                                                    class="flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 font-semibold text-gray-900">
+                                                    <Star class="h-3 w-3 text-amber-500" />
+                                                    {{ formatRating(getRatingAverage(babysitter)) }}
+                                                    <span class="text-gray-500">({{ getRatingCount(babysitter) }})</span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

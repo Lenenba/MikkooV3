@@ -4,16 +4,13 @@ import { Button } from '@/components/ui/button';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 
-function getSidebarNavItems(): NavItem[] {
-    return [
-        { title: 'Profile', href: '/settings/profile' },
-        { title: 'Password', href: '/settings/password' },
-        { title: 'Appearance', href: '/settings/appearance' },
-    ]
-}
+const sidebarNavItems: NavItem[] = [
+    { title: 'Profile', href: '/settings/profile' },
+    { title: 'Password', href: '/settings/password' },
+    { title: 'Appearance', href: '/settings/appearance' },
+];
 
 const page = usePage();
-const sidebarNavItems = getSidebarNavItems()
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
 </script>
