@@ -75,6 +75,12 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
             ->name('service.search');
         Route::get('/invoices', [InvoiceController::class, 'index'])
             ->name('invoices.index');
+        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])
+            ->name('invoices.show');
+        Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])
+            ->name('invoices.update');
+        Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])
+            ->name('invoices.download');
 
         Route::get('/announcements', [AnnouncementController::class, 'index'])
             ->name('announcements.index');

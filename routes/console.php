@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schedule;
 use App\Models\AnnouncementApplication;
 use App\Models\Invoice;
 use App\Notifications\AnnouncementApplicationStatusNotification;
@@ -80,3 +81,11 @@ Artisan::command('invoices:issue', function () {
 
     $this->info('Issued invoices: ' . $invoices->count());
 })->purpose('Issue draft invoices whose period has ended');
+
+Schedule::command('announcements:expire-applications')
+    ->everyThirtyMinutes()
+    ->withoutOverlapping();
+
+Schedule::command('invoices:issue')
+    ->dailyAt('03:00')
+    ->withoutOverlapping();

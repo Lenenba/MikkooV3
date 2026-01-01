@@ -1,6 +1,7 @@
 import { h } from 'vue'
 import type { ColumnDef } from '@tanstack/vue-table'
 import type { Invoice } from '@/types'
+import InvoiceDropdown from '@/components/Invoice/data-table-dropdown.vue'
 import DataTableColumnHeader from '@/components/columnHeader.vue'
 
 const headerClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
@@ -99,5 +100,10 @@ export const getInvoiceColumns = (role?: string): ColumnDef<Invoice>[] => [
         accessorKey: 'due_at',
         header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Echeance', class: headerClass }),
         cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, formatDate(row.getValue('due_at') as string | null)),
+    },
+    {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => h('div', { class: 'flex justify-end' }, h(InvoiceDropdown, { invoice: row.original })),
     },
 ]

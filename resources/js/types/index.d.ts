@@ -60,6 +60,18 @@ export interface Invoice {
     paid_at?: string | null;
     parent?: User;
     babysitter?: User;
+    items?: InvoiceItem[];
+}
+
+export interface InvoiceItem {
+    id: number;
+    description: string;
+    service_date?: string | null;
+    quantity: number | string;
+    unit_price: number | string;
+    subtotal_amount?: number | string | null;
+    tax_amount?: number | string | null;
+    total_amount?: number | string | null;
 }
 
 export interface Services {

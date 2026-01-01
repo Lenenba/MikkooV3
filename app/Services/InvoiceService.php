@@ -76,6 +76,11 @@ class InvoiceService
         return $invoice;
     }
 
+    public function recalculate(Invoice $invoice): void
+    {
+        $this->recalculateInvoiceTotals($invoice);
+    }
+
     /**
      * @return array{0: Carbon, 1: Carbon}
      */

@@ -23,6 +23,10 @@ Ce document explique comment les factures sont generees et comment les utiliser 
 - paid: facture payee (a mettre a jour plus tard si gestion des paiements)
 - void: facture annulee
 
+### Visibilite par role
+- Babysitter: voit toutes ses factures (brouillon, emise, payee).
+- Parent: voit uniquement les factures emises ou payees.
+
 ## 3) TVA et devise
 
 Les regles sont dans `config/billing.php`:
@@ -108,6 +112,12 @@ La table affiche:
 - total
 - statut
 - date d'emission et date d'echeance
+
+## 9) Telechargement PDF
+
+Depuis la liste ou la page detail d'une facture:
+- Cliquer sur "Telecharger PDF"
+- Le fichier est genere automatiquement par le serveur
 
 ## 9) Tests rapides (dev)
 
