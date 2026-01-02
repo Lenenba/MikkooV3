@@ -11,9 +11,14 @@ Bonjour{{ $babysitterName ? ' ' . $babysitterName : '' }},
 
 Une nouvelle annonce correspond a vos services.
 
+@php
+    $serviceList = $announcement?->resolveServices() ?? [];
+    $serviceLabel = !empty($serviceList) ? implode(', ', $serviceList) : ($announcement->service ?? '-');
+@endphp
+
 @component('mail::panel')
 Titre : {{ $announcement->title }}
-Service : {{ $announcement->service }}
+Service : {{ $serviceLabel }}
 Parent : {{ $parentName }}
 @if($city)
 Ville : {{ $city }}

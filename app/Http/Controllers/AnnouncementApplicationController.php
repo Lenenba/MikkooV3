@@ -65,16 +65,16 @@ class AnnouncementApplicationController extends Controller
             ]);
         }
 
-        $matchedService = $this->resolveBabysitterService($announcement, $user);
-        if (! $matchedService) {
+        $matchedServices = $this->resolveBabysitterServices($announcement, $user);
+        if (empty($matchedServices)) {
             return back()->withErrors([
                 'application' => "Aucun service correspondant n'a ete trouve pour cette babysitter.",
             ]);
         }
 
         $quantity = $this->resolveServiceQuantity($announcement);
-        $unitPrice = (float) $matchedService->price;
-        $subtotal = round($unitPrice * $quantity, 2);
+        $linesPayload = $this->buildServiceLines($matchedServices, $quantity);
+        $subtotal = $linesPayload['subtotal'];
         $taxRate = Billing::vatRateForCountry($user->address?->country);
         $taxAmount = round($subtotal * $taxRate, 2);
         $totalAmount = round($subtotal + $taxAmount, 2);
@@ -82,7 +82,7 @@ class AnnouncementApplicationController extends Controller
         $expiryHours = (int) config('announcements.application_expiry_hours', 24);
         $expiresAt = $expiryHours > 0 ? now()->addHours($expiryHours) : null;
 
-        $application = DB::transaction(function () use ($announcement, $user, $message, $schedule, $expiresAt, $matchedService, $quantity, $subtotal, $totalAmount) {
+        $application = DB::transaction(function () use ($announcement, $user, $message, $schedule, $expiresAt, $linesPayload, $totalAmount) {
             $reservation = Reservation::create([
                 'parent_id' => $announcement->parent_id,
                 'babysitter_id' => $user->id,
@@ -91,10 +91,12 @@ class AnnouncementApplicationController extends Controller
                 'notes' => $message,
             ]);
 
-            $reservation->services()->attach($matchedService->id, [
-                'quantity' => $quantity,
-                'total' => $subtotal,
-            ]);
+            foreach ($linesPayload['lines'] as $line) {
+                $reservation->services()->attach($line['service_id'], [
+                    'quantity' => $line['quantity'],
+                    'total' => $line['total'],
+                ]);
+            }
 
             $reservation->details()->create([
                 'date' => $schedule['start_date'],
@@ -191,18 +193,20 @@ class AnnouncementApplicationController extends Controller
 
             if ($application->reservation) {
                 if ($application->reservation->services()->count() === 0) {
-                    $matchedService = $this->resolveBabysitterService($announcement, $application->babysitter);
-                    if ($matchedService) {
+                    $matchedServices = $this->resolveBabysitterServices($announcement, $application->babysitter);
+                    if (! empty($matchedServices)) {
                         $quantity = $this->resolveServiceQuantity($announcement);
-                        $unitPrice = (float) $matchedService->price;
-                        $subtotal = round($unitPrice * $quantity, 2);
+                        $linesPayload = $this->buildServiceLines($matchedServices, $quantity);
+                        $subtotal = $linesPayload['subtotal'];
                         $taxRate = Billing::vatRateForCountry($application->babysitter?->address?->country);
                         $taxAmount = round($subtotal * $taxRate, 2);
                         $totalAmount = round($subtotal + $taxAmount, 2);
-                        $application->reservation->services()->attach($matchedService->id, [
-                            'quantity' => $quantity,
-                            'total' => $subtotal,
-                        ]);
+                        foreach ($linesPayload['lines'] as $line) {
+                            $application->reservation->services()->attach($line['service_id'], [
+                                'quantity' => $line['quantity'],
+                                'total' => $line['total'],
+                            ]);
+                        }
                         if ((float) $application->reservation->total_amount <= 0) {
                             $application->reservation->update([
                                 'total_amount' => $totalAmount,
@@ -538,9 +542,9 @@ class AnnouncementApplicationController extends Controller
             return false;
         }
 
-        return $serviceNames->contains(function ($serviceName) use ($announcement) {
-            return $this->serviceMatches($announcement->service, (string) $serviceName);
-        });
+        $announcementServices = $announcement->resolveServices();
+
+        return $this->matchesAllServices($announcementServices, $serviceNames->all());
     }
 
     protected function serviceMatches(?string $announcementService, string $serviceName): bool
@@ -555,10 +559,18 @@ class AnnouncementApplicationController extends Controller
         return str_contains($left, $right) || str_contains($right, $left);
     }
 
-    protected function resolveBabysitterService(Announcement $announcement, ?User $user): ?Service
+    /**
+     * @return array<int, Service>
+     */
+    protected function resolveBabysitterServices(Announcement $announcement, ?User $user): array
     {
         if (! $user) {
-            return null;
+            return [];
+        }
+
+        $announcementServices = $announcement->resolveServices();
+        if (empty($announcementServices)) {
+            return [];
         }
 
         $services = Service::query()
@@ -567,16 +579,70 @@ class AnnouncementApplicationController extends Controller
             ->get();
 
         if ($services->isEmpty()) {
-            return null;
+            return [];
         }
 
-        foreach ($services as $service) {
-            if ($this->serviceMatches($announcement->service, (string) $service->name)) {
-                return $service;
+        $matched = [];
+        foreach ($announcementServices as $announcementService) {
+            $match = $services->first(fn($service) => $this->serviceMatches($announcementService, (string) $service->name));
+            if (! $match) {
+                return [];
+            }
+            $matched[$match->id] = $match;
+        }
+
+        return array_values($matched);
+    }
+
+    /**
+     * @param array<int, string> $announcementServices
+     * @param array<int, string> $serviceNames
+     */
+    protected function matchesAllServices(array $announcementServices, array $serviceNames): bool
+    {
+        if (empty($announcementServices) || empty($serviceNames)) {
+            return false;
+        }
+
+        foreach ($announcementServices as $announcementService) {
+            $matched = false;
+            foreach ($serviceNames as $serviceName) {
+                if ($this->serviceMatches($announcementService, (string) $serviceName)) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if (! $matched) {
+                return false;
             }
         }
 
-        return $services->first();
+        return true;
+    }
+
+    /**
+     * @param array<int, Service> $services
+     * @return array{lines: array<int, array{service_id: int, quantity: int, total: float}>, subtotal: float}
+     */
+    protected function buildServiceLines(array $services, int $quantity): array
+    {
+        $lines = [];
+        $subtotal = 0.0;
+
+        foreach ($services as $service) {
+            $lineTotal = round(((float) $service->price) * $quantity, 2);
+            $lines[] = [
+                'service_id' => $service->id,
+                'quantity' => $quantity,
+                'total' => $lineTotal,
+            ];
+            $subtotal = round($subtotal + $lineTotal, 2);
+        }
+
+        return [
+            'lines' => $lines,
+            'subtotal' => $subtotal,
+        ];
     }
 
     protected function resolveServiceQuantity(Announcement $announcement): int

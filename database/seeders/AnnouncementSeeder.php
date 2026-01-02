@@ -66,8 +66,11 @@ class AnnouncementSeeder extends Seeder
 
         for ($i = 0; $i < $count; $i++) {
             $parent = $parents->random();
-            $service = $services->random();
-            $title = sprintf(Arr::random($titleTemplates), $service);
+            $serviceCount = $randomBool(30) ? min(3, $services->count()) : 1;
+            $serviceList = $services->shuffle()->take($serviceCount)->values()->all();
+            $primaryService = $serviceList[0] ?? $services->first();
+            $serviceLabel = implode(', ', array_filter($serviceList));
+            $title = sprintf(Arr::random($titleTemplates), $primaryService);
             $childName = Arr::random($childNames);
             $childAge = Arr::random($childAges);
             $childNote = $randomBool(70) ? Arr::random($childNotes) : null;
@@ -89,7 +92,8 @@ class AnnouncementSeeder extends Seeder
             Announcement::create([
                 'parent_id' => $parent->id,
                 'title' => $title,
-                'service' => $service,
+                'service' => $serviceLabel !== '' ? $serviceLabel : (string) $primaryService,
+                'services' => $serviceList,
                 'children' => [
                     [
                         'id' => 0,

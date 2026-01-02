@@ -18,9 +18,35 @@ const renderTitleCell = (announcement: Announcement) => {
     ])
 }
 
-const renderServiceCell = (service?: string | null) => {
-    const label = service?.trim() || '-'
-    return h('span', { class: 'rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700' }, label)
+const resolveServiceLabels = (announcement: Announcement) => {
+    const services = (announcement.services ?? [])
+        .map((value) => value?.toString().trim())
+        .filter((value): value is string => Boolean(value))
+
+    if (services.length) {
+        return services
+    }
+
+    const fallback = announcement.service?.toString().trim() ?? ''
+    if (!fallback) {
+        return []
+    }
+
+    return fallback
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+}
+
+const renderServiceCell = (announcement: Announcement) => {
+    const labels = resolveServiceLabels(announcement)
+    if (!labels.length) {
+        return h('span', { class: 'text-xs text-muted-foreground' }, '-')
+    }
+
+    return h('div', { class: 'flex flex-wrap gap-1' }, labels.map((label) =>
+        h('span', { class: 'rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700' }, label)
+    ))
 }
 
 const renderChildCell = (announcement: Announcement) => {
@@ -80,7 +106,7 @@ export const getAnnouncementColumns = (): ColumnDef<Announcement>[] => [
     {
         accessorKey: 'service',
         header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Service', class: headerClass }),
-        cell: ({ row }) => renderServiceCell(row.getValue('service')),
+        cell: ({ row }) => renderServiceCell(row.original),
     },
     {
         accessorKey: 'status',

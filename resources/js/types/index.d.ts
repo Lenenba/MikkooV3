@@ -150,6 +150,7 @@ export interface Announcement {
     id: number;
     title: string;
     service: string;
+    services?: string[] | null;
     children?: AnnouncementChild[] | null;
     child_name?: string | null;
     child_age?: string | null;

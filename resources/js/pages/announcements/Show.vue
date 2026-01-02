@@ -76,6 +76,28 @@ const childLabel = computed(() => {
     return parts.join(' · ');
 });
 
+const serviceLabels = computed(() => {
+    const services = (announcement.value?.services ?? [])
+        .map((value) => value?.toString().trim())
+        .filter((value): value is string => Boolean(value));
+
+    if (services.length) {
+        return services;
+    }
+
+    const fallback = announcement.value?.service?.toString().trim() ?? '';
+    if (!fallback) {
+        return [];
+    }
+
+    return fallback
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+});
+
+const serviceLabelText = computed(() => (serviceLabels.value.length ? serviceLabels.value.join(', ') : '-'));
+
 const statusMeta = computed(() => {
     const key = (announcement.value?.status ?? 'open').toString().toLowerCase();
     if (key === 'closed') {
@@ -242,9 +264,18 @@ const rejectApplication = (applicationId: number) => {
                             {{ announcement?.title ?? 'Annonce' }}
                         </h1>
                         <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                            <Badge class="border-transparent bg-sky-100 text-sky-700">
-                                {{ announcement?.service ?? '-' }}
-                            </Badge>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <Badge
+                                    v-for="service in serviceLabels"
+                                    :key="service"
+                                    class="border-transparent bg-sky-100 text-sky-700"
+                                >
+                                    {{ service }}
+                                </Badge>
+                                <Badge v-if="!serviceLabels.length" class="border-transparent bg-sky-100 text-sky-700">
+                                    -
+                                </Badge>
+                            </div>
                             <Badge :class="['border-transparent', statusMeta.className]">
                                 {{ statusMeta.label }}
                             </Badge>
@@ -417,7 +448,7 @@ const rejectApplication = (applicationId: number) => {
                             Infos utiles
                         </p>
                         <div class="mt-2 space-y-1 text-sm text-muted-foreground">
-                            <p>Service: {{ announcement?.service ?? '-' }}</p>
+                            <p>Service: {{ serviceLabelText }}</p>
                             <p>Statut: {{ statusMeta.label }}</p>
                             <p>Date: {{ scheduleDateLabel }}</p>
                             <p>Heure: {{ scheduleTimeLabel }}</p>

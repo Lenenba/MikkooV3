@@ -62,7 +62,9 @@ class AnnouncementController extends Controller
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:120'],
-            'service' => ['required', 'string', 'max:120'],
+            'services' => ['nullable', 'array', 'min:1', 'required_without:service'],
+            'services.*' => ['string', 'max:120'],
+            'service' => ['nullable', 'string', 'max:255', 'required_without:services'],
             'child_ids' => ['required', 'array', 'min:1'],
             'child_ids.*' => ['integer', 'min:0'],
             'child_notes' => ['nullable', 'string', 'max:1000'],
@@ -130,10 +132,14 @@ class AnnouncementController extends Controller
             ? ($data['recurrence_end_date'] ?? null)
             : null;
 
+        $services = $this->normalizeServicesInput($data['services'] ?? null, $data['service'] ?? null);
+        $serviceLabel = ! empty($services) ? implode(', ', $services) : trim((string) ($data['service'] ?? ''));
+
         $announcement = Announcement::create([
             'parent_id' => $user->id,
             'title' => trim($data['title']),
-            'service' => trim($data['service']),
+            'service' => $serviceLabel,
+            'services' => $services,
             'children' => $selectedChildren->all(),
             'child_name' => $childName,
             'child_age' => $childAge,
@@ -226,9 +232,8 @@ class AnnouncementController extends Controller
                 abort(403);
             }
 
-            $matches = $hasApplication ? true : $serviceNames->contains(function ($serviceName) use ($announcement) {
-                return $this->serviceMatches($announcement->service, (string) $serviceName);
-            });
+            $announcementServices = $announcement->resolveServices();
+            $matches = $hasApplication ? true : $this->matchesAllServices($announcementServices, $serviceNames->all());
 
             if (!$matches) {
                 abort(403);
@@ -283,7 +288,8 @@ class AnnouncementController extends Controller
         $payload = [
             'id' => $announcement->id,
             'title' => $announcement->title,
-            'service' => $announcement->service,
+            'service' => $announcement->serviceLabel(),
+            'services' => $announcement->resolveServices(),
             'children' => $announcement->children ?? [],
             'child_name' => $announcement->child_name,
             'child_age' => $announcement->child_age,
@@ -382,10 +388,75 @@ class AnnouncementController extends Controller
         return str_contains($left, $right) || str_contains($right, $left);
     }
 
+    /**
+     * @param array<int, string> $announcementServices
+     * @param array<int, string> $serviceNames
+     */
+    protected function matchesAllServices(array $announcementServices, array $serviceNames): bool
+    {
+        if (empty($announcementServices) || empty($serviceNames)) {
+            return false;
+        }
+
+        foreach ($announcementServices as $announcementService) {
+            $matched = false;
+            foreach ($serviceNames as $serviceName) {
+                if ($this->serviceMatches($announcementService, (string) $serviceName)) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if (! $matched) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array<int, string>|string|null $services
+     * @return array<int, string>
+     */
+    protected function normalizeServicesInput(array|string|null $services, ?string $fallback = null): array
+    {
+        $items = [];
+
+        if (is_array($services)) {
+            $items = $services;
+        } elseif (is_string($services)) {
+            $items = preg_split('/[,;]+/', $services) ?: [];
+        }
+
+        if (empty($items) && $fallback !== null) {
+            $items = preg_split('/[,;]+/', $fallback) ?: [];
+        }
+
+        $normalized = [];
+        $seen = [];
+
+        foreach ($items as $item) {
+            $label = trim((string) $item);
+            if ($label === '') {
+                continue;
+            }
+
+            $key = strtolower($label);
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $normalized[] = $label;
+        }
+
+        return $normalized;
+    }
+
     protected function notifyMatchingBabysitters(Announcement $announcement): void
     {
-        $service = trim((string) ($announcement->service ?? ''));
-        if ($service === '') {
+        $announcementServices = $announcement->resolveServices();
+        if (empty($announcementServices)) {
             return;
         }
 
@@ -398,9 +469,12 @@ class AnnouncementController extends Controller
             ->get(['user_id', 'name']);
 
         $matchedUserIds = $services
-            ->filter(fn($item) => $this->serviceMatches($service, (string) $item->name))
-            ->pluck('user_id')
-            ->unique()
+            ->groupBy('user_id')
+            ->filter(function ($group) use ($announcementServices) {
+                $serviceNames = $group->pluck('name')->map(fn($name) => trim((string) $name))->filter()->values()->all();
+                return $this->matchesAllServices($announcementServices, $serviceNames);
+            })
+            ->keys()
             ->values();
 
         if ($matchedUserIds->isEmpty()) {

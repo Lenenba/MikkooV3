@@ -11,9 +11,14 @@ Bonjour{{ $parentName ? ' ' . $parentName : '' }},
 
 {{ $babysitterName }} s'est propose pour votre annonce.
 
+@php
+    $serviceList = $announcement?->resolveServices() ?? [];
+    $serviceLabel = !empty($serviceList) ? implode(', ', $serviceList) : ($announcement?->service ?? '-');
+@endphp
+
 @component('mail::panel')
 Titre : {{ $announcement?->title ?? '-' }}
-Service : {{ $announcement?->service ?? '-' }}
+Service : {{ $serviceLabel }}
 Date : {{ $announcement?->start_date ?? '-' }}
 Heure : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
 @if($application?->message)

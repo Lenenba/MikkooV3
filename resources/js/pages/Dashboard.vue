@@ -83,6 +83,26 @@ const formatChildLabel = (announcement: Announcement) => {
     return parts.join(' · ');
 };
 
+const resolveAnnouncementServices = (announcement: Announcement) => {
+    const services = (announcement.services ?? [])
+        .map((value) => value?.toString().trim())
+        .filter((value): value is string => Boolean(value));
+
+    if (services.length) {
+        return services;
+    }
+
+    const fallback = announcement.service?.toString().trim() ?? '';
+    if (!fallback) {
+        return [];
+    }
+
+    return fallback
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+};
+
 const childPhotoUrl = (child: { photo?: string | null; name?: string | null; age?: string | number | null }, index: number) =>
     resolveChildPhoto(child.photo, [child.name, child.age], index);
 
@@ -752,9 +772,21 @@ const orderTrendArea = computed(() => {
                                             <p class="text-sm font-semibold text-foreground">
                                                 {{ announcement.title }}
                                             </p>
-                                            <Badge class="border-transparent bg-sky-100 text-sky-700">
-                                                {{ announcement.service }}
-                                            </Badge>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <Badge
+                                                    v-for="service in resolveAnnouncementServices(announcement)"
+                                                    :key="service"
+                                                    class="border-transparent bg-sky-100 text-sky-700"
+                                                >
+                                                    {{ service }}
+                                                </Badge>
+                                                <Badge
+                                                    v-if="!resolveAnnouncementServices(announcement).length"
+                                                    class="border-transparent bg-sky-100 text-sky-700"
+                                                >
+                                                    -
+                                                </Badge>
+                                            </div>
                                         </div>
                                         <p v-if="formatChildLabel(announcement)" class="text-xs text-muted-foreground">
                                             Enfant: {{ formatChildLabel(announcement) }}

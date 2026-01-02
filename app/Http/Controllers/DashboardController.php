@@ -223,18 +223,12 @@ class DashboardController extends Controller
             $items = Announcement::query()
                 ->with(['parent.address'])
                 ->where('status', 'open')
-                ->where(function ($query) use ($serviceNames) {
-                    foreach ($serviceNames as $serviceName) {
-                        $query->orWhere(function ($innerQuery) use ($serviceName) {
-                            $innerQuery
-                                ->where('service', 'like', '%' . $serviceName . '%')
-                                ->orWhereRaw('? LIKE CONCAT("%", service, "%")', [$serviceName]);
-                        });
-                    }
-                })
                 ->latest()
-                ->limit(12)
+                ->limit(50)
                 ->get()
+                ->filter(fn(Announcement $announcement) => $this->announcementMatchesServices($announcement, $serviceNames->all()))
+                ->take(12)
+                ->values()
                 ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement, true))
                 ->values();
 
@@ -255,7 +249,8 @@ class DashboardController extends Controller
         $payload = [
             'id' => $announcement->id,
             'title' => $announcement->title,
-            'service' => $announcement->service,
+            'service' => $announcement->serviceLabel(),
+            'services' => $announcement->resolveServices(),
             'children' => $announcement->children ?? [],
             'child_name' => $announcement->child_name,
             'child_age' => $announcement->child_age,
@@ -288,5 +283,33 @@ class DashboardController extends Controller
         }
 
         return $payload;
+    }
+
+    /**
+     * @param array<int, string> $serviceNames
+     */
+    protected function announcementMatchesServices(Announcement $announcement, array $serviceNames): bool
+    {
+        $announcementServices = $announcement->resolveServices();
+        if (empty($announcementServices) || empty($serviceNames)) {
+            return false;
+        }
+
+        foreach ($announcementServices as $announcementService) {
+            $matched = false;
+            foreach ($serviceNames as $serviceName) {
+                $left = strtolower(trim((string) $announcementService));
+                $right = strtolower(trim((string) $serviceName));
+                if ($left !== '' && $right !== '' && (str_contains($left, $right) || str_contains($right, $left))) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if (! $matched) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

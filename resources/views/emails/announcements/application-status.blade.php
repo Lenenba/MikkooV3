@@ -19,6 +19,8 @@
         ? route('reservations.show', $application->reservation_id)
         : route('announcements.show', $announcement?->id);
     $actionLabel = $statusKey === 'accepted' ? 'Voir la reservation' : 'Voir l\'annonce';
+    $serviceList = $announcement?->resolveServices() ?? [];
+    $serviceLabel = !empty($serviceList) ? implode(', ', $serviceList) : ($announcement?->service ?? '-');
 @endphp
 
 # {{ $title }}
@@ -39,7 +41,7 @@ Votre candidature a ete mise a jour.
 
 @component('mail::panel')
 Annonce : {{ $announcement?->title ?? '-' }}
-Service : {{ $announcement?->service ?? '-' }}
+Service : {{ $serviceLabel }}
 Date : {{ $announcement?->start_date ?? '-' }}
 Heure : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
 @endcomponent

@@ -82,10 +82,28 @@ const recentCount = computed(() => {
         return createdAt >= cutoff
     }).length
 })
-const uniqueServiceCount = computed(() => {
-    const services = announcements.value
-        .map((item) => item.service?.trim())
+const resolveAnnouncementServices = (announcement: Announcement) => {
+    const services = (announcement.services ?? [])
+        .map((value) => value?.toString().trim())
         .filter((value): value is string => Boolean(value))
+
+    if (services.length) {
+        return services
+    }
+
+    const fallback = announcement.service?.toString().trim() ?? ''
+    if (!fallback) {
+        return []
+    }
+
+    return fallback
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+}
+
+const uniqueServiceCount = computed(() => {
+    const services = announcements.value.flatMap((item) => resolveAnnouncementServices(item))
 
     return new Set(services).size
 })
@@ -202,7 +220,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const isAnnouncementDialogOpen = ref(false)
 const announcementForm = useForm({
     title: '',
-    service: '',
+    services: [] as string[],
     child_ids: [] as number[],
     child_notes: '',
     description: '',
@@ -216,10 +234,12 @@ const announcementForm = useForm({
     recurrence_days: [] as number[],
     recurrence_end_date: '',
 })
+const serviceInput = ref('')
 
 const resetAnnouncementForm = () => {
     announcementForm.reset()
     announcementForm.clearErrors()
+    serviceInput.value = ''
 }
 
 const openAnnouncementDialog = () => {
@@ -276,6 +296,32 @@ const toggleRecurrenceDay = (day: number, checked: boolean | 'indeterminate') =>
     announcementForm.recurrence_days = Array.from(days)
 }
 
+const addService = () => {
+    const raw = serviceInput.value.trim()
+    if (!raw) {
+        return
+    }
+    const parts = raw
+        .split(/[,;]+/)
+        .map((value) => value.replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+    const existing = new Set(announcementForm.services.map((service) => service.toLowerCase()))
+    const updated = [...announcementForm.services]
+    for (const part of parts) {
+        const key = part.toLowerCase()
+        if (!existing.has(key)) {
+            existing.add(key)
+            updated.push(part)
+        }
+    }
+    announcementForm.services = updated
+    serviceInput.value = ''
+}
+
+const removeService = (service: string) => {
+    announcementForm.services = announcementForm.services.filter((item) => item !== service)
+}
+
 watch(
     () => [announcementForm.schedule_type, announcementForm.recurrence_frequency, announcementForm.start_date],
     () => {
@@ -309,17 +355,31 @@ const childPhotoUrl = (child: AnnouncementChild, index: number) =>
     resolveChildPhoto(child.photo, [child.name, child.age], index)
 
 const submitAnnouncement = () => {
+    if (serviceInput.value.trim()) {
+        addService()
+    }
     announcementForm.transform((data) => {
+        const services = (data.services ?? [])
+            .map((value) => value?.toString().trim())
+            .filter((value): value is string => Boolean(value))
+        const serviceLabel = services.join(', ')
+
         if (data.schedule_type !== 'recurring') {
             return {
                 ...data,
+                services,
+                service: serviceLabel,
                 recurrence_frequency: null,
                 recurrence_interval: null,
                 recurrence_days: [],
                 recurrence_end_date: null,
             }
         }
-        return data
+        return {
+            ...data,
+            services,
+            service: serviceLabel,
+        }
     }).post(route('announcements.store'), {
         preserveScroll: true,
         onSuccess: () => {
@@ -437,13 +497,19 @@ const submitAnnouncement = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="announcement-service">Service recherche</Label>
-                        <Input
-                            id="announcement-service"
-                            v-model="announcementForm.service"
-                            list="service-suggestions"
-                            placeholder="ex: Lavage, Garde reguliere"
-                        />
+                        <Label for="announcement-service">Services recherches</Label>
+                        <div class="flex flex-col gap-2 sm:flex-row">
+                            <Input
+                                id="announcement-service"
+                                v-model="serviceInput"
+                                list="service-suggestions"
+                                placeholder="ex: Garde reguliere, Sortie d'ecole"
+                                @keydown.enter.prevent="addService"
+                            />
+                            <Button type="button" variant="outline" class="sm:w-auto" @click="addService">
+                                Ajouter
+                            </Button>
+                        </div>
                         <datalist id="service-suggestions">
                             <option
                                 v-for="suggestion in announcementSuggestions"
@@ -451,7 +517,26 @@ const submitAnnouncement = () => {
                                 :value="suggestion"
                             />
                         </datalist>
-                        <InputError :message="announcementForm.errors.service" />
+                        <InputError :message="announcementForm.errors.services || announcementForm.errors.service" />
+                        <div v-if="announcementForm.services.length" class="flex flex-wrap gap-2">
+                            <span
+                                v-for="service in announcementForm.services"
+                                :key="service"
+                                class="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700"
+                            >
+                                {{ service }}
+                                <button
+                                    type="button"
+                                    class="text-sky-700/70 transition hover:text-sky-900"
+                                    @click="removeService(service)"
+                                >
+                                    x
+                                </button>
+                            </span>
+                        </div>
+                        <p v-else class="text-xs text-muted-foreground">
+                            Ajoutez au moins un service pour publier l'annonce.
+                        </p>
                     </div>
 
                     <div class="space-y-2">
