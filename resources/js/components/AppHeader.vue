@@ -4,7 +4,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
     NavigationMenu,
     NavigationMenuItem,
@@ -16,9 +16,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
-import type { BreadcrumbItem, NavItem } from '@/types';
+import type { BreadcrumbItem, NavItem, SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
+import { BookOpen, Folder, Globe, LayoutGrid, Menu, Search } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -30,9 +30,22 @@ const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
 
-const page = usePage();
+const page = usePage<SharedData>();
 const { t } = useI18n();
 const auth = computed(() => page.props.auth);
+const currentLocale = computed(() => page.props.locale ?? 'en');
+const availableLocales = computed(() => page.props.availableLocales ?? ['en']);
+const localeOptions = computed(() =>
+    availableLocales.value.map((locale) => ({
+        value: locale,
+        label: t(`common.languages.${locale}`),
+    })),
+);
+const currentLocaleLabel = computed(() => {
+    const match = localeOptions.value.find((option) => option.value === currentLocale.value);
+    return match?.label ?? currentLocale.value;
+});
+const currentLocaleShort = computed(() => currentLocale.value.toUpperCase());
 const defaultParentAvatar = '/parent.png';
 const defaultBabysitterAvatar = '/bbsiter.png';
 
@@ -77,6 +90,15 @@ const rightNavItems = computed<NavItem[]>(() => [
         icon: BookOpen,
     },
 ]);
+
+const switchLocale = (locale: string) => {
+    if (!locale || locale === currentLocale.value) {
+        return;
+    }
+    const target = new URL(page.url, window.location.origin);
+    target.searchParams.set('lang', locale);
+    window.location.assign(target.toString());
+};
 </script>
 
 <template>
@@ -179,6 +201,31 @@ const rightNavItems = computed<NavItem[]>(() => [
                             </template>
                         </div>
                     </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger :as-child="true">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                class="h-9 gap-2 px-3 text-xs font-semibold"
+                                :aria-label="`${$t('common.labels.language')}: ${currentLocaleLabel}`"
+                            >
+                                <Globe class="h-4 w-4" />
+                                <span class="sm:hidden">{{ currentLocaleShort }}</span>
+                                <span class="hidden sm:inline">{{ currentLocaleLabel }}</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" class="min-w-[10rem]">
+                            <DropdownMenuItem
+                                v-for="option in localeOptions"
+                                :key="option.value"
+                                :class="option.value === currentLocale ? 'font-semibold text-foreground' : ''"
+                                @click="switchLocale(option.value)"
+                            >
+                                {{ option.label }}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger :as-child="true">

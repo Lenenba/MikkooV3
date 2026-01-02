@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import type { SharedData } from '@/types';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -28,7 +28,9 @@ const updateLocale = (event: Event) => {
     if (!value) {
         return;
     }
-    router.get(page.url, { lang: value }, { preserveState: true, preserveScroll: true });
+    const target = new URL(page.url, window.location.origin);
+    target.searchParams.set('lang', value);
+    window.location.assign(target.toString());
 };
 </script>
 
