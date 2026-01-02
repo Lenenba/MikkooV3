@@ -72,13 +72,13 @@ const renderChildCell = (announcement: Announcement, fallbackLabel: string, coun
 
 const renderStatusCell = (
     announcement: Announcement,
-    labels: { open: string; closed: string; applications: string; unknown: string },
+    labels: { open: string; closed: string; applications: (count: number) => string; unknown: string },
 ) => {
     const key = (announcement.status ?? '').toString().toLowerCase()
     const pendingCount = Number(announcement.pending_applications_count ?? 0)
     const statusMap: Record<string, { text: string; classes: string }> = {
         open: {
-            text: pendingCount > 0 ? labels.applications.replace(':count', `${pendingCount}`) : labels.open,
+            text: pendingCount > 0 ? labels.applications(pendingCount) : labels.open,
             classes: pendingCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700',
         },
         closed: {
@@ -118,7 +118,7 @@ export const getAnnouncementColumns = (role?: string, t?: Translator): ColumnDef
     const statusLabels = {
         open: translate('announcements.status.open'),
         closed: translate('announcements.status.closed'),
-        applications: translate('announcements.status.applications'),
+        applications: (count: number) => translate('announcements.status.applications', { count }),
         unknown: translate('common.misc.unknown'),
     }
 
