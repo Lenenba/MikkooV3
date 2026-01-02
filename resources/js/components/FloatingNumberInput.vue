@@ -57,7 +57,7 @@ defineExpose({ focus: () => input.value.focus() });
                 <!-- Input -->
                 <input ref="input" v-model="model"
                     class="p-0 bg-transparent border-0 text-foreground focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    style="-moz-appearance: textfield;" type="number" aria-roledescription="Number field"
+                    style="-moz-appearance: textfield;" type="number" :aria-roledescription="t('common.labels.number_field')"
                     :step="props.step"
                     data-hs-input-number-input="" />
             </div>

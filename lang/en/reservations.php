@@ -41,6 +41,10 @@ return [
         'rate_job' => 'Rate the job',
         'rate_reservation' => 'Rate the reservation',
     ],
+    'errors' => [
+        'invalid_services' => 'No valid services found for this babysitter.',
+        'rating_not_allowed' => 'Reviewer is not part of this reservation.',
+    ],
     'columns' => [
         'reference' => 'Reference',
         'parent' => 'Parent',

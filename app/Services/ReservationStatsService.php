@@ -13,7 +13,7 @@ class ReservationStatsService
 
     public function __construct(protected User $user)
     {
-        Carbon::setLocale('fr');
+        Carbon::setLocale(app()->getLocale());
         $this->now = Carbon::now();
     }
 

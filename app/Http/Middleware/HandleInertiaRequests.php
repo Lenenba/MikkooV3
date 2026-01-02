@@ -64,6 +64,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'supportEmail' => config('mail.from.address'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'locale' => $locale,
             'fallbackLocale' => config('app.fallback_locale'),

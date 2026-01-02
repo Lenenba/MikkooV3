@@ -47,6 +47,7 @@ return [
     ],
     'child' => [
         'photo_preview' => 'Child photo preview',
+        'photo_alt' => 'Child photo',
         'remove_photo' => 'Remove photo',
         'default_photo_alt' => 'Default child',
         'save' => 'Save child',

@@ -47,6 +47,7 @@ return [
     ],
     'child' => [
         'photo_preview' => 'Apercu photo enfant',
+        'photo_alt' => 'Photo enfant',
         'remove_photo' => 'Retirer la photo',
         'default_photo_alt' => 'Enfant par defaut',
         'save' => 'Enregistrer lenfant',

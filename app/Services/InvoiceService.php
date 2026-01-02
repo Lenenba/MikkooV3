@@ -192,6 +192,9 @@ class InvoiceService
         $ref = $reservation->number ?? $reservation->id;
         $dateLabel = $serviceDate->format('d/m/Y');
 
-        return "Reservation {$ref} - {$dateLabel}";
+        return __('invoices.items.reservation', [
+            'reference' => $ref,
+            'date' => $dateLabel,
+        ]);
     }
 }

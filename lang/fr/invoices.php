@@ -35,6 +35,12 @@ return [
         'view_edit' => 'Voir / Modifier',
         'download_pdf' => 'Telecharger PDF',
     ],
+    'errors' => [
+        'only_draft' => 'Seules les factures brouillon peuvent etre modifiees.',
+    ],
+    'items' => [
+        'reservation' => 'Reservation :reference - :date',
+    ],
     'show' => [
         'head_title' => 'Facture',
         'back' => 'Retour',

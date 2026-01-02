@@ -442,7 +442,8 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
 
                     <form @submit.prevent="submitForm" class="space-y-4">
                         <div class="space-y-2">
-                            <FloatingInput id="service-name" :label="$t('settings.services.form.name_label')" v-model="form.name" />
+                            <FloatingInput id="service-name" :label="$t('settings.services.form.name_label')"
+                                v-model="form.name" />
                             <InputError :message="form.errors.name" />
                         </div>
                         <div class="space-y-2">
@@ -451,8 +452,8 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
                             <InputError :message="form.errors.description" />
                         </div>
                         <div class="space-y-2">
-                            <FloatingInput id="service-price" :label="$t('settings.services.form.price_label')" type="number" min="0" step="0.01"
-                                v-model="form.price" />
+                            <FloatingInput id="service-price" :label="$t('settings.services.form.price_label')"
+                                type="number" min="0" step="0.01" v-model="form.price" />
                             <InputError :message="form.errors.price" />
                         </div>
                         <DialogFooter class="mt-4">
@@ -482,7 +483,8 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
             </div>
 
             <DataTable :columns="columns" :data="props.services" search-column="name"
-                :search-placeholder="$t('settings.services.table.search')" :empty-message="$t('settings.services.table.empty')">
+                :search-placeholder="$t('settings.services.table.search')"
+                :empty-message="$t('settings.services.table.empty')">
                 <template #toolbar-actions="{ table }">
                     <Button variant="outline" class="h-9 w-full sm:w-auto" @click="table.resetColumnFilters()">
                         {{ $t('common.actions.clear') }}

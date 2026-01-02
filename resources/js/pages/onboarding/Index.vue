@@ -487,7 +487,7 @@ const goToStep = (step: number) => {
                                     <div class="flex items-start gap-3">
                                         <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
                                             <img :src="resolveChildPhoto(child.photo, [child.name, child.age], index)"
-                                                alt="Child photo" class="h-full w-full object-cover" />
+                                                :alt="$t('onboarding.child.photo_alt')" class="h-full w-full object-cover" />
                                         </div>
                                         <div class="space-y-1 text-sm text-muted-foreground">
                                             <p class="text-sm font-semibold text-foreground">

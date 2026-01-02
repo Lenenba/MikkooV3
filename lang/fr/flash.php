@@ -30,6 +30,9 @@ return [
         'photo_deleted' => 'Photo de profil supprimee.',
         'photo_updated' => 'Photo de profil mise a jour.',
         'media_uploaded' => 'Images televersees.',
+        'photo_already_set' => 'Cette photo est deja definie comme photo de profil.',
+        'photo_cannot_delete' => 'Vous ne pouvez pas supprimer votre photo de profil.',
+        'no_changes' => 'Aucun changement detecte.',
     ],
     'service' => [
         'added' => 'Service ajoute avec succes.',

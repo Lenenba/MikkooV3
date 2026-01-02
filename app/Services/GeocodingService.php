@@ -17,7 +17,7 @@ class GeocodingService
             $response = Http::get('https://api.geoapify.com/v1/geocode/autocomplete', [
                 'text' => $query,
                 'limit' => $limit,
-                'lang' => 'fr',
+                'lang' => app()->getLocale(),
                 'apiKey' => $apiKey,
             ]);
         } catch (\Throwable $exception) {

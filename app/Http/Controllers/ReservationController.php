@@ -131,8 +131,10 @@ class ReservationController extends Controller
 
                 $profile = $reservation->babysitter?->babysitterProfile;
                 $babysitterName = trim(($profile->first_name ?? '') . ' ' . ($profile->last_name ?? ''));
-                $babysitterName = $babysitterName !== '' ? $babysitterName : ($reservation->babysitter?->name ?? 'Babysitter');
-                $parentName = $reservation->parent?->name ?? 'Parent';
+                $babysitterFallback = __('common.roles.babysitter');
+                $parentFallback = __('common.roles.parent');
+                $babysitterName = $babysitterName !== '' ? $babysitterName : ($reservation->babysitter?->name ?? $babysitterFallback);
+                $parentName = $reservation->parent?->name ?? $parentFallback;
 
                 $ratingsPayload['target_name'] = $user->id === $reservation->parent_id
                     ? $babysitterName
@@ -226,7 +228,7 @@ class ReservationController extends Controller
 
         if ($serviceLines->isEmpty()) {
             return redirect()->back()->withErrors([
-                'services' => 'Aucun service valide pour cette babysitter.',
+                'services' => __('reservations.errors.invalid_services'),
             ]);
         }
 

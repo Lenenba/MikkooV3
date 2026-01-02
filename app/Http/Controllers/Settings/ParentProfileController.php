@@ -117,6 +117,6 @@ class ParentProfileController extends Controller
 
         return redirect()
             ->back()
-            ->with('info', 'No changes detected.');
+            ->with('info', __('flash.profile.no_changes'));
     }
 }

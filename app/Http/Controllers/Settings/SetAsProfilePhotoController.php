@@ -24,7 +24,7 @@ class SetAsProfilePhotoController extends Controller
         $media = Auth::user()->media->findOrFail($data['media_id']);
 
         if ($media->is_profile_picture) {
-            return redirect()->back()->with('info', 'This photo is already set as your profile picture!');
+            return redirect()->back()->with('info', __('flash.profile.photo_already_set'));
         }
 
         //remove the previous profile picture

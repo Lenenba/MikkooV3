@@ -111,6 +111,20 @@ return [
             'withdrawn' => 'Withdrawn',
         ],
     ],
+    'errors' => [
+        'select_child' => 'Select at least one existing child.',
+    ],
+    'application_errors' => [
+        'not_open' => 'This announcement is no longer open.',
+        'already_applied' => 'You already applied to this announcement.',
+        'not_scheduled' => 'This announcement is not scheduled.',
+        'slot_taken' => 'This time slot is already taken.',
+        'no_matching_service' => 'No matching service found for this babysitter.',
+        'cannot_accept' => 'This application can no longer be accepted.',
+        'already_confirmed' => 'Another babysitter is already confirmed.',
+        'cannot_reject' => 'This application can no longer be rejected.',
+        'cannot_withdraw' => 'This application can no longer be withdrawn.',
+    ],
     'show' => [
         'head_title' => 'Announcement',
         'breadcrumb' => 'Announcement',

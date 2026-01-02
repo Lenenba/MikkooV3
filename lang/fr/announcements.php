@@ -111,6 +111,20 @@ return [
             'withdrawn' => 'Retiree',
         ],
     ],
+    'errors' => [
+        'select_child' => 'Selectionnez au moins un enfant existant.',
+    ],
+    'application_errors' => [
+        'not_open' => "Cette annonce n'est plus ouverte.",
+        'already_applied' => 'Vous avez deja postule a cette annonce.',
+        'not_scheduled' => "Cette annonce n'est pas planifiee.",
+        'slot_taken' => 'Ce creneau est deja occupe.',
+        'no_matching_service' => "Aucun service correspondant n'a ete trouve pour cette babysitter.",
+        'cannot_accept' => 'Cette candidature ne peut plus etre acceptee.',
+        'already_confirmed' => 'Une autre babysitter est deja confirmee.',
+        'cannot_reject' => 'Cette candidature ne peut plus etre refusee.',
+        'cannot_withdraw' => 'Cette candidature ne peut plus etre retiree.',
+    ],
     'show' => [
         'head_title' => 'Annonce',
         'breadcrumb' => 'Annonce',

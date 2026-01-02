@@ -35,6 +35,12 @@ return [
         'view_edit' => 'View / Edit',
         'download_pdf' => 'Download PDF',
     ],
+    'errors' => [
+        'only_draft' => 'Only draft invoices can be edited.',
+    ],
+    'items' => [
+        'reservation' => 'Reservation :reference - :date',
+    ],
     'show' => [
         'head_title' => 'Invoice',
         'back' => 'Back',

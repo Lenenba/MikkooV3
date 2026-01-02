@@ -98,6 +98,9 @@ return [
         'images_default' => 'Images par defaut',
         'children_details' => 'Details des enfants',
         'language' => 'Langue',
+        'logo_alt' => 'Logo :app',
+        'breadcrumb' => "Fil d'Ariane",
+        'number_field' => 'Champ numerique',
     ],
     'payment' => [
         'per_task' => 'Par mission',

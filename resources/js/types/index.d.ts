@@ -214,6 +214,7 @@ export interface SearchFilters {
 
 export interface SharedData extends PageProps {
     name: string;
+    supportEmail?: string;
     quote: { message: string; author: string };
     locale?: string;
     fallbackLocale?: string;

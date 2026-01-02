@@ -62,19 +62,19 @@ function submit() {
                     <div class="my-8 w-full">
                         <Label for="first_name" class="mb-2">{{ $t('common.labels.payment_frequency') }}</Label>
                         <ToggleGroup type="single" class="w-full" v-model="form.payment_frequency" variant="outline">
-                            <ToggleGroupItem value="per_task" aria-label="Toggle bold">
+                            <ToggleGroupItem value="per_task" :aria-label="$t('common.payment.per_task')">
                                 <Calendar1 class="h-4 w-4" /> {{ $t('common.payment.per_task') }}
                             </ToggleGroupItem>
-                            <ToggleGroupItem value="daily" aria-label="Toggle italic">
+                            <ToggleGroupItem value="daily" :aria-label="$t('common.payment.daily')">
                                 <Clock class="h-4 w-4" /> {{ $t('common.payment.daily') }}
                             </ToggleGroupItem>
-                            <ToggleGroupItem value="weekly" aria-label="Toggle italic">
+                            <ToggleGroupItem value="weekly" :aria-label="$t('common.payment.weekly')">
                                 <CalendarDays class="h-4 w-4" /> {{ $t('common.payment.weekly') }}
                             </ToggleGroupItem>
-                            <ToggleGroupItem value="biweekly" aria-label="Toggle strikethrough">
+                            <ToggleGroupItem value="biweekly" :aria-label="$t('common.payment.biweekly')">
                                 <CalendarCheck class="h-4 w-4" /> {{ $t('common.payment.biweekly') }}
                             </ToggleGroupItem>
-                            <ToggleGroupItem value="monthly" aria-label="Toggle underline">
+                            <ToggleGroupItem value="monthly" :aria-label="$t('common.payment.monthly')">
                                 <CalendarSync class="h-4 w-4" /> {{ $t('common.payment.monthly') }}
                             </ToggleGroupItem>
                         </ToggleGroup>

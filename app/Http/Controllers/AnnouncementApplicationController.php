@@ -28,7 +28,7 @@ class AnnouncementApplicationController extends Controller
 
         if ($announcement->status !== 'open') {
             return back()->withErrors([
-                'application' => "L'annonce n'est plus ouverte.",
+                'application' => __('announcements.application_errors.not_open'),
             ]);
         }
 
@@ -48,27 +48,27 @@ class AnnouncementApplicationController extends Controller
             ->where('babysitter_id', $user->id)
             ->exists()) {
             return back()->withErrors([
-                'application' => 'Vous avez deja postule a cette annonce.',
+                'application' => __('announcements.application_errors.already_applied'),
             ]);
         }
 
         $schedule = $this->resolveAnnouncementSchedule($announcement);
         if (! $schedule['start_date'] || ! $schedule['start_time'] || ! $schedule['end_time']) {
             return back()->withErrors([
-                'application' => "L'annonce n'est pas planifiee.",
+                'application' => __('announcements.application_errors.not_scheduled'),
             ]);
         }
 
         if (! $this->canBabysitterApply($user->id, $schedule)) {
             return back()->withErrors([
-                'application' => 'Ce creneau est deja occupe.',
+                'application' => __('announcements.application_errors.slot_taken'),
             ]);
         }
 
         $matchedServices = $this->resolveBabysitterServices($announcement, $user);
         if (empty($matchedServices)) {
             return back()->withErrors([
-                'application' => "Aucun service correspondant n'a ete trouve pour cette babysitter.",
+                'application' => __('announcements.application_errors.no_matching_service'),
             ]);
         }
 
@@ -164,13 +164,13 @@ class AnnouncementApplicationController extends Controller
 
         if ($announcement->status !== 'open') {
             return back()->withErrors([
-                'application' => "L'annonce n'est plus ouverte.",
+                'application' => __('announcements.application_errors.not_open'),
             ]);
         }
 
         if ($application->status !== AnnouncementApplication::STATUS_PENDING) {
             return back()->withErrors([
-                'application' => 'Cette candidature ne peut plus etre acceptee.',
+                'application' => __('announcements.application_errors.cannot_accept'),
             ]);
         }
 
@@ -181,7 +181,7 @@ class AnnouncementApplicationController extends Controller
 
         if ($alreadyAccepted) {
             return back()->withErrors([
-                'application' => "Une autre babysitter est deja confirmee.",
+                'application' => __('announcements.application_errors.already_confirmed'),
             ]);
         }
 
@@ -295,7 +295,7 @@ class AnnouncementApplicationController extends Controller
 
         if ($application->status !== AnnouncementApplication::STATUS_PENDING) {
             return back()->withErrors([
-                'application' => 'Cette candidature ne peut plus etre refusee.',
+                'application' => __('announcements.application_errors.cannot_reject'),
             ]);
         }
 
@@ -342,7 +342,7 @@ class AnnouncementApplicationController extends Controller
 
         if ($application->status !== AnnouncementApplication::STATUS_PENDING) {
             return back()->withErrors([
-                'application' => 'Cette candidature ne peut plus etre retiree.',
+                'application' => __('announcements.application_errors.cannot_withdraw'),
             ]);
         }
 

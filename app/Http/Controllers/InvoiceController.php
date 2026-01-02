@@ -126,8 +126,8 @@ class InvoiceController extends Controller
             'babysitter.babysitterProfile',
         ]);
 
-        $parentName = $this->resolveName($invoice->parent, 'Parent');
-        $babysitterName = $this->resolveName($invoice->babysitter, 'Babysitter');
+        $parentName = $this->resolveName($invoice->parent, __('common.roles.parent'));
+        $babysitterName = $this->resolveName($invoice->babysitter, __('common.roles.babysitter'));
         $vatPercent = round(((float) $invoice->vat_rate) * 100, 2);
 
         $pdf = Pdf::loadView('invoices.pdf', [
@@ -150,7 +150,7 @@ class InvoiceController extends Controller
         }
 
         if ($invoice->status !== 'draft') {
-            return back()->withErrors(['invoice' => 'Seules les factures brouillon peuvent etre modifiees.']);
+            return back()->withErrors(['invoice' => __('invoices.errors.only_draft')]);
         }
 
         $data = $request->validate([
@@ -258,10 +258,11 @@ class InvoiceController extends Controller
         ];
     }
 
-    private function resolveName($user, string $fallback = 'Parent'): string
+    private function resolveName($user, ?string $fallback = null): string
     {
+        $fallbackName = $fallback ?? __('common.roles.parent');
         if (! $user) {
-            return $fallback;
+            return $fallbackName;
         }
 
         $profile = $user->parentProfile ?? $user->babysitterProfile;
@@ -275,6 +276,6 @@ class InvoiceController extends Controller
 
         $name = trim((string) ($user->name ?? ''));
 
-        return $name !== '' ? $name : $fallback;
+        return $name !== '' ? $name : $fallbackName;
     }
 }

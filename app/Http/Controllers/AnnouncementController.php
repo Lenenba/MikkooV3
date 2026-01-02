@@ -97,13 +97,14 @@ class AnnouncementController extends Controller
 
         if ($selectedChildren->isEmpty()) {
             return back()->withErrors([
-                'child_ids' => 'Selectionnez au moins un enfant existant.',
+                'child_ids' => __('announcements.errors.select_child'),
             ]);
         }
 
         $primaryChild = $selectedChildren->first() ?? [];
-        $childName = trim((string) ($primaryChild['name'] ?? 'Enfant'));
-        $childName = $childName !== '' ? $childName : 'Enfant';
+        $defaultChildName = __('announcements.child.default_name');
+        $childName = trim((string) ($primaryChild['name'] ?? $defaultChildName));
+        $childName = $childName !== '' ? $childName : $defaultChildName;
         $childAge = isset($primaryChild['age']) ? trim((string) $primaryChild['age']) : null;
         $childAge = $childAge !== '' ? $childAge : null;
 
@@ -515,7 +516,8 @@ class AnnouncementController extends Controller
         $babysitter = $application->babysitter;
         $profile = $babysitter?->babysitterProfile;
         $fullName = trim((string) (($profile?->first_name ?? '') . ' ' . ($profile?->last_name ?? '')));
-        $name = $fullName !== '' ? $fullName : ($babysitter?->name ?? 'Babysitter');
+        $defaultBabysitter = __('common.roles.babysitter');
+        $name = $fullName !== '' ? $fullName : ($babysitter?->name ?? $defaultBabysitter);
         $media = $babysitter?->media ?? [];
         $profilePicture = $media->firstWhere('is_profile_picture', true)?->file_path
             ?? $media->first()?->file_path;

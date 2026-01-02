@@ -35,6 +35,7 @@ return [
             'head_title' => 'Mot de passe oublie',
             'email' => 'Adresse email',
             'submit' => 'Envoyer le lien de reinitialisation',
+            'status_sent' => 'Un lien de reinitialisation sera envoye si le compte existe.',
             'return_to' => 'Ou, revenir a',
             'login' => 'connexion',
         ],

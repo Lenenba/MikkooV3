@@ -35,6 +35,7 @@ return [
             'head_title' => 'Forgot password',
             'email' => 'Email address',
             'submit' => 'Email password reset link',
+            'status_sent' => 'A reset link will be sent if the account exists.',
             'return_to' => 'Or, return to',
             'login' => 'log in',
         ],

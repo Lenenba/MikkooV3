@@ -51,8 +51,8 @@ class MediaController extends Controller
             'collection_name' => ['required', 'string', 'max:255'],
             'images.*'        => ['required', 'mimes:jpg,png,jpeg,webp', 'max:5000'],
         ], [
-            'images.*.mimes'  => 'Each file must be a jpg, png, jpeg, or webp image.',
-            'images.*.max'    => 'Each image must be at most 5MB.',
+            'images.*.mimes'  => __('media.validation.mimes'),
+            'images.*.max'    => __('media.validation.max'),
         ]);
 
         if ($request->hasFile('images')) {

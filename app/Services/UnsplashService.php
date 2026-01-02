@@ -58,7 +58,7 @@ class UnsplashService
         return [
             'id' => $item['id'] ?? null,
             'url' => $url,
-            'alt' => $item['alt_description'] ?? $item['description'] ?? 'Unsplash photo',
+            'alt' => $item['alt_description'] ?? $item['description'] ?? __('media.unsplash_alt'),
             'user' => $item['user']['name'] ?? null,
             'link' => $item['links']['html'] ?? null,
         ];

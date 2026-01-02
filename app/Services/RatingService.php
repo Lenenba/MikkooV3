@@ -21,7 +21,7 @@ class RatingService
         $revieweeId = $this->resolveRevieweeId($reservation, $reviewer->id);
 
         if (!$revieweeId) {
-            throw new AuthorizationException('Reviewer is not part of this reservation.');
+            throw new AuthorizationException(__('reservations.errors.rating_not_allowed'));
         }
 
         return Rating::updateOrCreate(

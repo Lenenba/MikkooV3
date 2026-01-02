@@ -72,8 +72,10 @@ const getLocation = (babysitter: Babysitter) => {
 
 const getPrice = (babysitter: Babysitter) => getProfile(babysitter)?.price_per_hour ?? 0;
 
-const getPriceLabel = (babysitter: Babysitter) =>
-    t('search.babysitter.per_hour', { price: formatCurrency(getPrice(babysitter)) });
+const getPriceLabel = (babysitter: Babysitter) => {
+    const label = t('search.babysitter.per_hour'); // ":price / h"
+    return label.replace(':price', formatCurrency(getPrice(babysitter)));
+};
 
 const getBio = (babysitter: Babysitter) =>
     getProfile(babysitter)?.bio ?? t('search.babysitter.no_description');
@@ -171,8 +173,7 @@ const truncate = (value: string, max = 120) => {
                                     <div
                                         class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                                     <div class="absolute bottom-3 left-3 right-3 text-white">
-                                        <div
-                                            class="rounded-sm bg-black/45 px-3 py-2 backdrop-blur-sm shadow-sm">
+                                        <div class="rounded-sm bg-black/45 px-3 py-2 backdrop-blur-sm shadow-sm">
                                             <div class="flex items-start justify-between gap-2">
                                                 <div class="min-w-0">
                                                     <p class="text-xs font-semibold leading-tight text-white truncate">
@@ -184,7 +185,7 @@ const truncate = (value: string, max = 120) => {
                                                         {{ getLocation(babysitter) }}
                                                     </p>
                                                 </div>
-                                                    <span
+                                                <span
                                                     class="rounded-full bg-card/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-white/90 opacity-0 transition group-hover:opacity-100">
                                                     {{ $t('search.babysitter.view_profile') }}
                                                 </span>
@@ -198,7 +199,8 @@ const truncate = (value: string, max = 120) => {
                                                     class="flex items-center gap-1 rounded-full bg-card/90 px-2.5 py-1 font-semibold text-foreground">
                                                     <Star class="h-3 w-3 text-amber-500" />
                                                     {{ formatRating(getRatingAverage(babysitter)) }}
-                                                    <span class="text-muted-foreground">({{ getRatingCount(babysitter) }})</span>
+                                                    <span class="text-muted-foreground">({{ getRatingCount(babysitter)
+                                                        }})</span>
                                                 </span>
                                             </div>
                                         </div>
@@ -256,19 +258,22 @@ const truncate = (value: string, max = 120) => {
                                         {{ formatRating(getRatingAverage(babysitter)) }}
                                     </span>
                                     <span class="text-muted-foreground">
-                                        {{ $t('search.babysitter.rating_count', { count: getRatingCount(babysitter) }) }}
+                                        {{ $t('search.babysitter.rating_count', { count: getRatingCount(babysitter) })
+                                        }}
                                     </span>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                                     <div class="rounded-sm border border-border bg-card p-3">
-                                        <p class="text-xs text-muted-foreground/70">{{ $t('common.labels.experience') }}</p>
+                                        <p class="text-xs text-muted-foreground/70">{{ $t('common.labels.experience') }}
+                                        </p>
                                         <p class="mt-1 font-medium text-foreground">
                                             {{ getExperience(babysitter) }}
                                         </p>
                                     </div>
                                     <div class="rounded-sm border border-border bg-card p-3">
-                                        <p class="text-xs text-muted-foreground/70">{{ $t('search.babysitter.payment_label') }}</p>
+                                        <p class="text-xs text-muted-foreground/70">{{
+                                            $t('search.babysitter.payment_label') }}</p>
                                         <p class="mt-1 font-medium text-foreground">
                                             {{ getPaymentFrequency(babysitter) }}
                                         </p>
@@ -276,7 +281,8 @@ const truncate = (value: string, max = 120) => {
                                 </div>
 
                                 <div>
-                                    <h4 class="text-sm font-semibold text-foreground">{{ $t('search.babysitter.about') }}</h4>
+                                    <h4 class="text-sm font-semibold text-foreground">{{ $t('search.babysitter.about')
+                                        }}</h4>
                                     <p class="mt-2 text-sm text-muted-foreground">
                                         {{ getBio(babysitter) }}
                                     </p>
@@ -284,9 +290,12 @@ const truncate = (value: string, max = 120) => {
 
                                 <div>
                                     <div class="flex items-center justify-between">
-                                        <h4 class="text-sm font-semibold text-foreground">{{ $t('search.babysitter.parent_reviews') }}</h4>
+                                        <h4 class="text-sm font-semibold text-foreground">{{
+                                            $t('search.babysitter.parent_reviews') }}</h4>
                                         <span class="text-xs text-muted-foreground">
-                                            {{ $t('search.babysitter.review_count', { count: getReviewCount(babysitter) }) }}
+                                            {{ $t('search.babysitter.review_count', {
+                                                count: getReviewCount(babysitter)
+                                            }) }}
                                         </span>
                                     </div>
                                     <div class="mt-3 space-y-3">
@@ -318,7 +327,8 @@ const truncate = (value: string, max = 120) => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <p v-if="getReviewCount(babysitter) === 0" class="text-xs text-muted-foreground">
+                                        <p v-if="getReviewCount(babysitter) === 0"
+                                            class="text-xs text-muted-foreground">
                                             {{ $t('search.babysitter.no_reviews') }}
                                         </p>
                                     </div>

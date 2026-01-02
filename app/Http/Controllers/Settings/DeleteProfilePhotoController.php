@@ -19,7 +19,7 @@ class DeleteProfilePhotoController extends Controller
         $media = Auth::user()->media->findOrFail($mediaId);
 
         if ($media->is_profile_picture) {
-            return redirect()->back()->with('info', 'You cannot delete your profile picture!');
+            return redirect()->back()->with('info', __('flash.profile.photo_cannot_delete'));
         }
 
         $media->delete();

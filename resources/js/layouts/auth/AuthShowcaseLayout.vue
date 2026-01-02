@@ -14,6 +14,8 @@ const page = usePage<SharedData>();
 const { t } = useI18n();
 const currentLocale = computed(() => page.props.locale ?? 'en');
 const availableLocales = computed(() => page.props.availableLocales ?? ['en']);
+const appName = computed(() => page.props.name ?? '');
+const supportEmail = computed(() => page.props.supportEmail ?? '');
 const localeOptions = computed(() =>
     availableLocales.value.map((locale) => ({
         value: locale,
@@ -37,7 +39,7 @@ const updateLocale = (event: Event) => {
                 <div class="flex items-center justify-between gap-4">
                     <Link :href="route('home')" class="flex items-center gap-3">
                         <AppLogoIcon class="h-9 w-auto" />
-                        <span class="text-lg font-semibold text-foreground">Mikoo</span>
+                        <span class="text-lg font-semibold text-foreground">{{ appName }}</span>
                     </Link>
                     <div class="flex items-center gap-2">
                         <label class="sr-only" for="auth-language">{{ $t('common.labels.language') }}</label>
@@ -77,8 +79,8 @@ const updateLocale = (event: Event) => {
                 </div>
 
                 <div class="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{{ $t('common.footer.copyright', { year: 2026, app: 'Mikoo' }) }}</span>
-                    <span>contact@mikoo.test</span>
+                    <span>{{ $t('common.footer.copyright', { year: 2026, app: appName }) }}</span>
+                    <span v-if="supportEmail">{{ supportEmail }}</span>
                 </div>
             </aside>
 
@@ -87,7 +89,7 @@ const updateLocale = (event: Event) => {
                     <div class="flex flex-col items-start gap-4">
                         <Link :href="route('home')" class="flex items-center gap-3">
                             <AppLogoIcon class="h-10 w-auto" />
-                            <span class="text-lg font-semibold text-foreground">Mikoo</span>
+                            <span class="text-lg font-semibold text-foreground">{{ appName }}</span>
                         </Link>
                         <div class="space-y-2">
                             <h1 v-if="title" class="text-2xl font-semibold text-foreground">

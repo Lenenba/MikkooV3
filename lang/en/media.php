@@ -26,6 +26,11 @@ return [
         'min_dimensions' => 'Image :name dimensions must be at least :widthx:heightpx.',
         'max_size' => 'File :name exceeds the maximum size of :sizeMB.',
     ],
+    'validation' => [
+        'mimes' => 'Each file must be a jpg, png, jpeg, or webp image.',
+        'max' => 'Each image must be at most 5MB.',
+    ],
+    'unsplash_alt' => 'Unsplash photo',
     'empty' => 'No media uploaded yet.',
     'status' => [
         'active' => 'Active',

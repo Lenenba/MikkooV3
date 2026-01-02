@@ -98,6 +98,9 @@ return [
         'images_default' => 'Default images',
         'children_details' => 'Children details',
         'language' => 'Language',
+        'logo_alt' => 'Logo :app',
+        'breadcrumb' => 'Breadcrumb',
+        'number_field' => 'Number field',
     ],
     'payment' => [
         'per_task' => 'Per task',
