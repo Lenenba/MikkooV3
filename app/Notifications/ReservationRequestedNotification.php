@@ -5,10 +5,11 @@ namespace App\Notifications;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class ReservationRequestedNotification extends Notification
+class ReservationRequestedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

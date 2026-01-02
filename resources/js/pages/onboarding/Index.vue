@@ -9,7 +9,7 @@ import MediaUploadForm from '@/components/MediaUploadForm.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { CHILD_DEFAULT_PHOTOS, resolveChildPhoto } from '@/lib/childPhotos';
-import AppLogo from '@/components/AppLogo.vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 const page = usePage();
 
 const currentStep = computed(() => Number(page.props.step ?? 1));
@@ -289,8 +289,8 @@ const goToStep = (step: number) => {
 
     <div class="min-h-svh bg-muted/50 px-4 py-10">
         <div class="mx-auto w-full max-w-6xl">
-            <div class="text-center">
-                <AppLogo class="w-2xl" />
+            <div class="h-44 w-44 mx-auto">
+                <AppLogoIcon />
             </div>
 
             <div class="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">

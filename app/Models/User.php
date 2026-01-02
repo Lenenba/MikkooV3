@@ -6,6 +6,10 @@ namespace App\Models;
 use App\Models\Address;
 use App\Models\Announcement;
 use App\Models\AnnouncementApplication;
+use App\Notifications\QueuedResetPassword;
+use App\Notifications\QueuedVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -22,10 +26,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  *
  * @package App\Models
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmailContract
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, MustVerifyEmailTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -59,6 +63,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new QueuedVerifyEmail());
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new QueuedResetPassword($token));
     }
 
     /**

@@ -22,7 +22,7 @@ use App\Http\Middleware\EnsureUserHasAddress;
 Route::get('/', HomeController::class)->name('home');
 
 Route::get('/dashboard', DashboardController::class)
-    ->middleware(['auth', 'verified', EnsureUserHasAddress::class])
+    ->middleware(['auth', EnsureUserHasAddress::class])
     ->name('dashboard');
 
 Route::middleware(['auth', EnsureSuperAdmin::class])->group(function () {
@@ -62,6 +62,7 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
         Route::get('/reservations', [ReservationController::class, 'index'])
             ->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])
+            ->middleware('verified')
             ->name('reservations.store');
         Route::get('/reservations/{id}/show', [ReservationController::class, 'show'])
             ->name('reservations.show');
@@ -75,6 +76,7 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
         Route::post('/reservations/{reservationId}/complete', CompleteReservationController::class)
             ->name('reservations.complete');
         Route::get('/reservations/{id}/create', [ReservationController::class, 'create'])
+            ->middleware('verified')
             ->name('reservations.create');
         Route::get('/service/search', ServicesSearchController::class)
             ->name('service.search');

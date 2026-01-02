@@ -97,10 +97,12 @@ const mainNavItems = computed(() => {
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
-                            <AppLogo />
-                        </Link>
+                    <SidebarMenuButton size="xl" as-child>
+                        <div class="h-32 w-32 mx-auto">
+                            <Link :href="route('dashboard')">
+                                <AppLogo />
+                            </Link>
+                        </div>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

@@ -46,6 +46,10 @@ const auth = computed(() => page.props.auth as AuthPayload | undefined);
 const announcementsPayload = computed(() => page.props.announcements as AnnouncementsPayload | undefined);
 
 const role = computed(() => dashboard.value?.role ?? 'Parent');
+const needsEmailVerification = computed(() => {
+    const user = auth.value?.user;
+    return Boolean(user && !user.email_verified_at);
+});
 const userName = computed(() => {
     const name = auth.value?.user?.name ?? 'vous';
     const first = name.trim().split(' ')[0];
@@ -606,6 +610,27 @@ const orderTrendArea = computed(() => {
             </div>
 
             <div class="relative z-10 flex flex-col gap-6 p-4 lg:p-6">
+                <div
+                    v-if="needsEmailVerification"
+                    class="dashboard-card rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-amber-900 shadow-sm backdrop-blur dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
+                    style="animation-delay: 0ms"
+                >
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm font-semibold">Verifiez votre email</p>
+                            <p class="text-sm text-amber-900/80 dark:text-amber-100/80">
+                                Pour pouvoir reserver, confirmez votre adresse email.
+                            </p>
+                        </div>
+                        <Button
+                            size="sm"
+                            as-child
+                            class="bg-amber-600 text-white hover:bg-amber-500 dark:bg-amber-500 dark:text-amber-950 dark:hover:bg-amber-400"
+                        >
+                            <Link :href="route('verification.notice')">Verifier mon email</Link>
+                        </Button>
+                    </div>
+                </div>
                 <section class="grid gap-6 lg:grid-cols-12">
                     <div
                         class="dashboard-card relative flex flex-col gap-5 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-4"
