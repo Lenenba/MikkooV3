@@ -1,7 +1,7 @@
 <?php
 
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\OnboardingController;
@@ -19,9 +19,7 @@ use App\Http\Controllers\CompleteReservationController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureUserHasAddress;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified', EnsureUserHasAddress::class])

@@ -51,7 +51,11 @@ class HandleInertiaRequests extends Middleware
                 $role = 'Parent';
             }
         }
-        $defaultAvatar = $user?->isBabysitter() ? 'bbsiter.png' : 'parent.png';
+        $defaultAvatar = $user
+            ? ($user->isBabysitter() ? 'bbsiter.png' : 'parent.png')
+            : null;
+        $profilePhotoPath = $user?->media()->isProfilePicture()->first()?->file_path
+            ?? $defaultAvatar;
 
         return [
             ...parent::share($request),
@@ -59,10 +63,7 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
-                'profilPicture' => $this->convertToWebp(
-                    $user?->media()->isProfilePicture()->first()->file_path
-                        ?? ($user ? $defaultAvatar : '')
-                ),
+                'profilPicture' => $this->convertToWebp($profilePhotoPath),
                 'role' => $role,
             ],
             'flash' => [

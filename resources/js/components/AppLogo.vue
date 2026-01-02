@@ -3,5 +3,5 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 </script>
 
 <template>
-    <AppLogoIcon class="h-8 w-auto" />
+    <AppLogoIcon class="max-w-[4rem] max-h-[4rem] p-1 mt-5" />
 </template>

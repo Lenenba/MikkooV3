@@ -39,4 +39,8 @@ return [
         'key' => env('VITE_GEOAPIFY_KEY'),
     ],
 
+    'unsplash' => [
+        'key' => env('UNSPLASH_ACCESS_KEY'),
+    ],
+
 ];

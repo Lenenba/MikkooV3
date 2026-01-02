@@ -9,7 +9,7 @@ import MediaUploadForm from '@/components/MediaUploadForm.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { CHILD_DEFAULT_PHOTOS, resolveChildPhoto } from '@/lib/childPhotos';
-
+import AppLogo from '@/components/AppLogo.vue';
 const page = usePage();
 
 const currentStep = computed(() => Number(page.props.step ?? 1));
@@ -284,13 +284,13 @@ const goToStep = (step: number) => {
 </script>
 
 <template>
+
     <Head title="Onboarding" />
 
     <div class="min-h-svh bg-muted/50 px-4 py-10">
         <div class="mx-auto w-full max-w-6xl">
             <div class="text-center">
-                <div class="text-2xl font-semibold tracking-tight text-foreground">Mikoo</div>
-                <p class="mt-2 text-sm text-muted-foreground">Complete your setup in 6 steps.</p>
+                <AppLogo class="w-2xl" />
             </div>
 
             <div class="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
@@ -302,17 +302,13 @@ const goToStep = (step: number) => {
                         </div>
                         <ul class="mt-4 space-y-3">
                             <li v-for="step in steps" :key="step.id">
-                                <button
-                                    type="button"
+                                <button type="button"
                                     class="flex w-full items-start gap-3 rounded-sm px-2 py-2 text-left transition"
                                     :class="currentStep === step.id ? 'bg-muted' : ''"
-                                    :disabled="!isAuthed && step.id > 1"
-                                    @click="goToStep(step.id)"
-                                >
+                                    :disabled="!isAuthed && step.id > 1" @click="goToStep(step.id)">
                                     <span
                                         class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold"
-                                        :class="currentStep >= step.id ? 'border-emerald-500 text-emerald-600' : 'border-border text-muted-foreground/70'"
-                                    >
+                                        :class="currentStep >= step.id ? 'border-emerald-500 text-emerald-600' : 'border-border text-muted-foreground/70'">
                                         {{ step.id }}
                                     </span>
                                     <span>
@@ -339,54 +335,33 @@ const goToStep = (step: number) => {
                     <form v-if="currentStep === 1" @submit.prevent="submitRegister" class="mt-6 space-y-5">
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="space-y-2">
-                                <FloatingInput id="first_name" label="First name" v-model="registerForm.first_name" required />
+                                <FloatingInput id="first_name" label="First name" v-model="registerForm.first_name"
+                                    required />
                                 <InputError :message="registerForm.errors.first_name" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput id="last_name" label="Last name" v-model="registerForm.last_name" required />
+                                <FloatingInput id="last_name" label="Last name" v-model="registerForm.last_name"
+                                    required />
                                 <InputError :message="registerForm.errors.last_name" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingInput
-                                    id="email"
-                                    label="Email"
-                                    type="email"
-                                    autocomplete="email"
-                                    v-model="registerForm.email"
-                                    required
-                                />
+                                <FloatingInput id="email" label="Email" type="email" autocomplete="email"
+                                    v-model="registerForm.email" required />
                                 <InputError :message="registerForm.errors.email" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput
-                                    id="password"
-                                    label="Password"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    v-model="registerForm.password"
-                                    required
-                                />
+                                <FloatingInput id="password" label="Password" type="password"
+                                    autocomplete="new-password" v-model="registerForm.password" required />
                                 <InputError :message="registerForm.errors.password" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput
-                                    id="password_confirmation"
-                                    label="Confirm password"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    v-model="registerForm.password_confirmation"
-                                    required
-                                />
+                                <FloatingInput id="password_confirmation" label="Confirm password" type="password"
+                                    autocomplete="new-password" v-model="registerForm.password_confirmation" required />
                                 <InputError :message="registerForm.errors.password_confirmation" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingSelect
-                                    id="role"
-                                    label="Account type"
-                                    :options="roleOptions"
-                                    v-model="registerForm.role"
-                                    required
-                                />
+                                <FloatingSelect id="role" label="Account type" :options="roleOptions"
+                                    v-model="registerForm.role" required />
                                 <InputError :message="registerForm.errors.role" />
                             </div>
                         </div>
@@ -419,31 +394,23 @@ const goToStep = (step: number) => {
                                 <InputError :message="profileForm.errors.bio" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingTextarea id="experience" label="Experience" rows="3" v-model="profileForm.experience" />
+                                <FloatingTextarea id="experience" label="Experience" rows="3"
+                                    v-model="profileForm.experience" />
                                 <InputError :message="profileForm.errors.experience" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput
-                                    id="price_per_hour"
-                                    label="Price per hour"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    v-model="profileForm.price_per_hour"
-                                />
+                                <FloatingInput id="price_per_hour" label="Price per hour" type="number" min="0"
+                                    step="0.01" v-model="profileForm.price_per_hour" />
                                 <InputError :message="profileForm.errors.price_per_hour" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingSelect
-                                    id="payment_frequency"
-                                    label="Payment frequency"
-                                    :options="paymentOptions"
-                                    v-model="profileForm.payment_frequency"
-                                />
+                                <FloatingSelect id="payment_frequency" label="Payment frequency"
+                                    :options="paymentOptions" v-model="profileForm.payment_frequency" />
                                 <InputError :message="profileForm.errors.payment_frequency" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingTextarea id="services" label="Services" rows="2" v-model="profileForm.services" />
+                                <FloatingTextarea id="services" label="Services" rows="2"
+                                    v-model="profileForm.services" />
                                 <InputError :message="profileForm.errors.services" />
                             </div>
                         </div>
@@ -458,52 +425,29 @@ const goToStep = (step: number) => {
                             <div v-if="showChildForm" class="rounded-sm border border-border p-4">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="space-y-2">
-                                        <FloatingInput
-                                            id="child_name"
-                                            label="Child name"
-                                            v-model="childDraft.name"
-                                        />
+                                        <FloatingInput id="child_name" label="Child name" v-model="childDraft.name" />
                                     </div>
                                     <div class="space-y-2">
-                                        <FloatingInput
-                                            id="child_age"
-                                            label="Age"
-                                            type="number"
-                                            min="0"
-                                            v-model="childDraft.age"
-                                        />
+                                        <FloatingInput id="child_age" label="Age" type="number" min="0"
+                                            v-model="childDraft.age" />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
-                                        <FloatingInput
-                                            id="child_allergies"
-                                            label="Allergies"
-                                            v-model="childDraft.allergies"
-                                        />
+                                        <FloatingInput id="child_allergies" label="Allergies"
+                                            v-model="childDraft.allergies" />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
-                                        <FloatingTextarea
-                                            id="child_details"
-                                            label="Details"
-                                            rows="2"
-                                            v-model="childDraft.details"
-                                        />
+                                        <FloatingTextarea id="child_details" label="Details" rows="2"
+                                            v-model="childDraft.details" />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
-                                        <label class="text-sm font-medium text-foreground" for="child_photo">Photo</label>
-                                        <input
-                                            :key="childPhotoKey"
-                                            id="child_photo"
-                                            type="file"
-                                            accept="image/*"
+                                        <label class="text-sm font-medium text-foreground"
+                                            for="child_photo">Photo</label>
+                                        <input :key="childPhotoKey" id="child_photo" type="file" accept="image/*"
                                             class="block w-full text-sm text-foreground file:mr-3 file:rounded-sm file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
-                                            @change="setChildPhoto"
-                                        />
+                                            @change="setChildPhoto" />
                                         <div v-if="childDraft.photo" class="mt-3 flex items-center gap-3">
-                                            <img
-                                                :src="childDraft.photo"
-                                                alt="Child photo preview"
-                                                class="h-16 w-16 rounded-sm object-cover"
-                                            />
+                                            <img :src="childDraft.photo" alt="Child photo preview"
+                                                class="h-16 w-16 rounded-sm object-cover" />
                                             <Button type="button" variant="outline" @click="clearChildPhoto">
                                                 Remove photo
                                             </Button>
@@ -511,21 +455,14 @@ const goToStep = (step: number) => {
                                         <div class="mt-4 space-y-2">
                                             <p class="text-sm font-medium text-foreground">Images par defaut</p>
                                             <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                                                <button
-                                                    v-for="photo in childDefaultPhotos"
-                                                    :key="photo"
-                                                    type="button"
+                                                <button v-for="photo in childDefaultPhotos" :key="photo" type="button"
                                                     class="group overflow-hidden rounded-sm border border-border transition"
                                                     :class="childDraft.photo === photo
                                                         ? 'ring-2 ring-primary/60'
                                                         : 'hover:border-primary/60'"
-                                                    @click="selectDefaultChildPhoto(photo)"
-                                                >
-                                                    <img
-                                                        :src="photo"
-                                                        alt="Default child"
-                                                        class="h-16 w-full object-cover"
-                                                    />
+                                                    @click="selectDefaultChildPhoto(photo)">
+                                                    <img :src="photo" alt="Default child"
+                                                        class="h-16 w-full object-cover" />
                                                 </button>
                                             </div>
                                         </div>
@@ -538,22 +475,16 @@ const goToStep = (step: number) => {
                             </div>
 
                             <div v-if="profileForm.children.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                <div
-                                    v-for="(child, index) in profileForm.children"
-                                    :key="index"
-                                    class="rounded-sm border border-border p-4"
-                                >
-                                <div class="flex items-start gap-3">
-                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
-                                        <img
-                                            :src="resolveChildPhoto(child.photo, [child.name, child.age], index)"
-                                            alt="Child photo"
-                                            class="h-full w-full object-cover"
-                                        />
-                                    </div>
-                                    <div class="space-y-1 text-sm text-muted-foreground">
-                                        <p class="text-sm font-semibold text-foreground">
-                                            {{ child.name || `Child ${index + 1}` }}
+                                <div v-for="(child, index) in profileForm.children" :key="index"
+                                    class="rounded-sm border border-border p-4">
+                                    <div class="flex items-start gap-3">
+                                        <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
+                                            <img :src="resolveChildPhoto(child.photo, [child.name, child.age], index)"
+                                                alt="Child photo" class="h-full w-full object-cover" />
+                                        </div>
+                                        <div class="space-y-1 text-sm text-muted-foreground">
+                                            <p class="text-sm font-semibold text-foreground">
+                                                {{ child.name || `Child ${index + 1}` }}
                                             </p>
                                             <p>Age: {{ child.age || '-' }}</p>
                                             <p v-if="child.allergies">Allergies: {{ child.allergies }}</p>
@@ -561,12 +492,8 @@ const goToStep = (step: number) => {
                                         </div>
                                     </div>
                                     <div class="mt-4 flex justify-end">
-                                        <Button
-                                            v-if="profileForm.children.length > 1"
-                                            type="button"
-                                            variant="outline"
-                                            @click="removeChild(index)"
-                                        >
+                                        <Button v-if="profileForm.children.length > 1" type="button" variant="outline"
+                                            @click="removeChild(index)">
                                             Remove
                                         </Button>
                                     </div>
@@ -574,7 +501,8 @@ const goToStep = (step: number) => {
                             </div>
 
                             <div class="space-y-2">
-                                <FloatingTextarea id="preferences" label="Preferences" rows="3" v-model="profileForm.preferences" />
+                                <FloatingTextarea id="preferences" label="Preferences" rows="3"
+                                    v-model="profileForm.preferences" />
                                 <InputError :message="profileForm.errors.preferences" />
                             </div>
                         </div>
@@ -592,21 +520,13 @@ const goToStep = (step: number) => {
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="space-y-3">
                                 <h3 class="text-sm font-semibold text-foreground">Avatar</h3>
-                                <MediaUploadForm
-                                    collection-name="avatar"
-                                    collection-label="Avatar"
-                                    :max-photos="1"
-                                    :hide-collection-input="true"
-                                />
+                                <MediaUploadForm collection-name="avatar" collection-label="Avatar" :max-photos="1"
+                                    :hide-collection-input="true" />
                             </div>
                             <div class="space-y-3">
                                 <h3 class="text-sm font-semibold text-foreground">Gallery</h3>
-                                <MediaUploadForm
-                                    collection-name="gallery"
-                                    collection-label="Gallery"
-                                    :max-photos="5"
-                                    :hide-collection-input="true"
-                                />
+                                <MediaUploadForm collection-name="gallery" collection-label="Gallery" :max-photos="5"
+                                    :hide-collection-input="true" />
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
@@ -617,19 +537,11 @@ const goToStep = (step: number) => {
 
                     <form v-else-if="currentStep === 5" @submit.prevent="submitAvailability" class="mt-6 space-y-5">
                         <div class="grid gap-4">
-                            <FloatingTextarea
-                                id="availability"
-                                label="Availability"
-                                rows="3"
-                                v-model="availabilityForm.availability"
-                            />
+                            <FloatingTextarea id="availability" label="Availability" rows="3"
+                                v-model="availabilityForm.availability" />
                             <InputError :message="availabilityForm.errors.availability" />
-                            <FloatingTextarea
-                                id="availability_notes"
-                                label="Notes"
-                                rows="3"
-                                v-model="availabilityForm.availability_notes"
-                            />
+                            <FloatingTextarea id="availability_notes" label="Notes" rows="3"
+                                v-model="availabilityForm.availability_notes" />
                             <InputError :message="availabilityForm.errors.availability_notes" />
                         </div>
                         <div class="flex items-center justify-between">
