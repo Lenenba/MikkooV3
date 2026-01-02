@@ -29,6 +29,8 @@ class CompleteReservationController extends Controller
             'completed_at' => now(),
         ]);
 
+        $reservation->load('details');
+
         $reservation->parent?->notify(new ReservationNotification($reservation));
         $reservation->babysitter?->notify(new ReservationNotification($reservation));
 
