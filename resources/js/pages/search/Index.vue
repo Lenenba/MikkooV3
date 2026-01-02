@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { computed, onBeforeUnmount } from 'vue';
 import { type BreadcrumbItem, type Babysitter, type SharedData } from '@/types';
-import { Head, usePage, useForm } from '@inertiajs/vue3';
+import { Head, usePage, useForm, router } from '@inertiajs/vue3';
 import BabysitterList from '@/components/BabysitterList.vue';
 import FloatingInput from '@/components/FloatingInput.vue';
 import FloatingSelect from '@/components/FloatingSelect.vue';
@@ -17,11 +17,32 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const page = usePage<SharedData>();
 const babysitters = computed<Babysitter[]>(() => page.props.babysitters?.data ?? []);
+const pagination = computed(() => page.props.babysitters ?? null);
+const hasPrevPage = computed(() => Boolean(pagination.value?.prev_page_url));
+const hasNextPage = computed(() => Boolean(pagination.value?.next_page_url));
+const serviceOptions = computed(() => {
+    const options = Array.isArray(page.props.serviceOptions) ? page.props.serviceOptions : [];
+    return [
+        { value: 'all', label: 'Tous services' },
+        ...options.map((service: string) => ({ value: service, label: service })),
+    ];
+});
+
+const goToPage = (url?: string | null) => {
+    if (!url) {
+        return;
+    }
+    router.visit(url, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
 
 const filterForm = useForm({
     name: page.props.filters?.name ?? '',
     city: page.props.filters?.city ?? '',
     country: page.props.filters?.country ?? '',
+    service: page.props.filters?.service ?? '',
     min_price: page.props.filters?.min_price ?? '',
     max_price: page.props.filters?.max_price ?? '',
     min_rating: page.props.filters?.min_rating ?? '',
@@ -48,6 +69,7 @@ const resetFilters = () => {
     filterForm.name = '';
     filterForm.city = '';
     filterForm.country = '';
+    filterForm.service = '';
     filterForm.min_price = '';
     filterForm.max_price = '';
     filterForm.min_rating = '';
@@ -188,6 +210,15 @@ onBeforeUnmount(() => {
                             </div>
                             <div class="space-y-2">
                                 <FloatingSelect
+                                    id="filter-service"
+                                    label="Type de service"
+                                    :options="serviceOptions"
+                                    :model-value="filterForm.service ? `${filterForm.service}` : 'all'"
+                                    @update:model-value="value => { filterForm.service = value === 'all' ? '' : value; applyFilters(); }"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <FloatingSelect
                                     id="filter-sort"
                                     label="Trier par"
                                     :options="sortOptions"
@@ -201,6 +232,19 @@ onBeforeUnmount(() => {
 
                 <section class="order-1 lg:order-2">
                     <BabysitterList :babysitters="babysitters" />
+                    <div v-if="pagination" class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                        <Button variant="outline" size="sm" :disabled="!hasPrevPage"
+                            @click="goToPage(pagination?.prev_page_url)">
+                            Precedent
+                        </Button>
+                        <span class="text-xs text-muted-foreground">
+                            Page {{ pagination?.current_page ?? 1 }}
+                        </span>
+                        <Button variant="outline" size="sm" :disabled="!hasNextPage"
+                            @click="goToPage(pagination?.next_page_url)">
+                            Suivant
+                        </Button>
+                    </div>
                 </section>
             </div>
         </div>

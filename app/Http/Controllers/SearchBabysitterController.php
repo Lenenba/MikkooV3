@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Service;
 use App\Http\Requests\SearchBabysitterRequest;
 use Inertia\Inertia;
 use Illuminate\Database\Eloquent\Builder;
@@ -110,9 +111,18 @@ class SearchBabysitterController extends Controller
             ->simplePaginate(12)
             ->withQueryString();
 
+        $serviceOptions = Service::query()
+            ->whereNotNull('user_id')
+            ->whereNotNull('name')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name')
+            ->values();
+
         return Inertia::render('search/Index', [
             'babysitters' => $babysitters,
             'filters' => $filters,
+            'serviceOptions' => $serviceOptions,
         ]);
     }
 

@@ -204,6 +204,7 @@ export interface SearchFilters {
     name?: string;
     city?: string;
     country?: string;
+    service?: string;
     min_price?: number | string | null;
     max_price?: number | string | null;
     min_rating?: number | string | null;

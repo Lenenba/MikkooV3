@@ -18,6 +18,7 @@ class SearchBabysitterRequest extends FormRequest
             'name' => ['nullable', 'string', 'max:120'],
             'city' => ['nullable', 'string', 'max:120'],
             'country' => ['nullable', 'string', 'max:120'],
+            'service' => ['nullable', 'string', 'max:255'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
             'min_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
@@ -46,6 +47,9 @@ class SearchBabysitterRequest extends FormRequest
             'name' => $normalize($this->input('name')),
             'city' => $normalize($this->input('city')),
             'country' => $normalize($this->input('country')),
+            'service' => $this->input('service') === 'all'
+                ? null
+                : $normalize($this->input('service')),
             'min_price' => $normalize($this->input('min_price')),
             'max_price' => $normalize($this->input('max_price')),
             'min_rating' => $normalize($this->input('min_rating')),

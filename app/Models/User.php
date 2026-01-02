@@ -318,6 +318,13 @@ class User extends Authenticatable implements MustVerifyEmailContract
             });
         }
 
+        if ($hasValue($filters['service'] ?? null)) {
+            $service = $filters['service'];
+            $query->whereHas('services', function (Builder $serviceQuery) use ($service) {
+                $serviceQuery->where('name', $service);
+            });
+        }
+
         if ($hasValue($filters['min_price'] ?? null)) {
             $minPrice = (float) $filters['min_price'];
             $query->whereHas('babysitterProfile', function (Builder $profileQuery) use ($minPrice) {
