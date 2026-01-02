@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import FloatingInput from '@/components/FloatingInput.vue'
 
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
     (e: 'update:modelValue', value: Address): void
 }>()
+const { t } = useI18n()
 
 // Reactive local address state
 const address = reactive<Address>({
@@ -172,7 +174,7 @@ onBeforeUnmount(() => {
         <!-- Autocomplete input -->
         <FloatingInput
             id="address-query"
-            label="Address search"
+            :label="t('common.labels.address_search')"
             v-model="query"
             type="text"
             autocomplete="off"
@@ -182,13 +184,13 @@ onBeforeUnmount(() => {
             class="absolute z-10 mt-1 w-full rounded border border-border bg-popover text-foreground shadow-lg max-h-60 overflow-auto"
         >
             <li v-if="isLoading" class="px-4 py-2 text-sm text-muted-foreground">
-                Recherche en cours...
+                {{ t('address.search.loading') }}
             </li>
             <li v-else-if="hasError" class="px-4 py-2 text-sm text-destructive">
-                Erreur de recherche. Reessaie.
+                {{ t('address.search.error') }}
             </li>
             <li v-else-if="!suggestions.length" class="px-4 py-2 text-sm text-muted-foreground">
-                Aucun resultat.
+                {{ t('address.search.empty') }}
             </li>
             <template v-else>
                 <li
@@ -197,7 +199,11 @@ onBeforeUnmount(() => {
                     @click="selectSuggestion(item)"
                     class="px-4 py-2 hover:bg-muted cursor-pointer truncate"
                 >
-                    {{ item.display_name || [item.street, item.city, item.country].filter(Boolean).join(', ') || 'Address' }}
+                    {{
+                        item.display_name
+                            || [item.street, item.city, item.country].filter(Boolean).join(', ')
+                            || t('common.labels.address')
+                    }}
                 </li>
             </template>
         </ul>
@@ -205,24 +211,24 @@ onBeforeUnmount(() => {
         <!-- Address fields auto-filled -->
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <FloatingInput label="Street" v-model="address.street" disabled />
+                <FloatingInput :label="t('common.labels.street')" v-model="address.street" disabled />
             </div>
             <div>
-                <FloatingInput label="City" v-model="address.city" disabled />
+                <FloatingInput :label="t('common.labels.city')" v-model="address.city" disabled />
             </div>
             <div>
-                <FloatingInput label="Province" v-model="address.province" disabled />
+                <FloatingInput :label="t('common.labels.province')" v-model="address.province" disabled />
             </div>
             <div>
-                <FloatingInput label="Postal Code" v-model="address.postal_code" disabled />
+                <FloatingInput :label="t('common.labels.postal_code')" v-model="address.postal_code" disabled />
             </div>
             <div>
-                <FloatingInput label="Country" v-model="address.country" disabled />
+                <FloatingInput :label="t('common.labels.country')" v-model="address.country" disabled />
             </div>
             <div class="sm:col-span-2">
                 <div class="flex space-x-2">
-                    <FloatingInput label="Latitude" v-model="address.latitude" disabled />
-                    <FloatingInput label="Longitude" v-model="address.longitude" disabled />
+                    <FloatingInput :label="t('common.labels.latitude')" v-model="address.latitude" disabled />
+                    <FloatingInput :label="t('common.labels.longitude')" v-model="address.longitude" disabled />
                 </div>
             </div>
         </div>

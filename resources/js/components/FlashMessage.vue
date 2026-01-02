@@ -14,7 +14,7 @@
                 <!-- Dismiss button -->
                 <button @click="visible = false"
                     class="ml-4 inline-flex p-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-1"
-                    :class="buttonClasses[type]" aria-label="Dismiss">
+                    :class="buttonClasses[type]" :aria-label="$t('common.actions.close')">
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />

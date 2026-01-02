@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     label: {
         type: String,
-        default: 'Select quantity',
+        default: '',
     },
     required: {
         type: Boolean,
@@ -22,6 +23,8 @@ const model = defineModel({
 });
 
 const input = ref(null);
+const { t } = useI18n();
+const resolvedLabel = computed(() => props.label || t('common.labels.quantity'));
 
 const toNumber = (value) => {
     const parsed = Number(value);
@@ -48,7 +51,7 @@ defineExpose({ focus: () => input.value.focus() });
         <div class="w-full flex justify-between items-center gap-x-3" data-hs-input-number="">
             <div>
                 <span class="block text-xs text-muted-foreground">
-                    {{ label }}
+                    {{ resolvedLabel }}
                     <span v-if="required" class="text-red-500 dark:text-red-400"> *</span>
                 </span>
                 <!-- Input -->
@@ -63,7 +66,7 @@ defineExpose({ focus: () => input.value.focus() });
                 <!-- Decrement Button -->
                 <button type="button" @click="decrement"
                     class="size-6 inline-flex justify-center items-center gap-x-2 rounded-full border border-input bg-background text-foreground shadow-sm hover:bg-muted focus:outline-none focus:bg-muted disabled:opacity-50 disabled:pointer-events-none"
-                    tabindex="-1" aria-label="Decrease">
+                    tabindex="-1" :aria-label="t('common.actions.decrease')">
                     <svg class="shrink-0 size-3.5" xmlns="http:
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -74,7 +77,7 @@ defineExpose({ focus: () => input.value.focus() });
                 <!-- Increment Button -->
                 <button type="button" @click="increment"
                     class="size-6 inline-flex justify-center items-center gap-x-2 rounded-full border border-input bg-background text-foreground shadow-sm hover:bg-muted focus:outline-none focus:bg-muted disabled:opacity-50 disabled:pointer-events-none"
-                    tabindex="-1" aria-label="Increase">
+                    tabindex="-1" :aria-label="t('common.actions.increase')">
                     <svg class="shrink-0 size-3.5" xmlns="http:
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">

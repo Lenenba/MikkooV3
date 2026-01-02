@@ -37,7 +37,7 @@ class RatingReceivedNotification extends Notification implements ShouldQueue
         $comment = trim((string) ($rating->comment ?? ''));
 
         return (new MailMessage)
-            ->subject('Nouvelle evaluation recue')
+            ->subject(__('notifications.rating.received_subject'))
             ->markdown('emails.ratings.received', [
                 'rating' => $rating,
                 'reviewerName' => $reviewerName,
@@ -48,8 +48,10 @@ class RatingReceivedNotification extends Notification implements ShouldQueue
 
     protected function resolveUserName(?User $user): string
     {
+        $fallback = __('notifications.user_fallback');
+
         if (! $user) {
-            return 'Utilisateur';
+            return $fallback;
         }
 
         $profile = $user->parentProfile ?? $user->babysitterProfile;
@@ -63,6 +65,6 @@ class RatingReceivedNotification extends Notification implements ShouldQueue
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Utilisateur';
+        return $fallback !== '' ? $fallback : __('notifications.user_fallback');
     }
 }

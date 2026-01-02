@@ -5,26 +5,25 @@
 @endcomponent
 @endslot
 
-# Bonjour{{ $name ? ' ' . $name : '' }}
+# {{ __('emails.common.greeting', ['name' => $name ? ' ' . $name : '' ]) }}
 
-Merci pour votre inscription sur {{ config('app.name') }}.
+{{ __('emails.welcome.intro', ['app' => config('app.name')]) }}
 
 @component('mail::panel')
-- Completez votre adresse
-- Ajoutez vos preferences
-- Definissez vos disponibilites
+- {{ __('emails.welcome.steps.address') }}
+- {{ __('emails.welcome.steps.preferences') }}
+- {{ __('emails.welcome.steps.availability') }}
 @endcomponent
 
 @component('mail::button', ['url' => route('onboarding.index', ['step' => 2])])
-Completer mon inscription
+{{ __('emails.welcome.cta') }}
 @endcomponent
 
-Si vous avez besoin d'aide, repondez a ce message ou ecrivez a
-{{ config('mail.from.address') }}.
+{{ __('emails.welcome.help', ['email' => config('mail.from.address')]) }}
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

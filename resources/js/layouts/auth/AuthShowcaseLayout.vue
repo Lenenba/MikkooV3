@@ -1,11 +1,33 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { Link } from '@inertiajs/vue3';
+import type { SharedData } from '@/types';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-defineProps<{
+const props = defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const page = usePage<SharedData>();
+const { t } = useI18n();
+const currentLocale = computed(() => page.props.locale ?? 'en');
+const availableLocales = computed(() => page.props.availableLocales ?? ['en']);
+const localeOptions = computed(() =>
+    availableLocales.value.map((locale) => ({
+        value: locale,
+        label: t(`common.languages.${locale}`),
+    })),
+);
+
+const updateLocale = (event: Event) => {
+    const value = (event.target as HTMLSelectElement | null)?.value;
+    if (!value) {
+        return;
+    }
+    router.get(page.url, { lang: value }, { preserveState: true, preserveScroll: true });
+};
 </script>
 
 <template>
@@ -18,42 +40,44 @@ defineProps<{
                         <span class="text-lg font-semibold text-foreground">Mikoo</span>
                     </Link>
                     <div class="flex items-center gap-2">
-                        <label class="sr-only" for="auth-language">Language</label>
+                        <label class="sr-only" for="auth-language">{{ $t('common.labels.language') }}</label>
                         <select
                             id="auth-language"
+                            :value="currentLocale"
                             class="rounded-lg border border-input bg-background px-3 py-2 text-xs font-medium text-foreground shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            @change="updateLocale"
                         >
-                            <option value="fr">Francais</option>
-                            <option value="en" selected>English</option>
-                            <option value="de">Deutsch</option>
+                            <option v-for="option in localeOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mt-12 space-y-6">
                     <p class="text-2xl font-semibold text-foreground">
-                        La maniere simple de trouver une gardienne de confiance.
+                        {{ $t('auth.showcase.headline') }}
                     </p>
                     <div class="rounded-2xl border border-border bg-card p-6 shadow-sm">
                         <div class="space-y-4 text-sm text-muted-foreground">
                             <div class="flex items-center gap-3">
                                 <span class="h-2 w-2 rounded-full bg-primary"></span>
-                                Profils verifies et references locales.
+                                {{ $t('auth.showcase.bullets.verified_profiles') }}
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="h-2 w-2 rounded-full bg-primary"></span>
-                                Suivi clair pendant chaque garde.
+                                {{ $t('auth.showcase.bullets.clear_updates') }}
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="h-2 w-2 rounded-full bg-primary"></span>
-                                Planning flexible pour les parents.
+                                {{ $t('auth.showcase.bullets.flexible_schedule') }}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>(c) 2026 Mikoo</span>
+                    <span>{{ $t('common.footer.copyright', { year: 2026, app: 'Mikoo' }) }}</span>
                     <span>contact@mikoo.test</span>
                 </div>
             </aside>

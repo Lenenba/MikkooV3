@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -29,13 +30,14 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs = computed<BreadcrumbItem[]>(() => ([
     {
-        title: 'Profile settings',
+        title: t('settings.profile.breadcrumb'),
         href: '/settings/profile',
     },
-];
+]));
 
 const page = usePage<SharedData & Props>();
 const user = page.props.auth.user as User;
@@ -59,13 +61,13 @@ const profile = computed(() => {
 const profileSettings = computed(() => (profile.value?.settings ?? {}) as Record<string, any>);
 const mediaItems = computed(() => props.media ?? []);
 
-const paymentOptions = [
-    { value: 'per_task', label: 'Per task' },
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-    { value: 'biweekly', label: 'Biweekly' },
-    { value: 'monthly', label: 'Monthly' },
-];
+const paymentOptions = computed(() => ([
+    { value: 'per_task', label: t('common.payment.per_task') },
+    { value: 'daily', label: t('common.payment.daily') },
+    { value: 'weekly', label: t('common.payment.weekly') },
+    { value: 'biweekly', label: t('common.payment.biweekly') },
+    { value: 'monthly', label: t('common.payment.monthly') },
+]));
 
 const accountForm = useForm({
     name: user.name,
@@ -298,24 +300,24 @@ const selectDefaultChildPhoto = (photo: string) => {
 
 const tabItems = computed(() => {
     const items = [
-        { value: 'account', label: 'Account' },
+        { value: 'account', label: t('settings.profile.tabs.account') },
     ];
 
     if (isSuperAdmin.value) {
-        items.push({ value: 'media', label: 'Media' });
-        items.push({ value: 'gallery', label: 'Gallery' });
+        items.push({ value: 'media', label: t('settings.profile.tabs.media') });
+        items.push({ value: 'gallery', label: t('settings.profile.tabs.gallery') });
         return items;
     }
 
-    items.push({ value: 'address', label: 'Address' });
+    items.push({ value: 'address', label: t('settings.profile.tabs.address') });
 
     if (!isBabysitter.value) {
-        items.push({ value: 'children', label: 'Children' });
+        items.push({ value: 'children', label: t('settings.profile.tabs.children') });
     }
 
-    items.push({ value: 'availability', label: 'Availability' });
-    items.push({ value: 'media', label: 'Media' });
-    items.push({ value: 'gallery', label: 'Gallery' });
+    items.push({ value: 'availability', label: t('settings.profile.tabs.availability') });
+    items.push({ value: 'media', label: t('settings.profile.tabs.media') });
+    items.push({ value: 'gallery', label: t('settings.profile.tabs.gallery') });
 
     return items;
 });
@@ -323,7 +325,7 @@ const tabItems = computed(() => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Profile settings" />
+        <Head :title="$t('settings.profile.title')" />
 
         <SettingsLayout>
             <Tabs default-value="account" class="space-y-6">
@@ -335,12 +337,15 @@ const tabItems = computed(() => {
 
                 <TabsContent value="account" class="space-y-6">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
-                        <HeadingSmall title="Account" description="Update your name and email address" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.account.title')"
+                            :description="$t('settings.profile.sections.account.description')"
+                        />
                         <form @submit.prevent="submitAccount" class="mt-6 space-y-6">
                             <div class="grid gap-2">
                                 <FloatingInput
                                     id="name"
-                                    label="Name"
+                                    :label="$t('common.labels.name')"
                                     v-model="accountForm.name"
                                     required
                                     autocomplete="name"
@@ -351,7 +356,7 @@ const tabItems = computed(() => {
                             <div class="grid gap-2">
                                 <FloatingInput
                                     id="email"
-                                    label="Email address"
+                                    :label="$t('common.labels.email_address')"
                                     type="email"
                                     v-model="accountForm.email"
                                     required
@@ -362,24 +367,24 @@ const tabItems = computed(() => {
 
                             <div v-if="mustVerifyEmail && !user.email_verified_at">
                                 <p class="-mt-4 text-sm text-muted-foreground">
-                                    Your email address is unverified.
+                                    {{ $t('settings.profile.account.unverified') }}
                                     <Link
                                         :href="route('verification.send')"
                                         method="post"
                                         as="button"
                                         class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                     >
-                                        Click here to resend the verification email.
+                                        {{ $t('settings.profile.account.resend') }}
                                     </Link>
                                 </p>
 
                                 <div v-if="status === 'verification-link-sent'" class="mt-2 text-sm font-medium text-green-600">
-                                    A new verification link has been sent to your email address.
+                                    {{ $t('settings.profile.account.link_sent') }}
                                 </div>
                             </div>
 
                             <div class="flex items-center gap-4">
-                                <Button :disabled="accountForm.processing">Save</Button>
+                                <Button :disabled="accountForm.processing">{{ $t('common.actions.save') }}</Button>
 
                                 <Transition
                                     enter-active-class="transition ease-in-out"
@@ -387,30 +392,35 @@ const tabItems = computed(() => {
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="accountForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
+                                    <p v-show="accountForm.recentlySuccessful" class="text-sm text-muted-foreground">
+                                        {{ $t('common.misc.saved') }}
+                                    </p>
                                 </Transition>
                             </div>
                         </form>
                     </div>
 
                     <div v-if="!isSuperAdmin" class="rounded-lg border border-border bg-card p-6 shadow-sm">
-                        <HeadingSmall title="Profile details" description="Update your personal profile information" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.details.title')"
+                            :description="$t('settings.profile.sections.details.description')"
+                        />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-6">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-2">
-                                    <FloatingInput id="first_name" label="First name" v-model="detailsForm.first_name" />
+                                    <FloatingInput id="first_name" :label="$t('common.labels.first_name')" v-model="detailsForm.first_name" />
                                     <InputError :message="detailsForm.errors.first_name" />
                                 </div>
                                 <div class="space-y-2">
-                                    <FloatingInput id="last_name" label="Last name" v-model="detailsForm.last_name" />
+                                    <FloatingInput id="last_name" :label="$t('common.labels.last_name')" v-model="detailsForm.last_name" />
                                     <InputError :message="detailsForm.errors.last_name" />
                                 </div>
                                 <div class="space-y-2">
-                                    <FloatingInput id="phone" label="Phone" v-model="detailsForm.phone" />
+                                    <FloatingInput id="phone" :label="$t('common.labels.phone')" v-model="detailsForm.phone" />
                                     <InputError :message="detailsForm.errors.phone" />
                                 </div>
                                 <div class="space-y-2">
-                                    <FloatingInput id="birthdate" label="Birthdate" type="date" v-model="detailsForm.birthdate" />
+                                    <FloatingInput id="birthdate" :label="$t('common.labels.birthdate')" type="date" v-model="detailsForm.birthdate" />
                                     <InputError :message="detailsForm.errors.birthdate" />
                                 </div>
                             </div>
@@ -420,7 +430,7 @@ const tabItems = computed(() => {
                                     <div class="space-y-2">
                                         <FloatingInput
                                             id="price_per_hour"
-                                            label="Price per hour"
+                                            :label="$t('common.labels.price_per_hour')"
                                             type="number"
                                             min="0"
                                             step="0.01"
@@ -431,7 +441,7 @@ const tabItems = computed(() => {
                                     <div class="space-y-2">
                                         <FloatingSelect
                                             id="payment_frequency"
-                                            label="Payment frequency"
+                                            :label="$t('common.labels.payment_frequency')"
                                             :options="paymentOptions"
                                             v-model="detailsForm.payment_frequency"
                                         />
@@ -440,35 +450,39 @@ const tabItems = computed(() => {
                                 </div>
 
                                 <div class="space-y-2">
-                                    <FloatingTextarea id="services" label="Services" rows="2" v-model="detailsForm.services" />
+                                    <FloatingTextarea id="services" :label="$t('common.labels.services')" rows="2" v-model="detailsForm.services" />
                                     <InputError :message="detailsForm.errors.services" />
                                 </div>
 
                                 <div class="space-y-2">
-                                    <FloatingTextarea id="experience" label="Experience" rows="3" v-model="detailsForm.experience" />
+                                    <FloatingTextarea id="experience" :label="$t('common.labels.experience')" rows="3" v-model="detailsForm.experience" />
                                     <InputError :message="detailsForm.errors.experience" />
                                 </div>
 
                                 <div class="space-y-2">
-                                    <FloatingTextarea id="bio" label="Bio" rows="3" v-model="detailsForm.bio" />
+                                    <FloatingTextarea id="bio" :label="$t('common.labels.bio')" rows="3" v-model="detailsForm.bio" />
                                     <InputError :message="detailsForm.errors.bio" />
                                 </div>
                             </div>
 
                             <div v-else class="space-y-2">
-                                <FloatingTextarea id="preferences" label="Preferences" rows="3" v-model="detailsForm.preferences" />
+                                <FloatingTextarea id="preferences" :label="$t('common.labels.preferences')" rows="3" v-model="detailsForm.preferences" />
                                 <InputError :message="detailsForm.errors.preferences" />
                             </div>
 
                             <div class="flex items-center justify-between">
-                                <Button type="submit" :disabled="detailsForm.processing">Save profile</Button>
+                                <Button type="submit" :disabled="detailsForm.processing">
+                                    {{ $t('settings.profile.actions.save_profile') }}
+                                </Button>
                                 <Transition
                                     enter-active-class="transition ease-in-out"
                                     enter-from-class="opacity-0"
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
+                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">
+                                        {{ $t('common.misc.saved') }}
+                                    </p>
                                 </Transition>
                             </div>
                         </form>
@@ -481,21 +495,28 @@ const tabItems = computed(() => {
 
                 <TabsContent v-if="!isSuperAdmin" value="address">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
-                        <HeadingSmall title="Address" description="Update your address details" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.address.title')"
+                            :description="$t('settings.profile.sections.address.description')"
+                        />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-6">
                             <AddressForm v-model="addressModel" />
                             <InputError
                                 :message="detailsForm.errors['address.street'] || detailsForm.errors['address.city'] || detailsForm.errors['address.country']"
                             />
                             <div class="flex items-center justify-between">
-                                <Button type="submit" :disabled="detailsForm.processing">Save address</Button>
+                                <Button type="submit" :disabled="detailsForm.processing">
+                                    {{ $t('settings.profile.actions.save_address') }}
+                                </Button>
                                 <Transition
                                     enter-active-class="transition ease-in-out"
                                     enter-from-class="opacity-0"
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
+                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">
+                                        {{ $t('common.misc.saved') }}
+                                    </p>
                                 </Transition>
                             </div>
                         </form>
@@ -505,29 +526,36 @@ const tabItems = computed(() => {
 
                 <TabsContent v-if="!isBabysitter && !isSuperAdmin" value="children">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
-                        <HeadingSmall title="Children" description="Manage each child profile" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.children.title')"
+                            :description="$t('settings.profile.sections.children.description')"
+                        />
                         <InputError :message="detailsForm.errors.children" />
                         <div class="flex items-center justify-between">
-                            <p class="text-sm text-muted-foreground">Add details for each child, including a photo.</p>
-                            <Button type="button" variant="outline" @click="openChildForm">Add child</Button>
+                            <p class="text-sm text-muted-foreground">{{ $t('settings.profile.children.hint') }}</p>
+                            <Button type="button" variant="outline" @click="openChildForm">
+                                {{ $t('common.actions.add_child') }}
+                            </Button>
                         </div>
 
                         <div v-if="showChildForm" class="rounded-sm border border-border p-4">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-2">
-                                    <FloatingInput id="child_name" label="Child name" v-model="childDraft.name" />
+                                    <FloatingInput id="child_name" :label="$t('common.labels.child_name')" v-model="childDraft.name" />
                                 </div>
                                 <div class="space-y-2">
-                                    <FloatingInput id="child_age" label="Age" type="number" min="0" v-model="childDraft.age" />
+                                    <FloatingInput id="child_age" :label="$t('common.labels.age')" type="number" min="0" v-model="childDraft.age" />
                                 </div>
                                 <div class="space-y-2 sm:col-span-2">
-                                    <FloatingInput id="child_allergies" label="Allergies" v-model="childDraft.allergies" />
+                                    <FloatingInput id="child_allergies" :label="$t('common.labels.allergies')" v-model="childDraft.allergies" />
                                 </div>
                                 <div class="space-y-2 sm:col-span-2">
-                                    <FloatingTextarea id="child_details" label="Details" rows="2" v-model="childDraft.details" />
+                                    <FloatingTextarea id="child_details" :label="$t('common.labels.details')" rows="2" v-model="childDraft.details" />
                                 </div>
                                 <div class="space-y-2 sm:col-span-2">
-                                    <label class="text-sm font-medium text-foreground" for="child_photo">Photo</label>
+                                    <label class="text-sm font-medium text-foreground" for="child_photo">
+                                        {{ $t('common.labels.photo') }}
+                                    </label>
                                     <input
                                         :key="childPhotoKey"
                                         id="child_photo"
@@ -539,15 +567,15 @@ const tabItems = computed(() => {
                                     <div v-if="childDraft.photo" class="mt-3 flex items-center gap-3">
                                         <img
                                             :src="childDraft.photo"
-                                            alt="Child photo preview"
+                                            :alt="$t('settings.profile.children.photo_preview_alt')"
                                             class="h-16 w-16 rounded-sm object-cover"
                                         />
                                         <Button type="button" variant="outline" @click="clearChildPhoto">
-                                            Remove photo
+                                            {{ $t('settings.profile.actions.remove_photo') }}
                                         </Button>
                                     </div>
                                     <div class="mt-4 space-y-2">
-                                        <p class="text-sm font-medium text-foreground">Images par defaut</p>
+                                        <p class="text-sm font-medium text-foreground">{{ $t('common.labels.images_default') }}</p>
                                         <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
                                             <button
                                                 v-for="photo in childDefaultPhotos"
@@ -561,7 +589,7 @@ const tabItems = computed(() => {
                                             >
                                                 <img
                                                     :src="photo"
-                                                    alt="Default child"
+                                                    :alt="$t('settings.profile.children.default_photo_alt')"
                                                     class="h-16 w-full object-cover"
                                                 />
                                             </button>
@@ -570,8 +598,12 @@ const tabItems = computed(() => {
                                 </div>
                             </div>
                             <div class="mt-4 flex items-center justify-end gap-2">
-                                <Button type="button" variant="outline" @click="cancelChildForm">Cancel</Button>
-                                <Button type="button" @click="saveChild">Save child</Button>
+                                <Button type="button" variant="outline" @click="cancelChildForm">
+                                    {{ $t('common.actions.cancel') }}
+                                </Button>
+                                <Button type="button" @click="saveChild">
+                                    {{ $t('settings.profile.actions.save_child') }}
+                                </Button>
                             </div>
                         </div>
 
@@ -585,16 +617,16 @@ const tabItems = computed(() => {
                                     <div class="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
                                         <img
                                             :src="resolveChildPhoto(child.photo, [child.name, child.age], index)"
-                                            alt="Child photo"
+                                            :alt="$t('settings.profile.children.photo_alt')"
                                             class="h-full w-full object-cover"
                                         />
                                     </div>
                                     <div class="space-y-1 text-sm text-muted-foreground">
                                         <p class="text-sm font-semibold text-foreground">
-                                            {{ child.name || `Child ${index + 1}` }}
+                                            {{ child.name || $t('settings.profile.children.default_name', { index: index + 1 }) }}
                                         </p>
-                                        <p>Age: {{ child.age || '-' }}</p>
-                                        <p v-if="child.allergies">Allergies: {{ child.allergies }}</p>
+                                        <p>{{ $t('settings.profile.children.age_line', { age: child.age || '-' }) }}</p>
+                                        <p v-if="child.allergies">{{ $t('settings.profile.children.allergies_line', { allergies: child.allergies }) }}</p>
                                         <p v-if="child.details">{{ child.details }}</p>
                                     </div>
                                 </div>
@@ -605,7 +637,7 @@ const tabItems = computed(() => {
                                         variant="outline"
                                         @click="removeChild(index)"
                                     >
-                                        Remove
+                                        {{ $t('common.actions.remove') }}
                                     </Button>
                                 </div>
                             </div>
@@ -613,7 +645,7 @@ const tabItems = computed(() => {
 
                         <div class="flex items-center justify-between">
                             <Button type="button" variant="outline" @click="submitDetails" :disabled="detailsForm.processing">
-                                Save children
+                                {{ $t('settings.profile.actions.save_children') }}
                             </Button>
                             <Transition
                                 enter-active-class="transition ease-in-out"
@@ -621,7 +653,9 @@ const tabItems = computed(() => {
                                 leave-active-class="transition ease-in-out"
                                 leave-to-class="opacity-0"
                             >
-                                <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
+                                <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">
+                                    {{ $t('common.misc.saved') }}
+                                </p>
                             </Transition>
                         </div>
                     </div>
@@ -629,31 +663,38 @@ const tabItems = computed(() => {
 
                 <TabsContent v-if="!isSuperAdmin" value="availability">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
-                        <HeadingSmall title="Availability" description="Update your availability details" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.availability.title')"
+                            :description="$t('settings.profile.sections.availability.description')"
+                        />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-4">
                             <FloatingTextarea
                                 id="availability"
-                                label="Availability"
+                                :label="$t('common.labels.availability')"
                                 rows="3"
                                 v-model="detailsForm.availability"
                             />
                             <InputError :message="detailsForm.errors.availability" />
                             <FloatingTextarea
                                 id="availability_notes"
-                                label="Notes"
+                                :label="$t('common.labels.availability_notes')"
                                 rows="3"
                                 v-model="detailsForm.availability_notes"
                             />
                             <InputError :message="detailsForm.errors.availability_notes" />
                             <div class="flex items-center justify-between">
-                                <Button type="submit" :disabled="detailsForm.processing">Save availability</Button>
+                                <Button type="submit" :disabled="detailsForm.processing">
+                                    {{ $t('settings.profile.actions.save_availability') }}
+                                </Button>
                                 <Transition
                                     enter-active-class="transition ease-in-out"
                                     enter-from-class="opacity-0"
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
+                                    <p v-show="detailsForm.recentlySuccessful" class="text-sm text-muted-foreground">
+                                        {{ $t('common.misc.saved') }}
+                                    </p>
                                 </Transition>
                             </div>
                         </form>
@@ -662,22 +703,25 @@ const tabItems = computed(() => {
 
                 <TabsContent value="media">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
-                        <HeadingSmall title="Media" description="Update your avatar and gallery" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.media.title')"
+                            :description="$t('settings.profile.sections.media.description')"
+                        />
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-foreground">Avatar</h3>
+                                <h3 class="text-sm font-semibold text-foreground">{{ $t('common.labels.avatar') }}</h3>
                                 <MediaUploadForm
                                     collection-name="avatar"
-                                    collection-label="Avatar"
+                                    :collection-label="$t('common.labels.avatar')"
                                     :max-photos="1"
                                     :hide-collection-input="true"
                                 />
                             </div>
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-foreground">Gallery</h3>
+                                <h3 class="text-sm font-semibold text-foreground">{{ $t('common.labels.gallery') }}</h3>
                                 <MediaUploadForm
                                     collection-name="gallery"
-                                    collection-label="Gallery"
+                                    :collection-label="$t('common.labels.gallery')"
                                     :max-photos="5"
                                     :hide-collection-input="true"
                                 />
@@ -688,7 +732,10 @@ const tabItems = computed(() => {
 
                 <TabsContent value="gallery">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
-                        <HeadingSmall title="Gallery" description="Browse your uploaded photos" />
+                        <HeadingSmall
+                            :title="$t('settings.profile.sections.gallery.title')"
+                            :description="$t('settings.profile.sections.gallery.description')"
+                        />
                         <MediaScrollingHorizontal :items="mediaItems" />
                     </div>
                 </TabsContent>

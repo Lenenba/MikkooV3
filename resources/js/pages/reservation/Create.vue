@@ -4,6 +4,7 @@ import FloatingInput from '@/components/FloatingInput.vue'
 import FloatingTextarea from '@/components/FloatingTextarea.vue'
 import FloatingSelect from '@/components/FloatingSelect.vue'
 import { computed, watch, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
@@ -19,6 +20,7 @@ import {
 import axios from 'axios';
 
 const page = usePage();
+const { t } = useI18n();
 // Shared page props
 const Babysitter = computed(
     () => page.props.babysitter
@@ -35,16 +37,16 @@ const babysitterPhoto = computed(() => {
         defaultProfilePhoto
     );
 });
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Mes Reservations',
+        title: t('reservations.title.user'),
         href: '/reservations',
     },
     {
-        title: 'New reservation',
+        title: t('reservations.create.breadcrumb'),
         href: '/reservations/create',
     },
-];
+]);
 
 const taxRate = computed(() => Number((page.props as { tax_rate?: number }).tax_rate ?? 0));
 const currency = computed(() => (page.props as { currency?: string }).currency ?? 'USD');
@@ -78,21 +80,21 @@ const form = useForm({
     payment_method: '',
 });
 
-const recurrenceOptions = [
-    { value: 'daily', label: 'Chaque jour' },
-    { value: 'weekly', label: 'Chaque semaine' },
-    { value: 'monthly', label: 'Chaque mois' },
-];
+const recurrenceOptions = computed(() => [
+    { value: 'daily', label: t('reservations.create.recurrence.daily') },
+    { value: 'weekly', label: t('reservations.create.recurrence.weekly') },
+    { value: 'monthly', label: t('reservations.create.recurrence.monthly') },
+]);
 
-const weekdayOptions = [
-    { value: 1, label: 'Lun' },
-    { value: 2, label: 'Mar' },
-    { value: 3, label: 'Mer' },
-    { value: 4, label: 'Jeu' },
-    { value: 5, label: 'Ven' },
-    { value: 6, label: 'Sam' },
-    { value: 7, label: 'Dim' },
-];
+const weekdayOptions = computed(() => [
+    { value: 1, label: t('reservations.create.weekdays.mon') },
+    { value: 2, label: t('reservations.create.weekdays.tue') },
+    { value: 3, label: t('reservations.create.weekdays.wed') },
+    { value: 4, label: t('reservations.create.weekdays.thu') },
+    { value: 5, label: t('reservations.create.weekdays.fri') },
+    { value: 6, label: t('reservations.create.weekdays.sat') },
+    { value: 7, label: t('reservations.create.weekdays.sun') },
+]);
 
 const getIsoWeekday = (value: string) => {
     if (!value) return null;
@@ -211,7 +213,7 @@ const createReservation = () => {
 
 <template>
 
-    <Head title="Create new reservation" />
+    <Head :title="$t('reservations.create.head_title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <form @submit.prevent="createReservation" class="space-y-6">
@@ -223,23 +225,23 @@ const createReservation = () => {
                                 <div class="w-full sm:w-40">
                                     <div class="aspect-[4/5] w-full overflow-hidden rounded-sm bg-muted">
                                         <img :src="babysitterPhoto"
-                                            alt="Profile picture" class="h-full w-full object-cover" />
+                                            :alt="$t('reservations.create.profile_photo_alt')" class="h-full w-full object-cover" />
                                     </div>
                                 </div>
                                 <div class="flex-1 space-y-4">
                                     <div>
                                         <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                            Babysitter
+                                            {{ $t('common.roles.babysitter') }}
                                         </p>
                                         <h1 class="text-lg font-semibold text-foreground dark:text-neutral-100">
-                                            Reservation pour
+                                            {{ $t('reservations.create.title') }}
                                             {{ Babysitter.babysitter_profile.first_name }}
                                             {{ Babysitter.babysitter_profile.last_name }}
                                         </h1>
                                     </div>
                                     <div class="grid gap-4 text-xs text-muted-foreground dark:text-neutral-400 sm:grid-cols-2">
                                         <div>
-                                            <p class="font-semibold text-foreground dark:text-neutral-200">Adresse</p>
+                                            <p class="font-semibold text-foreground dark:text-neutral-200">{{ $t('common.labels.address') }}</p>
                                             <p>
                                                 {{ Babysitter.address.street }} {{ Babysitter.address.province }}
                                             </p>
@@ -251,7 +253,7 @@ const createReservation = () => {
                                             </p>
                                         </div>
                                         <div>
-                                            <p class="font-semibold text-foreground dark:text-neutral-200">Contact</p>
+                                            <p class="font-semibold text-foreground dark:text-neutral-200">{{ $t('common.labels.contact') }}</p>
                                             <p>{{ Babysitter.email }}</p>
                                             <p>{{ Babysitter.babysitter_profile.birthdate }}</p>
                                             <p>{{ Babysitter.babysitter_profile.phone }}</p>
@@ -262,14 +264,14 @@ const createReservation = () => {
                         </div>
 
                         <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Notes</p>
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('reservations.create.notes_title') }}</p>
                             <p class="mt-1 text-xs text-muted-foreground">
-                                Ajoute les details importants pour la reservation.
+                                {{ $t('reservations.create.notes_hint') }}
                             </p>
                             <div class="mt-3">
                                 <FloatingTextarea
                                     id="note"
-                                    label="Notes pour la reservation"
+                                    :label="$t('reservations.create.notes_label')"
                                     rows="4"
                                     v-model="form.notes"
                                 />
@@ -279,14 +281,14 @@ const createReservation = () => {
 
                     <div class="space-y-6">
                         <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Details reservation</p>
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('reservations.create.details_title') }}</p>
                             <div class="mt-3 space-y-2 text-xs text-muted-foreground dark:text-neutral-400">
                                 <div class="flex items-center justify-between">
-                                    <span>Numero</span>
+                                    <span>{{ $t('reservations.show.number') }}</span>
                                     <span class="font-medium text-foreground dark:text-neutral-100">{{ Numero }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span>Note</span>
+                                    <span>{{ $t('reservations.create.rating_label') }}</span>
                                     <span class="flex space-x-1">
                                         <Star class="h-4 w-4 text-yellow-400" />
                                         <Star class="h-4 w-4 text-yellow-400" />
@@ -299,13 +301,13 @@ const createReservation = () => {
                         </div>
 
                         <div class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Date et heure</p>
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('reservations.create.date_time_title') }}</p>
                             <p class="mt-1 text-xs text-muted-foreground">
-                                Choisis une journee unique ou une recurrence.
+                                {{ $t('reservations.create.date_time_hint') }}
                             </p>
                             <div class="mt-4 space-y-4">
                                 <div>
-                                    <p class="text-xs font-medium text-muted-foreground mb-2">Type de tache</p>
+                                    <p class="text-xs font-medium text-muted-foreground mb-2">{{ $t('reservations.create.schedule_type') }}</p>
                                     <div class="inline-flex rounded-sm border border-border bg-muted/60 p-1">
                                         <button
                                             type="button"
@@ -315,7 +317,7 @@ const createReservation = () => {
                                                 : 'text-muted-foreground hover:text-foreground'"
                                             @click="form.schedule_type = 'single'"
                                         >
-                                            Journee unique
+                                            {{ $t('reservations.create.schedule_single') }}
                                         </button>
                                         <button
                                             type="button"
@@ -325,13 +327,13 @@ const createReservation = () => {
                                                 : 'text-muted-foreground hover:text-foreground'"
                                             @click="form.schedule_type = 'recurring'"
                                         >
-                                            Recurrence
+                                            {{ $t('reservations.create.schedule_recurring') }}
                                         </button>
                                     </div>
                                 </div>
                                 <FloatingInput
                                     id="reservation-date"
-                                    :label="form.schedule_type === 'recurring' ? 'Date de debut' : 'Date'"
+                                    :label="form.schedule_type === 'recurring' ? $t('reservations.create.start_date') : $t('common.labels.date')"
                                     type="date"
                                     name="reservation-date"
                                     v-model="form.start_date"
@@ -339,14 +341,14 @@ const createReservation = () => {
                                 <div class="grid grid-cols-2 gap-4">
                                     <FloatingInput
                                         id="reservation-start-time"
-                                        label="Heure debut"
+                                        :label="$t('reservations.create.start_time')"
                                         type="time"
                                         name="reservation-start-time"
                                         v-model="form.start_time"
                                     />
                                     <FloatingInput
                                         id="reservation-end-time"
-                                        label="Heure fin"
+                                        :label="$t('reservations.create.end_time')"
                                         type="time"
                                         name="reservation-end-time"
                                         v-model="form.end_time"
@@ -355,20 +357,20 @@ const createReservation = () => {
                                 <div v-if="form.schedule_type === 'recurring'" class="space-y-3">
                                     <FloatingSelect
                                         id="recurrence-frequency"
-                                        label="Frequence"
+                                        :label="$t('reservations.create.frequency')"
                                         :options="recurrenceOptions"
                                         :required="form.schedule_type === 'recurring'"
                                         v-model="form.recurrence_frequency"
                                     />
                                     <FloatingInput
                                         id="recurrence-interval"
-                                        label="Intervalle (ex: 1 = chaque)"
+                                        :label="$t('reservations.create.interval')"
                                         type="number"
                                         min="1"
                                         v-model="form.recurrence_interval"
                                     />
                                     <div v-if="form.recurrence_frequency === 'weekly'" class="space-y-2">
-                                        <p class="text-xs font-medium text-muted-foreground">Jours</p>
+                                        <p class="text-xs font-medium text-muted-foreground">{{ $t('reservations.create.days') }}</p>
                                         <div class="grid grid-cols-7 gap-2 text-xs text-muted-foreground">
                                             <label v-for="day in weekdayOptions" :key="day.value"
                                                 class="flex items-center gap-1">
@@ -384,7 +386,7 @@ const createReservation = () => {
                                     </div>
                                     <FloatingInput
                                         id="recurrence-end-date"
-                                        label="Fin de recurrence"
+                                        :label="$t('reservations.create.recurrence_end')"
                                         type="date"
                                         :required="form.schedule_type === 'recurring'"
                                         v-model="form.recurrence_end_date"
@@ -398,13 +400,13 @@ const createReservation = () => {
                     class="rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Services</p>
+                            <p class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('common.labels.services') }}</p>
                             <p class="mt-1 text-xs text-muted-foreground">
-                                Ajoute les services et la quantite pour la reservation.
+                                {{ $t('reservations.create.services_hint') }}
                             </p>
                         </div>
                         <Button variant="outline" size="sm" @click="addNewLine">
-                            Ajouter un service
+                            {{ $t('reservations.create.add_service') }}
                         </Button>
                     </div>
 
@@ -418,34 +420,34 @@ const createReservation = () => {
                                         <th scope="col" class="min-w-[430px] ">
                                             <div
                                                 class="pe-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                                Services
+                                                {{ $t('common.labels.services') }}
                                             </div>
                                         </th>
 
                                         <th scope="col">
                                             <div
                                                 class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                                Nbre d'enfant (s)
+                                                {{ $t('reservations.table.children_count') }}
                                             </div>
                                         </th>
 
                                         <th scope="col">
                                             <div
                                                 class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                                Unit price
+                                                {{ $t('common.labels.unit_price') }}
                                             </div>
                                         </th>
 
                                         <th scope="col">
                                             <div
                                                 class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                                Total
+                                                {{ $t('common.labels.total') }}
                                             </div>
                                         </th>
                                         <th scope="col" class="size-px whitespace-nowrap text-right">
                                             <div
                                                 class="px-4 py-3 items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                                Actions
+                                                {{ $t('common.table.actions') }}
                                             </div>
                                         </th>
                                     </tr>
@@ -459,7 +461,7 @@ const createReservation = () => {
                                                 <div class="relative">
                                                     <FloatingInput
                                                         :id="`service-name-${index}`"
-                                                        label="Service"
+                                                        :label="$t('common.labels.service')"
                                                         autofocus
                                                         autocomplete="off"
                                                         v-model="form.services[index].name"
@@ -525,19 +527,19 @@ const createReservation = () => {
                 <div class="flex justify-end">
                     <div
                         class="w-full lg:max-w-md rounded-sm border border-border bg-card p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                        <p class="text-sm font-semibold text-foreground dark:text-neutral-100">Resume</p>
+                        <p class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('reservations.create.summary_title') }}</p>
                         <div class="mt-4 space-y-3 text-sm">
                             <div class="flex justify-between text-muted-foreground dark:text-neutral-400">
-                                <span>Sous-total</span>
+                                <span>{{ $t('reservations.summary.subtotal') }}</span>
                                 <span class="font-medium text-foreground dark:text-neutral-100">{{ formatCurrency(form.subtotal) }}</span>
                             </div>
                             <div class="flex justify-between text-muted-foreground dark:text-neutral-400">
-                                <span>Taxes</span>
+                                <span>{{ $t('common.labels.tax') }}</span>
                                 <span class="font-medium text-foreground dark:text-neutral-100">{{ formatCurrency(form.tax) }}</span>
                             </div>
                             <div
                                 class="flex justify-between border-t border-border pt-3 font-semibold text-foreground dark:border-neutral-800 dark:text-neutral-100">
-                                <span>Total</span>
+                                <span>{{ $t('common.labels.total') }}</span>
                                 <span>{{ formatCurrency(form.total_amount) }}</span>
                             </div>
                         </div>
@@ -547,14 +549,14 @@ const createReservation = () => {
                     class="rounded-sm border border-border bg-card p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <Button variant="outline">
-                            Cancel
+                            {{ $t('common.actions.cancel') }}
                         </Button>
                         <div class="flex flex-wrap gap-2">
                             <Button variant="outline">
-                                Save and create another
+                                {{ $t('reservations.create.save_and_new') }}
                             </Button>
                             <Button type="submit">
-                                Save reservation
+                                {{ $t('reservations.create.save') }}
                             </Button>
                         </div>
                     </div>

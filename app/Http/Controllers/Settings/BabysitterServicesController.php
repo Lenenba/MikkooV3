@@ -86,7 +86,7 @@ class BabysitterServicesController extends Controller
             'price' => $data['price'],
         ]);
 
-        return back()->with('success', 'Service added successfully.');
+        return back()->with('success', __('flash.service.added'));
     }
 
     public function update(Request $request, Service $service)
@@ -112,7 +112,7 @@ class BabysitterServicesController extends Controller
             'price' => $data['price'],
         ]);
 
-        return back()->with('success', 'Service updated successfully.');
+        return back()->with('success', __('flash.service.updated'));
     }
 
     public function destroy(Request $request, Service $service)
@@ -128,6 +128,6 @@ class BabysitterServicesController extends Controller
 
         $service->delete();
 
-        return back()->with('success', 'Service deleted successfully.');
+        return back()->with('success', __('flash.service.deleted'));
     }
 }

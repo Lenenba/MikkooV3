@@ -29,7 +29,7 @@ class AcceptReservationController extends Controller
         $reservation = Reservation::findOrFail($reservationId);
 
         if ($reservation->details->status !== 'pending') {
-            return redirect()->back()->with('error', 'Reservation is not in a pending state.');
+            return redirect()->back()->with('error', __('flash.reservation.not_pending'));
         }
         // Authorize the action using the ReservationPolicy
         $this->authorize('accept', $reservation);
@@ -53,6 +53,6 @@ class AcceptReservationController extends Controller
         // $this->workGenerator->generate($reservation);
 
         // Redirect back with a success message
-        return redirect()->route('reservations.index', $reservation->id)->with('success', 'Reservation Confirmed successfully!');
+        return redirect()->route('reservations.index', $reservation->id)->with('success', __('flash.reservation.confirmed'));
     }
 }

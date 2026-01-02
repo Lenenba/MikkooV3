@@ -3,19 +3,21 @@ import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import FloatingInput from '@/components/FloatingInput.vue';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
 
-const breadcrumbItems: BreadcrumbItem[] = [
+const { t } = useI18n();
+const breadcrumbItems = computed<BreadcrumbItem[]>(() => ([
     {
-        title: 'Password settings',
+        title: t('settings.password.title'),
         href: '/settings/password',
     },
-];
+]));
 
 const passwordInput = ref<{ focus: () => void } | null>(null);
 const currentPasswordInput = ref<{ focus: () => void } | null>(null);
@@ -47,18 +49,21 @@ const updatePassword = () => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Password settings" />
+        <Head :title="$t('settings.password.title')" />
 
         <SettingsLayout>
             <div class="space-y-6">
-                <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
+                <HeadingSmall
+                    :title="$t('settings.password.heading.title')"
+                    :description="$t('settings.password.heading.description')"
+                />
 
                 <form @submit.prevent="updatePassword" class="space-y-6">
                     <div class="grid gap-2">
                         <FloatingInput
                             id="current_password"
                             ref="currentPasswordInput"
-                            label="Current password"
+                            :label="$t('settings.password.labels.current_password')"
                             v-model="form.current_password"
                             type="password"
                             autocomplete="current-password"
@@ -70,7 +75,7 @@ const updatePassword = () => {
                         <FloatingInput
                             id="password"
                             ref="passwordInput"
-                            label="New password"
+                            :label="$t('settings.password.labels.new_password')"
                             v-model="form.password"
                             type="password"
                             autocomplete="new-password"
@@ -81,7 +86,7 @@ const updatePassword = () => {
                     <div class="grid gap-2">
                         <FloatingInput
                             id="password_confirmation"
-                            label="Confirm password"
+                            :label="$t('settings.password.labels.confirm_password')"
                             v-model="form.password_confirmation"
                             type="password"
                             autocomplete="new-password"
@@ -90,7 +95,7 @@ const updatePassword = () => {
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <Button :disabled="form.processing">Save password</Button>
+                        <Button :disabled="form.processing">{{ $t('settings.password.actions.save') }}</Button>
 
                         <Transition
                             enter-active-class="transition ease-in-out"
@@ -98,7 +103,9 @@ const updatePassword = () => {
                             leave-active-class="transition ease-in-out"
                             leave-to-class="opacity-0"
                         >
-                            <p v-show="form.recentlySuccessful" class="text-sm text-muted-foreground">Saved.</p>
+                            <p v-show="form.recentlySuccessful" class="text-sm text-muted-foreground">
+                                {{ $t('common.misc.saved') }}
+                            </p>
                         </Transition>
                     </div>
                 </form>

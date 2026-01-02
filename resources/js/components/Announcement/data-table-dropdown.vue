@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -22,6 +23,7 @@ const props = defineProps<{
     readOnly?: boolean
 }>()
 
+const { t } = useI18n()
 const status = computed(() => (props.announcement.status ?? '').toString().toLowerCase())
 const isReadOnly = computed(() => props.readOnly ?? false)
 const canClose = computed(() => status.value !== 'closed')
@@ -43,7 +45,7 @@ const closeAnnouncement = () => {
 }
 
 const deleteAnnouncement = () => {
-    if (!confirm('Supprimer cette annonce ?')) {
+    if (!confirm(t('announcements.actions.confirm_delete'))) {
         return
     }
     router.delete(
@@ -61,22 +63,22 @@ const viewAnnouncement = () => {
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
             <Button variant="ghost" class="h-8 w-8 p-0">
-                <span class="sr-only">Open menu</span>
+                <span class="sr-only">{{ $t('common.labels.open_menu') }}</span>
                 <MoreHorizontal class="h-4 w-4" />
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{{ $t('common.table.actions') }}</DropdownMenuLabel>
             <DropdownMenuItem @click="viewAnnouncement">
-                {{ isReadOnly ? 'Voir details' : hasApplications ? 'Voir candidatures' : 'Voir details' }}
+                {{ isReadOnly ? $t('announcements.actions.view_details') : hasApplications ? $t('announcements.actions.view_applications') : $t('announcements.actions.view_details') }}
             </DropdownMenuItem>
             <DropdownMenuSeparator v-if="!isReadOnly && hasApplications" />
             <DropdownMenuItem v-if="!isReadOnly && canClose" @click="closeAnnouncement">
-                Marquer comme pourvue
+                {{ $t('announcements.actions.mark_filled') }}
             </DropdownMenuItem>
             <DropdownMenuSeparator v-if="!isReadOnly && canClose" />
             <DropdownMenuItem v-if="!isReadOnly" @click="deleteAnnouncement">
-                Supprimer l'annonce
+                {{ $t('announcements.actions.delete') }}
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>

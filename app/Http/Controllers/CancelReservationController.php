@@ -21,7 +21,7 @@ class CancelReservationController extends Controller
         $reservation = Reservation::findOrFail($reservationId);
 
         if ($reservation->details->status === 'canceled') {
-            return redirect()->back()->with('error', 'This Reservation is already cancelled.');
+            return redirect()->back()->with('error', __('flash.reservation.already_canceled'));
         }
 
         // Authorize the action using the ReservationPolicycanceled
@@ -38,6 +38,6 @@ class CancelReservationController extends Controller
         );
 
         // Redirect back with a success message
-        return back()->with('success', 'Reservation canceled successfully!');
+        return back()->with('success', __('flash.reservation.canceled'));
     }
 }

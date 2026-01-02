@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineProps, withDefaults } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Link } from '@inertiajs/vue3';
 import { type Babysitter, type Rating } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ const props = withDefaults(defineProps<{ babysitters: Babysitter[] }>(), {
     babysitters: () => [],
 });
 
+const { t } = useI18n();
 const ratingStars = [1, 2, 3, 4, 5];
 const reviewDateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -46,7 +48,7 @@ const getProfile = (babysitter: Babysitter) => babysitter.babysitter_profile ?? 
 const getFullName = (babysitter: Babysitter) => {
     const profile = getProfile(babysitter);
     const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
-    return fullName || babysitter.name || 'Babysitter';
+    return fullName || babysitter.name || t('search.babysitter.default_name');
 };
 
 const getInitials = (babysitter: Babysitter) => {
@@ -63,23 +65,36 @@ const getInitials = (babysitter: Babysitter) => {
 const getLocation = (babysitter: Babysitter) => {
     const address = babysitter.address ?? null;
     if (!address) {
-        return 'Location inconnue';
+        return t('search.babysitter.unknown_location');
     }
-    return [address.city, address.country].filter(Boolean).join(', ') || 'Location inconnue';
+    return [address.city, address.country].filter(Boolean).join(', ') || t('search.babysitter.unknown_location');
 };
 
 const getPrice = (babysitter: Babysitter) => getProfile(babysitter)?.price_per_hour ?? 0;
 
-const getPriceLabel = (babysitter: Babysitter) => `${formatCurrency(getPrice(babysitter))} / h`;
+const getPriceLabel = (babysitter: Babysitter) =>
+    t('search.babysitter.per_hour', { price: formatCurrency(getPrice(babysitter)) });
 
 const getBio = (babysitter: Babysitter) =>
-    getProfile(babysitter)?.bio ?? 'Aucune description disponible pour le moment.';
+    getProfile(babysitter)?.bio ?? t('search.babysitter.no_description');
 
 const getExperience = (babysitter: Babysitter) =>
-    getProfile(babysitter)?.experience ?? 'Experience non renseignee';
+    getProfile(babysitter)?.experience ?? t('search.babysitter.no_experience');
 
-const getPaymentFrequency = (babysitter: Babysitter) =>
-    getProfile(babysitter)?.payment_frequency ?? 'Flexible';
+const getPaymentFrequency = (babysitter: Babysitter) => {
+    const value = getProfile(babysitter)?.payment_frequency ?? '';
+    if (!value) {
+        return t('search.babysitter.payment_flexible');
+    }
+    const map: Record<string, string> = {
+        per_task: t('search.payment.per_task'),
+        daily: t('search.payment.daily'),
+        weekly: t('search.payment.weekly'),
+        biweekly: t('search.payment.biweekly'),
+        monthly: t('search.payment.monthly'),
+    };
+    return map[value] ?? t('search.babysitter.payment_flexible');
+};
 
 const getProfilePhoto = (babysitter: Babysitter) => {
     const media = babysitter.media ?? [];
@@ -95,7 +110,7 @@ const getReviews = (babysitter: Babysitter) =>
 
 const getReviewCount = (babysitter: Babysitter) => getReviews(babysitter).length;
 
-const getReviewerName = (review: Rating) => review.reviewer?.name ?? 'Parent';
+const getReviewerName = (review: Rating) => review.reviewer?.name ?? t('common.roles.parent');
 
 const getReviewerInitials = (review: Rating) => {
     const name = getReviewerName(review);
@@ -151,7 +166,7 @@ const truncate = (value: string, max = 120) => {
                                     <Badge v-if="isTopRated(babysitter)"
                                         class="absolute left-3 top-3 bg-amber-100 text-amber-700 shadow-sm backdrop-blur dark:bg-amber-500/20 dark:text-amber-200">
                                         <Sparkles class="mr-1 h-3.5 w-3.5" />
-                                        Top rated
+                                        {{ $t('search.babysitter.top_rated') }}
                                     </Badge>
                                     <div
                                         class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
@@ -169,9 +184,9 @@ const truncate = (value: string, max = 120) => {
                                                         {{ getLocation(babysitter) }}
                                                     </p>
                                                 </div>
-                                                <span
+                                                    <span
                                                     class="rounded-full bg-card/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-white/90 opacity-0 transition group-hover:opacity-100">
-                                                    Voir profil
+                                                    {{ $t('search.babysitter.view_profile') }}
                                                 </span>
                                             </div>
                                             <div class="mt-2 flex items-center gap-2 text-[9px]">
@@ -241,19 +256,19 @@ const truncate = (value: string, max = 120) => {
                                         {{ formatRating(getRatingAverage(babysitter)) }}
                                     </span>
                                     <span class="text-muted-foreground">
-                                        ({{ getRatingCount(babysitter) }} notes)
+                                        {{ $t('search.babysitter.rating_count', { count: getRatingCount(babysitter) }) }}
                                     </span>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                                     <div class="rounded-sm border border-border bg-card p-3">
-                                        <p class="text-xs text-muted-foreground/70">Experience</p>
+                                        <p class="text-xs text-muted-foreground/70">{{ $t('common.labels.experience') }}</p>
                                         <p class="mt-1 font-medium text-foreground">
                                             {{ getExperience(babysitter) }}
                                         </p>
                                     </div>
                                     <div class="rounded-sm border border-border bg-card p-3">
-                                        <p class="text-xs text-muted-foreground/70">Paiement</p>
+                                        <p class="text-xs text-muted-foreground/70">{{ $t('search.babysitter.payment_label') }}</p>
                                         <p class="mt-1 font-medium text-foreground">
                                             {{ getPaymentFrequency(babysitter) }}
                                         </p>
@@ -261,7 +276,7 @@ const truncate = (value: string, max = 120) => {
                                 </div>
 
                                 <div>
-                                    <h4 class="text-sm font-semibold text-foreground">A propos</h4>
+                                    <h4 class="text-sm font-semibold text-foreground">{{ $t('search.babysitter.about') }}</h4>
                                     <p class="mt-2 text-sm text-muted-foreground">
                                         {{ getBio(babysitter) }}
                                     </p>
@@ -269,9 +284,9 @@ const truncate = (value: string, max = 120) => {
 
                                 <div>
                                     <div class="flex items-center justify-between">
-                                        <h4 class="text-sm font-semibold text-foreground">Avis des parents</h4>
+                                        <h4 class="text-sm font-semibold text-foreground">{{ $t('search.babysitter.parent_reviews') }}</h4>
                                         <span class="text-xs text-muted-foreground">
-                                            {{ getReviewCount(babysitter) }} avis
+                                            {{ $t('search.babysitter.review_count', { count: getReviewCount(babysitter) }) }}
                                         </span>
                                     </div>
                                     <div class="mt-3 space-y-3">
@@ -304,7 +319,7 @@ const truncate = (value: string, max = 120) => {
                                             </div>
                                         </div>
                                         <p v-if="getReviewCount(babysitter) === 0" class="text-xs text-muted-foreground">
-                                            Pas encore d'avis pour cette babysitter.
+                                            {{ $t('search.babysitter.no_reviews') }}
                                         </p>
                                     </div>
                                 </div>
@@ -314,7 +329,7 @@ const truncate = (value: string, max = 120) => {
                         <DialogFooter class="mt-6">
                             <Link key="book" :href="route('reservations.create', { id: babysitter.id })" class="w-full">
                                 <Button class="w-full">
-                                    Book me
+                                    {{ $t('search.babysitter.book') }}
                                 </Button>
                             </Link>
                         </DialogFooter>
@@ -323,7 +338,7 @@ const truncate = (value: string, max = 120) => {
             </div>
         </div>
         <div v-else class="text-center py-10">
-            <p class="text-muted-foreground dark:text-neutral-400">Aucune babysitter disponible pour le moment.</p>
+            <p class="text-muted-foreground dark:text-neutral-400">{{ $t('search.babysitter.empty') }}</p>
         </div>
     </div>
 </template>

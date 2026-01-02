@@ -20,7 +20,7 @@
             <template v-else>
                 <TableRow>
                     <TableCell :colspan="columns.length" class="h-24 text-center">
-                        No results.
+                        {{ $t('common.table.empty') }}
                     </TableCell>
                 </TableRow>
             </template>

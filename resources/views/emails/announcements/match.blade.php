@@ -5,11 +5,11 @@
 @endcomponent
 @endslot
 
-# Nouvelle annonce disponible
+# {{ __('emails.announcements.match.heading') }}
 
-Bonjour{{ $babysitterName ? ' ' . $babysitterName : '' }},
+{{ __('emails.common.greeting', ['name' => $babysitterName ? ' ' . $babysitterName : '' ]) }}
 
-Une nouvelle annonce correspond a vos services.
+{{ __('emails.announcements.match.intro') }}
 
 @php
     $serviceList = $announcement?->resolveServices() ?? [];
@@ -17,31 +17,31 @@ Une nouvelle annonce correspond a vos services.
 @endphp
 
 @component('mail::panel')
-Titre : {{ $announcement->title }}
-Service : {{ $serviceLabel }}
-Parent : {{ $parentName }}
+{{ __('emails.announcements.labels.title') }} : {{ $announcement->title }}
+{{ __('emails.announcements.labels.service') }} : {{ $serviceLabel }}
+{{ __('emails.announcements.labels.parent') }} : {{ $parentName }}
 @if($city)
-Ville : {{ $city }}
+{{ __('emails.announcements.labels.city') }} : {{ $city }}
 @endif
 @if($childLabel)
-Enfant : {{ $childLabel }}
+{{ __('emails.announcements.labels.child') }} : {{ $childLabel }}
 @endif
 @if($announcement->child_notes)
-Notes : {{ $announcement->child_notes }}
+{{ __('emails.announcements.labels.notes') }} : {{ $announcement->child_notes }}
 @endif
 @endcomponent
 
 @if($announcement->description)
-Details : {{ $announcement->description }}
+{{ __('emails.announcements.labels.details') }} : {{ $announcement->description }}
 @endif
 
 @component('mail::button', ['url' => route('announcements.show', $announcement->id)])
-Voir l'annonce
+{{ __('emails.announcements.match.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import FloatingInput from '@/components/FloatingInput.vue';
 import FloatingSelect from '@/components/FloatingSelect.vue';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { CHILD_DEFAULT_PHOTOS, resolveChildPhoto } from '@/lib/childPhotos';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 const page = usePage();
+const { t } = useI18n();
 
 const currentStep = computed(() => Number(page.props.step ?? 1));
 const isAuthed = computed(() => Boolean(page.props.auth?.user));
@@ -25,6 +27,7 @@ const role = computed(() => {
     }
     return 'parent';
 });
+const roleLabel = computed(() => t(`common.roles.${role.value}`));
 
 const account = computed(() => page.props.account ?? {});
 const address = computed(() => page.props.address ?? {});
@@ -106,27 +109,27 @@ const childrenSummary = computed(() => {
     return '-';
 });
 
-const steps = [
-    { id: 1, title: 'Compte', subtitle: 'Identite et acces' },
-    { id: 2, title: 'Adresse', subtitle: 'Coordonnees' },
-    { id: 3, title: 'Profil', subtitle: 'Infos specifiques' },
-    { id: 4, title: 'Media', subtitle: 'Avatar et galerie' },
-    { id: 5, title: 'Disponibilites', subtitle: 'Horaires et prefs' },
-    { id: 6, title: 'Resume', subtitle: 'Validation finale' },
-];
+const steps = computed(() => [
+    { id: 1, title: t('onboarding.steps.account.title'), subtitle: t('onboarding.steps.account.subtitle') },
+    { id: 2, title: t('onboarding.steps.address.title'), subtitle: t('onboarding.steps.address.subtitle') },
+    { id: 3, title: t('onboarding.steps.profile.title'), subtitle: t('onboarding.steps.profile.subtitle') },
+    { id: 4, title: t('onboarding.steps.media.title'), subtitle: t('onboarding.steps.media.subtitle') },
+    { id: 5, title: t('onboarding.steps.availability.title'), subtitle: t('onboarding.steps.availability.subtitle') },
+    { id: 6, title: t('onboarding.steps.summary.title'), subtitle: t('onboarding.steps.summary.subtitle') },
+]);
 
-const roleOptions = [
-    { value: 'parent', label: 'Parent' },
-    { value: 'babysitter', label: 'Babysitter' },
-];
+const roleOptions = computed(() => [
+    { value: 'parent', label: t('common.roles.parent') },
+    { value: 'babysitter', label: t('common.roles.babysitter') },
+]);
 
-const paymentOptions = [
-    { value: 'per_task', label: 'Per task' },
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-    { value: 'biweekly', label: 'Biweekly' },
-    { value: 'monthly', label: 'Monthly' },
-];
+const paymentOptions = computed(() => [
+    { value: 'per_task', label: t('onboarding.payment_options.per_task') },
+    { value: 'daily', label: t('onboarding.payment_options.daily') },
+    { value: 'weekly', label: t('onboarding.payment_options.weekly') },
+    { value: 'biweekly', label: t('onboarding.payment_options.biweekly') },
+    { value: 'monthly', label: t('onboarding.payment_options.monthly') },
+]);
 
 const registerForm = useForm({
     first_name: account.value?.first_name ?? '',
@@ -285,7 +288,7 @@ const goToStep = (step: number) => {
 
 <template>
 
-    <Head title="Onboarding" />
+    <Head :title="$t('onboarding.head_title')" />
 
     <div class="min-h-svh bg-muted/50 px-4 py-10">
         <div class="mx-auto w-full max-w-6xl">
@@ -297,8 +300,10 @@ const goToStep = (step: number) => {
                 <aside class="space-y-3">
                     <div class="rounded-sm border border-border bg-card p-4 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <p class="text-xs font-semibold uppercase text-muted-foreground">Progression</p>
-                            <span class="text-xs text-muted-foreground/70">Step {{ currentStep }} / 6</span>
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $t('onboarding.progress.label') }}</p>
+                            <span class="text-xs text-muted-foreground/70">
+                                {{ $t('onboarding.progress.step_counter', { current: currentStep, total: 6 }) }}
+                            </span>
                         </div>
                         <ul class="mt-4 space-y-3">
                             <li v-for="step in steps" :key="step.id">
@@ -329,38 +334,40 @@ const goToStep = (step: number) => {
                             <h1 class="text-lg font-semibold text-foreground">{{ steps[currentStep - 1]?.title }}</h1>
                             <p class="text-sm text-muted-foreground">{{ steps[currentStep - 1]?.subtitle }}</p>
                         </div>
-                        <span class="text-xs text-muted-foreground/70">Step {{ currentStep }} / 6</span>
+                        <span class="text-xs text-muted-foreground/70">
+                            {{ $t('onboarding.progress.step_counter', { current: currentStep, total: 6 }) }}
+                        </span>
                     </div>
 
                     <form v-if="currentStep === 1" @submit.prevent="submitRegister" class="mt-6 space-y-5">
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="space-y-2">
-                                <FloatingInput id="first_name" label="First name" v-model="registerForm.first_name"
+                                <FloatingInput id="first_name" :label="$t('common.labels.first_name')" v-model="registerForm.first_name"
                                     required />
                                 <InputError :message="registerForm.errors.first_name" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput id="last_name" label="Last name" v-model="registerForm.last_name"
+                                <FloatingInput id="last_name" :label="$t('common.labels.last_name')" v-model="registerForm.last_name"
                                     required />
                                 <InputError :message="registerForm.errors.last_name" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingInput id="email" label="Email" type="email" autocomplete="email"
+                                <FloatingInput id="email" :label="$t('common.labels.email')" type="email" autocomplete="email"
                                     v-model="registerForm.email" required />
                                 <InputError :message="registerForm.errors.email" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput id="password" label="Password" type="password"
+                                <FloatingInput id="password" :label="$t('common.labels.password')" type="password"
                                     autocomplete="new-password" v-model="registerForm.password" required />
                                 <InputError :message="registerForm.errors.password" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput id="password_confirmation" label="Confirm password" type="password"
+                                <FloatingInput id="password_confirmation" :label="$t('common.labels.password_confirm')" type="password"
                                     autocomplete="new-password" v-model="registerForm.password_confirmation" required />
                                 <InputError :message="registerForm.errors.password_confirmation" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingSelect id="role" label="Account type" :options="roleOptions"
+                                <FloatingSelect id="role" :label="$t('common.labels.account_type')" :options="roleOptions"
                                     v-model="registerForm.role" required />
                                 <InputError :message="registerForm.errors.role" />
                             </div>
@@ -368,48 +375,48 @@ const goToStep = (step: number) => {
 
                         <div class="flex items-center justify-between">
                             <div class="text-sm text-muted-foreground">
-                                Already have an account?
-                                <Link :href="route('login')" class="text-foreground underline">Log in</Link>
+                                {{ $t('auth.ui.register.has_account') }}
+                                <Link :href="route('login')" class="text-foreground underline">{{ $t('auth.ui.register.login') }}</Link>
                             </div>
-                            <Button type="submit" :disabled="registerForm.processing">Create account</Button>
+                            <Button type="submit" :disabled="registerForm.processing">{{ $t('auth.ui.register.submit') }}</Button>
                         </div>
                     </form>
 
                     <form v-else-if="currentStep === 2" @submit.prevent="submitAddress" class="mt-6 space-y-5">
                         <div class="rounded-sm border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-                            Search your address to fill the fields quickly.
+                            {{ $t('onboarding.address.search_hint') }}
                         </div>
                         <AddressForm v-model="addressModel" />
                         <InputError :message="addressForm.errors.city || addressForm.errors.country" />
                         <div class="flex items-center justify-between">
-                            <Button type="button" variant="outline" @click="goToStep(1)">Back</Button>
-                            <Button type="submit" :disabled="addressForm.processing">Continue</Button>
+                            <Button type="button" variant="outline" @click="goToStep(1)">{{ $t('common.actions.back') }}</Button>
+                            <Button type="submit" :disabled="addressForm.processing">{{ $t('common.actions.continue') }}</Button>
                         </div>
                     </form>
 
                     <form v-else-if="currentStep === 3" @submit.prevent="submitProfile" class="mt-6 space-y-5">
                         <div v-if="isBabysitter" class="grid gap-4 sm:grid-cols-2">
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingTextarea id="bio" label="Bio" rows="3" v-model="profileForm.bio" />
+                                <FloatingTextarea id="bio" :label="$t('common.labels.bio')" rows="3" v-model="profileForm.bio" />
                                 <InputError :message="profileForm.errors.bio" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingTextarea id="experience" label="Experience" rows="3"
+                                <FloatingTextarea id="experience" :label="$t('common.labels.experience')" rows="3"
                                     v-model="profileForm.experience" />
                                 <InputError :message="profileForm.errors.experience" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingInput id="price_per_hour" label="Price per hour" type="number" min="0"
+                                <FloatingInput id="price_per_hour" :label="$t('common.labels.price_per_hour')" type="number" min="0"
                                     step="0.01" v-model="profileForm.price_per_hour" />
                                 <InputError :message="profileForm.errors.price_per_hour" />
                             </div>
                             <div class="space-y-2">
-                                <FloatingSelect id="payment_frequency" label="Payment frequency"
+                                <FloatingSelect id="payment_frequency" :label="$t('common.labels.payment_frequency')"
                                     :options="paymentOptions" v-model="profileForm.payment_frequency" />
                                 <InputError :message="profileForm.errors.payment_frequency" />
                             </div>
                             <div class="space-y-2 sm:col-span-2">
-                                <FloatingTextarea id="services" label="Services" rows="2"
+                                <FloatingTextarea id="services" :label="$t('common.labels.services')" rows="2"
                                     v-model="profileForm.services" />
                                 <InputError :message="profileForm.errors.services" />
                             </div>
@@ -417,43 +424,43 @@ const goToStep = (step: number) => {
 
                         <div v-else class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-foreground">Children details</p>
-                                <Button type="button" variant="outline" @click="openChildForm">Add child</Button>
+                                <p class="text-sm font-medium text-foreground">{{ $t('common.labels.children_details') }}</p>
+                                <Button type="button" variant="outline" @click="openChildForm">{{ $t('common.actions.add_child') }}</Button>
                             </div>
                             <InputError :message="profileForm.errors.children" />
 
                             <div v-if="showChildForm" class="rounded-sm border border-border p-4">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="space-y-2">
-                                        <FloatingInput id="child_name" label="Child name" v-model="childDraft.name" />
+                                        <FloatingInput id="child_name" :label="$t('common.labels.child_name')" v-model="childDraft.name" />
                                     </div>
                                     <div class="space-y-2">
-                                        <FloatingInput id="child_age" label="Age" type="number" min="0"
+                                        <FloatingInput id="child_age" :label="$t('common.labels.age')" type="number" min="0"
                                             v-model="childDraft.age" />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
-                                        <FloatingInput id="child_allergies" label="Allergies"
+                                        <FloatingInput id="child_allergies" :label="$t('common.labels.allergies')"
                                             v-model="childDraft.allergies" />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
-                                        <FloatingTextarea id="child_details" label="Details" rows="2"
+                                        <FloatingTextarea id="child_details" :label="$t('common.labels.details')" rows="2"
                                             v-model="childDraft.details" />
                                     </div>
                                     <div class="space-y-2 sm:col-span-2">
                                         <label class="text-sm font-medium text-foreground"
-                                            for="child_photo">Photo</label>
+                                            for="child_photo">{{ $t('common.labels.photo') }}</label>
                                         <input :key="childPhotoKey" id="child_photo" type="file" accept="image/*"
                                             class="block w-full text-sm text-foreground file:mr-3 file:rounded-sm file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
                                             @change="setChildPhoto" />
                                         <div v-if="childDraft.photo" class="mt-3 flex items-center gap-3">
-                                            <img :src="childDraft.photo" alt="Child photo preview"
+                                            <img :src="childDraft.photo" :alt="$t('onboarding.child.photo_preview')"
                                                 class="h-16 w-16 rounded-sm object-cover" />
                                             <Button type="button" variant="outline" @click="clearChildPhoto">
-                                                Remove photo
+                                                {{ $t('onboarding.child.remove_photo') }}
                                             </Button>
                                         </div>
                                         <div class="mt-4 space-y-2">
-                                            <p class="text-sm font-medium text-foreground">Images par defaut</p>
+                                            <p class="text-sm font-medium text-foreground">{{ $t('common.labels.images_default') }}</p>
                                             <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
                                                 <button v-for="photo in childDefaultPhotos" :key="photo" type="button"
                                                     class="group overflow-hidden rounded-sm border border-border transition"
@@ -461,7 +468,7 @@ const goToStep = (step: number) => {
                                                         ? 'ring-2 ring-primary/60'
                                                         : 'hover:border-primary/60'"
                                                     @click="selectDefaultChildPhoto(photo)">
-                                                    <img :src="photo" alt="Default child"
+                                                    <img :src="photo" :alt="$t('onboarding.child.default_photo_alt')"
                                                         class="h-16 w-full object-cover" />
                                                 </button>
                                             </div>
@@ -469,8 +476,8 @@ const goToStep = (step: number) => {
                                     </div>
                                 </div>
                                 <div class="mt-4 flex items-center justify-end gap-2">
-                                    <Button type="button" variant="outline" @click="cancelChildForm">Cancel</Button>
-                                    <Button type="button" @click="saveChild">Save child</Button>
+                                    <Button type="button" variant="outline" @click="cancelChildForm">{{ $t('common.actions.cancel') }}</Button>
+                                    <Button type="button" @click="saveChild">{{ $t('onboarding.child.save') }}</Button>
                                 </div>
                             </div>
 
@@ -484,96 +491,96 @@ const goToStep = (step: number) => {
                                         </div>
                                         <div class="space-y-1 text-sm text-muted-foreground">
                                             <p class="text-sm font-semibold text-foreground">
-                                                {{ child.name || `Child ${index + 1}` }}
+                                                {{ child.name || $t('onboarding.child.default_name', { index: index + 1 }) }}
                                             </p>
-                                            <p>Age: {{ child.age || '-' }}</p>
-                                            <p v-if="child.allergies">Allergies: {{ child.allergies }}</p>
+                                            <p>{{ $t('common.labels.age') }}: {{ child.age || '-' }}</p>
+                                            <p v-if="child.allergies">{{ $t('common.labels.allergies') }}: {{ child.allergies }}</p>
                                             <p v-if="child.details">{{ child.details }}</p>
                                         </div>
                                     </div>
                                     <div class="mt-4 flex justify-end">
                                         <Button v-if="profileForm.children.length > 1" type="button" variant="outline"
                                             @click="removeChild(index)">
-                                            Remove
+                                            {{ $t('common.actions.remove') }}
                                         </Button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="space-y-2">
-                                <FloatingTextarea id="preferences" label="Preferences" rows="3"
+                                <FloatingTextarea id="preferences" :label="$t('common.labels.preferences')" rows="3"
                                     v-model="profileForm.preferences" />
                                 <InputError :message="profileForm.errors.preferences" />
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <Button type="button" variant="outline" @click="goToStep(2)">Back</Button>
-                            <Button type="submit" :disabled="profileForm.processing">Continue</Button>
+                            <Button type="button" variant="outline" @click="goToStep(2)">{{ $t('common.actions.back') }}</Button>
+                            <Button type="submit" :disabled="profileForm.processing">{{ $t('common.actions.continue') }}</Button>
                         </div>
                     </form>
 
                     <div v-else-if="currentStep === 4" class="mt-6 space-y-6">
                         <div class="rounded-sm border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-                            Upload an avatar and a small gallery. You can update this later in settings.
+                            {{ $t('onboarding.media.hint') }}
                         </div>
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-foreground">Avatar</h3>
-                                <MediaUploadForm collection-name="avatar" collection-label="Avatar" :max-photos="1"
+                                <h3 class="text-sm font-semibold text-foreground">{{ $t('common.labels.avatar') }}</h3>
+                                <MediaUploadForm collection-name="avatar" :collection-label="$t('common.labels.avatar')" :max-photos="1"
                                     :hide-collection-input="true" />
                             </div>
                             <div class="space-y-3">
-                                <h3 class="text-sm font-semibold text-foreground">Gallery</h3>
-                                <MediaUploadForm collection-name="gallery" collection-label="Gallery" :max-photos="5"
+                                <h3 class="text-sm font-semibold text-foreground">{{ $t('common.labels.gallery') }}</h3>
+                                <MediaUploadForm collection-name="gallery" :collection-label="$t('common.labels.gallery')" :max-photos="5"
                                     :hide-collection-input="true" />
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <Button type="button" variant="outline" @click="goToStep(3)">Back</Button>
-                            <Button type="button" @click="goToStep(5)">Continue</Button>
+                            <Button type="button" variant="outline" @click="goToStep(3)">{{ $t('common.actions.back') }}</Button>
+                            <Button type="button" @click="goToStep(5)">{{ $t('common.actions.continue') }}</Button>
                         </div>
                     </div>
 
                     <form v-else-if="currentStep === 5" @submit.prevent="submitAvailability" class="mt-6 space-y-5">
                         <div class="grid gap-4">
-                            <FloatingTextarea id="availability" label="Availability" rows="3"
+                            <FloatingTextarea id="availability" :label="$t('common.labels.availability')" rows="3"
                                 v-model="availabilityForm.availability" />
                             <InputError :message="availabilityForm.errors.availability" />
-                            <FloatingTextarea id="availability_notes" label="Notes" rows="3"
+                            <FloatingTextarea id="availability_notes" :label="$t('common.labels.availability_notes')" rows="3"
                                 v-model="availabilityForm.availability_notes" />
                             <InputError :message="availabilityForm.errors.availability_notes" />
                         </div>
                         <div class="flex items-center justify-between">
-                            <Button type="button" variant="outline" @click="goToStep(4)">Back</Button>
-                            <Button type="submit" :disabled="availabilityForm.processing">Continue</Button>
+                            <Button type="button" variant="outline" @click="goToStep(4)">{{ $t('common.actions.back') }}</Button>
+                            <Button type="submit" :disabled="availabilityForm.processing">{{ $t('common.actions.continue') }}</Button>
                         </div>
                     </form>
 
                     <div v-else class="mt-6 space-y-6">
                         <div class="grid gap-4 rounded-sm border border-border bg-muted/50 p-4 text-sm text-foreground">
                             <div>
-                                <p class="text-xs font-semibold uppercase text-muted-foreground">Account</p>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $t('onboarding.summary.account') }}</p>
                                 <p>{{ account.first_name ?? '' }} {{ account.last_name ?? '' }}</p>
                                 <p class="text-muted-foreground">{{ account.email ?? '' }}</p>
-                                <p class="text-muted-foreground">Role: {{ role }}</p>
+                                <p class="text-muted-foreground">{{ $t('common.labels.role') }}: {{ roleLabel }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase text-muted-foreground">Address</p>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $t('onboarding.summary.address') }}</p>
                                 <p>{{ address.street ?? '' }}</p>
                                 <p>{{ address.city ?? '' }} {{ address.postal_code ?? '' }}</p>
                                 <p>{{ address.country ?? '' }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase text-muted-foreground">Profile</p>
-                                <p v-if="isBabysitter">Price: {{ profile.price_per_hour ?? '-' }}</p>
-                                <p v-else>Children: {{ childrenSummary }}</p>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $t('onboarding.summary.profile') }}</p>
+                                <p v-if="isBabysitter">{{ $t('onboarding.summary.price') }}: {{ profile.price_per_hour ?? '-' }}</p>
+                                <p v-else>{{ $t('onboarding.summary.children') }}: {{ childrenSummary }}</p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <Button type="button" variant="outline" @click="goToStep(5)">Back</Button>
+                            <Button type="button" variant="outline" @click="goToStep(5)">{{ $t('common.actions.back') }}</Button>
                             <Button type="button" :disabled="finishForm.processing" @click="finishOnboarding">
-                                Finish
+                                {{ $t('common.actions.finish') }}
                             </Button>
                         </div>
                     </div>

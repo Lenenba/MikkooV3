@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import InputError from '@/components/InputError.vue'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,7 @@ interface AnnouncementsPayload {
 }
 
 const page = usePage()
+const { t } = useI18n()
 const announcementsPayload = computed(() => page.props.announcements as AnnouncementsPayload | undefined)
 
 const announcements = computed(() => announcementsPayload.value?.items ?? [])
@@ -53,13 +55,13 @@ const availableChildren = computed(() => announcementsPayload.value?.children ??
 
 const role = computed(() => (page.props.auth?.role ?? '').toString().toLowerCase())
 const isAdmin = computed(() => role.value === 'superadmin' || role.value === 'admin')
-const tableColumns = computed(() => getAnnouncementColumns(role.value))
+const tableColumns = computed(() => getAnnouncementColumns(role.value, t))
 
-const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'open', label: 'Ouverte' },
-    { value: 'closed', label: 'Pourvue' },
-]
+const statusOptions = computed(() => [
+    { value: 'all', label: t('announcements.status.all') },
+    { value: 'open', label: t('announcements.status.open') },
+    { value: 'closed', label: t('announcements.status.closed') },
+])
 
 const numberFormatter = new Intl.NumberFormat('en-US')
 const formatCount = (value: number) => numberFormatter.format(value)
@@ -146,10 +148,10 @@ const buildTrendSeries = (previous: number, current: number) => {
 
 const statCards = computed(() => [
     {
-        title: 'Annonces ouvertes',
+        title: t('announcements.stats.open'),
         value: formatCount(openCount.value),
         change: '',
-        changeText: 'actives',
+        changeText: t('announcements.stats.active_suffix'),
         trendIcon: TrendingUp,
         trendClass: 'text-muted-foreground/70',
         showTrend: false,
@@ -159,10 +161,10 @@ const statCards = computed(() => [
         sparklineClass: 'stroke-emerald-400',
     },
     {
-        title: 'Annonces fermees',
+        title: t('announcements.stats.closed'),
         value: formatCount(closedCount.value),
         change: '',
-        changeText: 'au total',
+        changeText: t('announcements.stats.total_suffix'),
         trendIcon: TrendingUp,
         trendClass: 'text-muted-foreground/70',
         showTrend: false,
@@ -172,10 +174,10 @@ const statCards = computed(() => [
         sparklineClass: 'stroke-rose-400',
     },
     {
-        title: 'Total annonces',
+        title: t('announcements.stats.total'),
         value: formatCount(totalCount.value),
         change: '',
-        changeText: 'au total',
+        changeText: t('announcements.stats.total_suffix'),
         trendIcon: TrendingUp,
         trendClass: 'text-muted-foreground/70',
         showTrend: false,
@@ -185,10 +187,10 @@ const statCards = computed(() => [
         sparklineClass: 'stroke-violet-400',
     },
     {
-        title: 'Derniers 30 jours',
+        title: t('announcements.stats.last_30_days'),
         value: formatCount(recentCount.value),
         change: '',
-        changeText: 'publications',
+        changeText: t('announcements.stats.publications_suffix'),
         trendIcon: TrendingUp,
         trendClass: 'text-muted-foreground/70',
         showTrend: false,
@@ -198,10 +200,10 @@ const statCards = computed(() => [
         sparklineClass: 'stroke-amber-400',
     },
     {
-        title: 'Services differents',
+        title: t('announcements.stats.services'),
         value: formatCount(uniqueServiceCount.value),
         change: '',
-        changeText: 'demandes',
+        changeText: t('announcements.stats.requests_suffix'),
         trendIcon: TrendingUp,
         trendClass: 'text-muted-foreground/70',
         showTrend: false,
@@ -214,12 +216,12 @@ const statCards = computed(() => [
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: isAdmin.value ? 'Annonces' : 'Mes annonces',
+        title: isAdmin.value ? t('announcements.title.admin') : t('announcements.title.user'),
         href: '/announcements',
     },
 ])
 
-const pageTitle = computed(() => (isAdmin.value ? 'Annonces' : 'Mes annonces'))
+const pageTitle = computed(() => (isAdmin.value ? t('announcements.title.admin') : t('announcements.title.user')))
 
 const isAnnouncementDialogOpen = ref(false)
 const announcementForm = useForm({
@@ -265,21 +267,21 @@ const toggleChildSelection = (childId: number, checked: boolean | 'indeterminate
     announcementForm.child_ids = Array.from(ids)
 }
 
-const recurrenceOptions = [
-    { value: 'daily', label: 'Chaque jour' },
-    { value: 'weekly', label: 'Chaque semaine' },
-    { value: 'monthly', label: 'Chaque mois' },
-]
+const recurrenceOptions = computed(() => [
+    { value: 'daily', label: t('announcements.recurrence.daily') },
+    { value: 'weekly', label: t('announcements.recurrence.weekly') },
+    { value: 'monthly', label: t('announcements.recurrence.monthly') },
+])
 
-const weekdayOptions = [
-    { value: 1, label: 'Lun' },
-    { value: 2, label: 'Mar' },
-    { value: 3, label: 'Mer' },
-    { value: 4, label: 'Jeu' },
-    { value: 5, label: 'Ven' },
-    { value: 6, label: 'Sam' },
-    { value: 7, label: 'Dim' },
-]
+const weekdayOptions = computed(() => [
+    { value: 1, label: t('announcements.weekdays.mon') },
+    { value: 2, label: t('announcements.weekdays.tue') },
+    { value: 3, label: t('announcements.weekdays.wed') },
+    { value: 4, label: t('announcements.weekdays.thu') },
+    { value: 5, label: t('announcements.weekdays.fri') },
+    { value: 6, label: t('announcements.weekdays.sat') },
+    { value: 7, label: t('announcements.weekdays.sun') },
+])
 
 const getIsoWeekday = (value: string) => {
     if (!value) return null
@@ -352,7 +354,7 @@ const formatChildAge = (value?: string | number | null) => {
     if (!raw) {
         return ''
     }
-    return /^\d+$/.test(raw) ? `${raw} ans` : raw
+    return /^\d+$/.test(raw) ? t('announcements.child.age', { age: raw }) : raw
 }
 
 const childPhotoUrl = (child: AnnouncementChild, index: number) =>
@@ -440,8 +442,8 @@ const submitAnnouncement = () => {
                 :columns="tableColumns"
                 :data="announcements"
                 search-column="title"
-                search-placeholder="Rechercher une annonce..."
-                empty-message="Aucune annonce pour le moment."
+                :search-placeholder="$t('announcements.table.search')"
+                :empty-message="$t('announcements.table.empty')"
             >
                 <template #toolbar-filters="{ table }">
                     <Select
@@ -449,7 +451,7 @@ const submitAnnouncement = () => {
                         @update:model-value="value => table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)"
                     >
                         <SelectTrigger class="h-9 w-full sm:w-48">
-                            <SelectValue placeholder="Tous les statuts" />
+                            <SelectValue :placeholder="$t('announcements.status.all')" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem
@@ -464,7 +466,7 @@ const submitAnnouncement = () => {
                 </template>
                 <template #toolbar-actions="{ table }">
                     <Button variant="outline" class="h-9 w-full sm:w-auto" @click="table.resetColumnFilters()">
-                        Effacer
+                        {{ $t('common.actions.clear') }}
                     </Button>
                     <Button
                         v-if="!isAdmin"
@@ -473,7 +475,7 @@ const submitAnnouncement = () => {
                         @click="openAnnouncementDialog"
                     >
                         <Plus class="mr-2 h-4 w-4" />
-                        Nouvelle annonce
+                        {{ $t('announcements.actions.new') }}
                     </Button>
                 </template>
             </DataTable>
@@ -483,36 +485,36 @@ const submitAnnouncement = () => {
             <DialogContent class="rounded-2xl sm:max-w-xl">
                 <DialogHeader class="border-b border-border/60 pb-3">
                     <DialogTitle class="text-lg font-semibold text-foreground">
-                        Nouvelle annonce
+                        {{ $t('announcements.dialog.title') }}
                     </DialogTitle>
                     <DialogDescription class="text-sm text-muted-foreground">
-                        Decrivez rapidement le service dont vous avez besoin.
+                        {{ $t('announcements.dialog.description') }}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="submitAnnouncement" class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="announcement-title">Titre</Label>
+                        <Label for="announcement-title">{{ $t('announcements.form.title') }}</Label>
                         <Input
                             id="announcement-title"
                             v-model="announcementForm.title"
-                            placeholder="ex: Garde de nuit pour samedi"
+                            :placeholder="$t('announcements.form.title_placeholder')"
                         />
                         <InputError :message="announcementForm.errors.title" />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="announcement-service">Services recherches</Label>
+                        <Label for="announcement-service">{{ $t('announcements.form.services') }}</Label>
                         <div class="flex flex-col gap-2 sm:flex-row">
                             <Input
                                 id="announcement-service"
                                 v-model="serviceInput"
                                 list="service-suggestions"
-                                placeholder="ex: Garde reguliere, Sortie d'ecole"
+                                :placeholder="$t('announcements.form.services_placeholder')"
                                 @keydown.enter.prevent="addService"
                             />
                             <Button type="button" variant="outline" class="sm:w-auto" @click="addService">
-                                Ajouter
+                                {{ $t('common.actions.add') }}
                             </Button>
                         </div>
                         <datalist id="service-suggestions">
@@ -540,12 +542,12 @@ const submitAnnouncement = () => {
                             </span>
                         </div>
                         <p v-else class="text-xs text-muted-foreground">
-                            Ajoutez au moins un service pour publier l'annonce.
+                            {{ $t('announcements.form.services_empty') }}
                         </p>
                     </div>
 
                     <div class="space-y-2">
-                        <Label>Enfant(s) concernes</Label>
+                        <Label>{{ $t('announcements.form.children') }}</Label>
                         <div v-if="availableChildren.length" class="grid gap-3 sm:grid-cols-2">
                             <label
                                 v-for="(child, index) in availableChildren"
@@ -561,13 +563,13 @@ const submitAnnouncement = () => {
                                     <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-600">
                                         <img
                                             :src="childPhotoUrl(child, index)"
-                                            :alt="child.name ?? 'Enfant'"
+                                            :alt="child.name ?? $t('announcements.child.default_name')"
                                             class="h-full w-full object-cover"
                                         />
                                     </div>
                                     <div>
                                         <p class="text-sm font-semibold text-foreground">
-                                            {{ child.name || 'Enfant' }}
+                                            {{ child.name || $t('announcements.child.default_name') }}
                                         </p>
                                         <p v-if="formatChildAge(child.age)" class="text-xs text-muted-foreground">
                                             {{ formatChildAge(child.age) }}
@@ -577,49 +579,49 @@ const submitAnnouncement = () => {
                             </label>
                         </div>
                         <div v-else class="rounded-md border border-dashed border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
-                            <p>Ajoutez au moins un enfant dans votre profil pour publier une annonce.</p>
+                            <p>{{ $t('announcements.form.no_children') }}</p>
                             <Button variant="outline" size="sm" class="mt-3" as-child>
-                                <Link href="/settings/profile">Ajouter un enfant</Link>
+                                <Link href="/settings/profile">{{ $t('common.actions.add_child') }}</Link>
                             </Button>
                         </div>
                         <InputError :message="announcementForm.errors.child_ids" />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="announcement-child-notes">A propos de l'enfant</Label>
+                        <Label for="announcement-child-notes">{{ $t('announcements.form.child_notes') }}</Label>
                         <Textarea
                             id="announcement-child-notes"
                             v-model="announcementForm.child_notes"
                             rows="3"
-                            placeholder="Ce qu'il aime faire, sa routine, besoins particuliers."
+                            :placeholder="$t('announcements.form.child_notes_placeholder')"
                         />
                         <InputError :message="announcementForm.errors.child_notes" />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="announcement-description">Details de la demande</Label>
+                        <Label for="announcement-description">{{ $t('announcements.form.description') }}</Label>
                         <Textarea
                             id="announcement-description"
                             v-model="announcementForm.description"
                             rows="3"
-                            placeholder="Precisez le contexte, les horaires, et toute information utile."
+                            :placeholder="$t('announcements.form.description_placeholder')"
                         />
                         <InputError :message="announcementForm.errors.description" />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="announcement-location">Lieu (optionnel)</Label>
+                        <Label for="announcement-location">{{ $t('announcements.form.location') }}</Label>
                         <Input
                             id="announcement-location"
                             v-model="announcementForm.location"
-                            placeholder="ex: Quartier, adresse ou lieu de garde"
+                            :placeholder="$t('announcements.form.location_placeholder')"
                         />
                         <InputError :message="announcementForm.errors.location" />
                     </div>
 
                     <div class="space-y-3 rounded-xl border border-border/60 bg-background/70 p-4">
                         <div class="flex items-center justify-between">
-                            <Label class="text-sm font-semibold text-foreground">Date et heure</Label>
+                            <Label class="text-sm font-semibold text-foreground">{{ $t('announcements.schedule.title') }}</Label>
                             <div class="inline-flex rounded-sm border border-border bg-muted/60 p-1">
                                 <button
                                     type="button"
@@ -629,7 +631,7 @@ const submitAnnouncement = () => {
                                         : 'text-muted-foreground hover:text-foreground'"
                                     @click="announcementForm.schedule_type = 'single'"
                                 >
-                                    Journee unique
+                                    {{ $t('announcements.schedule.single') }}
                                 </button>
                                 <button
                                     type="button"
@@ -639,7 +641,7 @@ const submitAnnouncement = () => {
                                         : 'text-muted-foreground hover:text-foreground'"
                                     @click="announcementForm.schedule_type = 'recurring'"
                                 >
-                                    Recurrence
+                                    {{ $t('announcements.schedule.recurring') }}
                                 </button>
                             </div>
                         </div>
@@ -647,7 +649,7 @@ const submitAnnouncement = () => {
                         <div class="grid gap-3 sm:grid-cols-3">
                             <div class="space-y-2 sm:col-span-1">
                                 <Label for="announcement-date">
-                                    {{ announcementForm.schedule_type === 'recurring' ? 'Date de debut' : 'Date' }}
+                                    {{ announcementForm.schedule_type === 'recurring' ? $t('announcements.schedule.start_date') : $t('common.labels.date') }}
                                 </Label>
                                 <Input
                                     id="announcement-date"
@@ -657,7 +659,7 @@ const submitAnnouncement = () => {
                                 <InputError :message="announcementForm.errors.start_date" />
                             </div>
                             <div class="space-y-2">
-                                <Label for="announcement-start-time">Heure debut</Label>
+                                <Label for="announcement-start-time">{{ $t('announcements.schedule.start_time') }}</Label>
                                 <Input
                                     id="announcement-start-time"
                                     type="time"
@@ -666,7 +668,7 @@ const submitAnnouncement = () => {
                                 <InputError :message="announcementForm.errors.start_time" />
                             </div>
                             <div class="space-y-2">
-                                <Label for="announcement-end-time">Heure fin</Label>
+                                <Label for="announcement-end-time">{{ $t('announcements.schedule.end_time') }}</Label>
                                 <Input
                                     id="announcement-end-time"
                                     type="time"
@@ -678,13 +680,13 @@ const submitAnnouncement = () => {
 
                         <div v-if="announcementForm.schedule_type === 'recurring'" class="space-y-3">
                             <div class="space-y-2">
-                                <Label>Frequence</Label>
+                                <Label>{{ $t('announcements.schedule.frequency') }}</Label>
                                 <Select
                                     :model-value="announcementForm.recurrence_frequency"
                                     @update:model-value="value => (announcementForm.recurrence_frequency = value)"
                                 >
                                     <SelectTrigger class="h-9">
-                                        <SelectValue placeholder="Choisir une frequence" />
+                                        <SelectValue :placeholder="$t('announcements.schedule.frequency_placeholder')" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem
@@ -700,7 +702,7 @@ const submitAnnouncement = () => {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="announcement-recurrence-interval">Intervalle</Label>
+                                <Label for="announcement-recurrence-interval">{{ $t('announcements.schedule.interval') }}</Label>
                                 <Input
                                     id="announcement-recurrence-interval"
                                     type="number"
@@ -711,7 +713,7 @@ const submitAnnouncement = () => {
                             </div>
 
                             <div v-if="announcementForm.recurrence_frequency === 'weekly'" class="space-y-2">
-                                <Label>Jours</Label>
+                                <Label>{{ $t('announcements.schedule.days') }}</Label>
                                 <div class="grid grid-cols-7 gap-2 text-xs text-muted-foreground">
                                     <label
                                         v-for="day in weekdayOptions"
@@ -730,7 +732,7 @@ const submitAnnouncement = () => {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="announcement-recurrence-end">Fin de recurrence</Label>
+                                <Label for="announcement-recurrence-end">{{ $t('announcements.schedule.recurrence_end') }}</Label>
                                 <Input
                                     id="announcement-recurrence-end"
                                     type="date"
@@ -744,11 +746,11 @@ const submitAnnouncement = () => {
                     <DialogFooter class="mt-4">
                         <DialogClose as-child>
                             <Button type="button" variant="outline" @click="resetAnnouncementForm">
-                                Annuler
+                                {{ $t('common.actions.cancel') }}
                             </Button>
                         </DialogClose>
                         <Button type="submit" :disabled="announcementForm.processing">
-                            Publier
+                            {{ $t('announcements.actions.publish') }}
                         </Button>
                     </DialogFooter>
                 </form>

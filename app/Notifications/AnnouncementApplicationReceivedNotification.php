@@ -34,7 +34,7 @@ class AnnouncementApplicationReceivedNotification extends Notification implement
         $babysitterName = $this->resolveBabysitterName($application->babysitter);
 
         return (new MailMessage)
-            ->subject('Nouvelle candidature recue')
+            ->subject(__('notifications.announcement.application_received_subject'))
             ->markdown('emails.announcements.application-received', [
                 'announcement' => $announcement,
                 'application' => $application,
@@ -45,8 +45,10 @@ class AnnouncementApplicationReceivedNotification extends Notification implement
 
     protected function resolveParentName(?User $user): string
     {
+        $fallback = __('common.roles.parent');
+
         if (! $user) {
-            return 'Parent';
+            return $fallback;
         }
 
         $profile = $user->parentProfile;
@@ -60,13 +62,15 @@ class AnnouncementApplicationReceivedNotification extends Notification implement
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Parent';
+        return $fallback !== '' ? $fallback : __('common.roles.parent');
     }
 
     protected function resolveBabysitterName(?User $user): string
     {
+        $fallback = __('common.roles.babysitter');
+
         if (! $user) {
-            return 'Babysitter';
+            return $fallback;
         }
 
         $profile = $user->babysitterProfile;
@@ -80,6 +84,6 @@ class AnnouncementApplicationReceivedNotification extends Notification implement
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Babysitter';
+        return $fallback !== '' ? $fallback : __('common.roles.babysitter');
     }
 }

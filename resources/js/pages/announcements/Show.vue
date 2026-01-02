@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ interface AnnouncementPageProps {
 }
 
 const page = usePage();
+const { t } = useI18n();
 const props = computed(() => page.props as AnnouncementPageProps);
 const announcement = computed(() => props.value.announcement ?? null);
 const viewerRole = computed(() => props.value.viewerRole ?? 'Parent');
@@ -29,14 +31,14 @@ const backHref = computed(() =>
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
         title: viewerRole.value === 'Babysitter'
-            ? 'Tableau de bord'
+            ? t('nav.dashboard')
             : viewerRole.value === 'SuperAdmin' || viewerRole.value === 'Admin'
-                ? 'Annonces'
-                : 'Mes annonces',
+                ? t('announcements.title.admin')
+                : t('announcements.title.user'),
         href: backHref.value,
     },
     {
-        title: 'Annonce',
+        title: t('announcements.show.breadcrumb'),
         href: announcement.value ? `/announcements/${announcement.value.id}` : backHref.value,
     },
 ]);
@@ -64,7 +66,7 @@ const formatChildAge = (value?: string | number | null) => {
     if (!raw) {
         return '';
     }
-    return /^\d+$/.test(raw) ? `${raw} ans` : raw;
+    return /^\d+$/.test(raw) ? t('announcements.child.age', { age: raw }) : raw;
 };
 
 const childLabel = computed(() => {
@@ -105,9 +107,9 @@ const serviceLabelText = computed(() => (serviceLabels.value.length ? serviceLab
 const statusMeta = computed(() => {
     const key = (announcement.value?.status ?? 'open').toString().toLowerCase();
     if (key === 'closed') {
-        return { label: 'Pourvue', className: 'bg-slate-100 text-slate-600' };
+        return { label: t('announcements.status.closed'), className: 'bg-slate-100 text-slate-600' };
     }
-    return { label: 'Ouverte', className: 'bg-emerald-50 text-emerald-700' };
+    return { label: t('announcements.status.open'), className: 'bg-emerald-50 text-emerald-700' };
 });
 
 const formatTimeValue = (value?: string | null) => {
@@ -139,22 +141,26 @@ const scheduleMeta = computed(() => {
     }
     const type = (announcement.value.schedule_type ?? 'single').toString().toLowerCase();
     if (type !== 'recurring') {
-        return 'Unique';
+        return t('announcements.schedule.single_label');
     }
     const frequency = announcement.value.recurrence_frequency ?? 'weekly';
     const interval = announcement.value.recurrence_interval ?? 1;
     const days = announcement.value.recurrence_days ?? [];
     const dayLabelMap: Record<number, string> = {
-        1: 'Lun',
-        2: 'Mar',
-        3: 'Mer',
-        4: 'Jeu',
-        5: 'Ven',
-        6: 'Sam',
-        7: 'Dim',
+        1: t('announcements.weekdays.mon'),
+        2: t('announcements.weekdays.tue'),
+        3: t('announcements.weekdays.wed'),
+        4: t('announcements.weekdays.thu'),
+        5: t('announcements.weekdays.fri'),
+        6: t('announcements.weekdays.sat'),
+        7: t('announcements.weekdays.sun'),
     };
-    const dayLabel = days.length ? days.map((day) => dayLabelMap[day] ?? day).join(', ') : 'Semaine';
-    return `Recurrence ${frequency} (toutes les ${interval}) - ${dayLabel}`;
+    const dayLabel = days.length ? days.map((day) => dayLabelMap[day] ?? day).join(', ') : t('announcements.schedule.week');
+    return t('announcements.schedule.recurrence_label', {
+        frequency: t(`announcements.recurrence.${frequency}`),
+        interval,
+        days: dayLabel,
+    });
 });
 
 const isBabysitter = computed(() => viewerRole.value === 'Babysitter');
@@ -220,13 +226,13 @@ const formatDateTime = (value?: string | null) => {
 const applicationStatusMeta = (status?: string | null) => {
     const key = (status ?? '').toString().toLowerCase();
     const map: Record<string, { label: string; className: string }> = {
-        pending: { label: 'En attente', className: 'bg-amber-50 text-amber-700' },
-        accepted: { label: 'Confirmee', className: 'bg-emerald-50 text-emerald-700' },
-        rejected: { label: 'Refusee', className: 'bg-red-50 text-red-700' },
-        expired: { label: 'Expiree', className: 'bg-slate-100 text-slate-600' },
-        withdrawn: { label: 'Retiree', className: 'bg-slate-100 text-slate-600' },
+        pending: { label: t('announcements.applications.status.pending'), className: 'bg-amber-50 text-amber-700' },
+        accepted: { label: t('announcements.applications.status.accepted'), className: 'bg-emerald-50 text-emerald-700' },
+        rejected: { label: t('announcements.applications.status.rejected'), className: 'bg-red-50 text-red-700' },
+        expired: { label: t('announcements.applications.status.expired'), className: 'bg-slate-100 text-slate-600' },
+        withdrawn: { label: t('announcements.applications.status.withdrawn'), className: 'bg-slate-100 text-slate-600' },
     };
-    return map[key] ?? { label: key || 'Inconnu', className: 'bg-muted text-foreground' };
+    return map[key] ?? { label: key || t('common.misc.unknown'), className: 'bg-muted text-foreground' };
 };
 
 const acceptApplication = (applicationId: number) => {
@@ -259,7 +265,7 @@ const rejectApplication = (applicationId: number) => {
 </script>
 
 <template>
-    <Head title="Annonce" />
+    <Head :title="$t('announcements.show.head_title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
@@ -267,7 +273,7 @@ const rejectApplication = (applicationId: number) => {
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div class="space-y-2">
                         <h1 class="text-2xl font-semibold text-foreground">
-                            {{ announcement?.title ?? 'Annonce' }}
+                            {{ announcement?.title ?? $t('announcements.show.title_fallback') }}
                         </h1>
                         <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                             <div class="flex flex-wrap items-center gap-2">
@@ -285,11 +291,11 @@ const rejectApplication = (applicationId: number) => {
                             <Badge :class="['border-transparent', statusMeta.className]">
                                 {{ statusMeta.label }}
                             </Badge>
-                            <span>Publiee le {{ formatDate(announcement?.created_at) }}</span>
+                            <span>{{ $t('announcements.show.published_at', { date: formatDate(announcement?.created_at) }) }}</span>
                         </div>
                     </div>
                     <Button variant="outline" as-child>
-                        <Link :href="backHref">Retour</Link>
+                        <Link :href="backHref">{{ $t('common.actions.back') }}</Link>
                     </Button>
                 </div>
             </div>
@@ -298,7 +304,7 @@ const rejectApplication = (applicationId: number) => {
                 <div class="space-y-6 lg:col-span-2">
                     <div class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Enfant concerne
+                            {{ $t('announcements.show.child_section') }}
                         </p>
                         <div v-if="children.length" class="mt-3 grid gap-3 sm:grid-cols-2">
                             <div
@@ -309,19 +315,19 @@ const rejectApplication = (applicationId: number) => {
                                 <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-600">
                                     <img
                                         :src="childPhotoUrl(child, index)"
-                                        :alt="child.name ?? 'Enfant'"
+                                        :alt="child.name ?? $t('announcements.child.default_name')"
                                         class="h-full w-full object-cover"
                                     />
                                 </div>
                                 <div>
                                     <p class="text-sm font-semibold text-foreground">
-                                        {{ child.name || 'Enfant' }}
+                                        {{ child.name || $t('announcements.child.default_name') }}
                                     </p>
                                     <p v-if="formatChildAge(child.age)" class="text-xs text-muted-foreground">
                                         {{ formatChildAge(child.age) }}
                                     </p>
                                     <p v-if="child.allergies" class="text-xs text-muted-foreground">
-                                        Allergies: {{ child.allergies }}
+                                        {{ $t('common.labels.allergies') }}: {{ child.allergies }}
                                     </p>
                                     <p v-if="child.details" class="text-xs text-muted-foreground">
                                         {{ child.details }}
@@ -339,19 +345,19 @@ const rejectApplication = (applicationId: number) => {
 
                     <div class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Details de la demande
+                            {{ $t('announcements.show.details_section') }}
                         </p>
                         <p class="mt-2 text-sm text-foreground">
-                            {{ announcement?.description || 'Aucun detail fourni pour le moment.' }}
+                            {{ announcement?.description || $t('announcements.show.no_details') }}
                         </p>
                     </div>
 
                     <div v-if="canReviewApplications" class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <div class="flex items-center justify-between gap-2">
                             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                Candidatures
+                                {{ $t('announcements.show.applications_section') }}
                             </p>
-                            <span class="text-xs text-muted-foreground">{{ applications.length }} au total</span>
+                            <span class="text-xs text-muted-foreground">{{ $t('announcements.show.applications_total', { count: applications.length }) }}</span>
                         </div>
                         <div v-if="applications.length" class="mt-4 space-y-4">
                             <div
@@ -364,25 +370,25 @@ const rejectApplication = (applicationId: number) => {
                                         <div class="h-12 w-12 overflow-hidden rounded-lg bg-muted">
                                             <img
                                                 :src="application.babysitter?.profile_picture || defaultBabysitterPhoto"
-                                                :alt="application.babysitter?.name ?? 'Babysitter'"
+                                                :alt="application.babysitter?.name ?? $t('common.roles.babysitter')"
                                                 class="h-full w-full object-cover"
                                             />
                                         </div>
                                         <div class="space-y-1">
                                             <p class="text-sm font-semibold text-foreground">
-                                                {{ application.babysitter?.name ?? 'Babysitter' }}
+                                                {{ application.babysitter?.name ?? $t('common.roles.babysitter') }}
                                             </p>
                                             <p class="text-xs text-muted-foreground">
                                                 {{ application.babysitter?.city ?? '-' }}
                                             </p>
                                             <p class="text-xs text-muted-foreground">
-                                                Note: {{ application.babysitter?.rating_avg ?? '-' }}
+                                                {{ $t('announcements.show.rating') }}: {{ application.babysitter?.rating_avg ?? '-' }}
                                                 <span v-if="application.babysitter?.rating_count">
                                                     ({{ application.babysitter.rating_count }})
                                                 </span>
                                             </p>
                                             <p v-if="application.babysitter?.price_per_hour" class="text-xs text-muted-foreground">
-                                                Tarif: {{ application.babysitter.price_per_hour }} / h
+                                                {{ $t('announcements.show.rate') }}: {{ application.babysitter.price_per_hour }} / h
                                             </p>
                                         </div>
                                     </div>
@@ -390,15 +396,15 @@ const rejectApplication = (applicationId: number) => {
                                         <Badge :class="['border-transparent', applicationStatusMeta(application.status).className]">
                                             {{ applicationStatusMeta(application.status).label }}
                                         </Badge>
-                                        <span>Envoyee le {{ formatDateTime(application.created_at) }}</span>
+                                        <span>{{ $t('announcements.show.sent_at', { date: formatDateTime(application.created_at) }) }}</span>
                                         <span v-if="application.expires_at && application.status === 'pending'">
-                                            Expire le {{ formatDateTime(application.expires_at) }}
+                                            {{ $t('announcements.show.expires_at', { date: formatDateTime(application.expires_at) }) }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <p v-if="application.message" class="mt-3 text-sm text-muted-foreground">
-                                    Message: {{ application.message }}
+                                    {{ $t('announcements.show.message') }}: {{ application.message }}
                                 </p>
 
                                 <div class="mt-4 flex flex-wrap items-center gap-2">
@@ -407,7 +413,7 @@ const rejectApplication = (applicationId: number) => {
                                         size="sm"
                                         @click="acceptApplication(application.id)"
                                     >
-                                        Accepter
+                                        {{ $t('announcements.actions.accept') }}
                                     </Button>
                                     <Button
                                         v-if="isParent && application.status === 'pending' && announcement?.status === 'open'"
@@ -415,7 +421,7 @@ const rejectApplication = (applicationId: number) => {
                                         variant="outline"
                                         @click="rejectApplication(application.id)"
                                     >
-                                        Refuser
+                                        {{ $t('announcements.actions.reject') }}
                                     </Button>
                                     <Button
                                         v-if="application.status === 'accepted' && application.reservation_id"
@@ -424,14 +430,14 @@ const rejectApplication = (applicationId: number) => {
                                         as-child
                                     >
                                         <Link :href="route('reservations.show', application.reservation_id)">
-                                            Voir la reservation
+                                            {{ $t('announcements.actions.view_reservation') }}
                                         </Link>
                                     </Button>
                                 </div>
                             </div>
                         </div>
                         <p v-else class="mt-4 text-sm text-muted-foreground">
-                            Aucune candidature pour le moment.
+                            {{ $t('announcements.show.no_applications') }}
                         </p>
                     </div>
                 </div>
@@ -439,7 +445,7 @@ const rejectApplication = (applicationId: number) => {
                 <div class="space-y-6">
                     <div class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Parent
+                            {{ $t('common.roles.parent') }}
                         </p>
                         <p class="mt-2 text-sm font-semibold text-foreground">
                             {{ announcement?.parent?.name ?? '-' }}
@@ -451,25 +457,25 @@ const rejectApplication = (applicationId: number) => {
 
                     <div class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Infos utiles
+                            {{ $t('announcements.show.info_section') }}
                         </p>
                         <div class="mt-2 space-y-1 text-sm text-muted-foreground">
-                            <p>Service: {{ serviceLabelText }}</p>
-                            <p>Statut: {{ statusMeta.label }}</p>
-                            <p>Date: {{ scheduleDateLabel }}</p>
-                            <p>Heure: {{ scheduleTimeLabel }}</p>
-                            <p>Recurrence: {{ scheduleMeta }}</p>
+                            <p>{{ $t('common.labels.service') }}: {{ serviceLabelText }}</p>
+                            <p>{{ $t('common.labels.status') }}: {{ statusMeta.label }}</p>
+                            <p>{{ $t('common.labels.date') }}: {{ scheduleDateLabel }}</p>
+                            <p>{{ $t('common.labels.time') }}: {{ scheduleTimeLabel }}</p>
+                            <p>{{ $t('announcements.show.recurrence') }}: {{ scheduleMeta }}</p>
                             <p v-if="announcement?.schedule_type === 'recurring' && announcement?.recurrence_end_date">
-                                Fin: {{ formatDate(announcement.recurrence_end_date) }}
+                                {{ $t('announcements.show.recurrence_end') }}: {{ formatDate(announcement.recurrence_end_date) }}
                             </p>
-                            <p v-if="announcement?.location">Lieu: {{ announcement.location }}</p>
-                            <p>Publiee: {{ formatDate(announcement?.created_at) }}</p>
+                            <p v-if="announcement?.location">{{ $t('common.labels.location') }}: {{ announcement.location }}</p>
+                            <p>{{ $t('announcements.show.published') }}: {{ formatDate(announcement?.created_at) }}</p>
                         </div>
                     </div>
 
                     <div v-if="isBabysitter" class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Candidature
+                            {{ $t('announcements.show.application_section') }}
                         </p>
                         <div class="mt-3 space-y-3">
                             <div v-if="myApplication" class="space-y-2">
@@ -477,30 +483,30 @@ const rejectApplication = (applicationId: number) => {
                                     {{ applicationStatusMeta(myApplication.status).label }}
                                 </Badge>
                                 <p class="text-sm text-muted-foreground">
-                                    Envoyee le {{ formatDateTime(myApplication.created_at) }}
+                                    {{ $t('announcements.show.sent_at', { date: formatDateTime(myApplication.created_at) }) }}
                                 </p>
                                 <p v-if="myApplication.message" class="text-sm text-muted-foreground">
-                                    Message: {{ myApplication.message }}
+                                    {{ $t('announcements.show.message') }}: {{ myApplication.message }}
                                 </p>
                                 <Button v-if="canWithdraw" variant="outline" size="sm" @click="withdrawApplication">
-                                    Retirer
+                                    {{ $t('announcements.actions.withdraw') }}
                                 </Button>
                             </div>
                             <div v-else>
                                 <p v-if="announcement?.status !== 'open'" class="text-sm text-muted-foreground">
-                                    Cette annonce est pourvue.
+                                    {{ $t('announcements.show.filled_notice') }}
                                 </p>
                                 <div v-else class="space-y-3">
                                     <p class="text-sm text-muted-foreground">
-                                        Envoyez votre proposition au parent.
+                                        {{ $t('announcements.show.apply_hint') }}
                                     </p>
                                     <Textarea
                                         v-model="applicationMessage"
                                         rows="3"
-                                        placeholder="Votre message (optionnel)"
+                                        :placeholder="$t('announcements.show.message_placeholder')"
                                     />
                                     <Button :disabled="isSubmitting || !canApply" @click="submitApplication">
-                                        Se proposer
+                                        {{ $t('announcements.actions.apply') }}
                                     </Button>
                                 </div>
                             </div>

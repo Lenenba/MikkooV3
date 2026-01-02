@@ -36,7 +36,7 @@ class AnnouncementApplicationSubmittedNotification extends Notification implemen
         $parentName = $this->resolveParentName($announcement?->parent);
 
         return (new MailMessage)
-            ->subject('Candidature envoyee')
+            ->subject(__('notifications.announcement.application_submitted_subject'))
             ->markdown('emails.announcements.application-submitted', [
                 'announcement' => $announcement,
                 'application' => $application,
@@ -47,8 +47,10 @@ class AnnouncementApplicationSubmittedNotification extends Notification implemen
 
     protected function resolveParentName(?User $user): string
     {
+        $fallback = __('common.roles.parent');
+
         if (! $user) {
-            return 'Parent';
+            return $fallback;
         }
 
         $profile = $user->parentProfile;
@@ -62,13 +64,15 @@ class AnnouncementApplicationSubmittedNotification extends Notification implemen
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Parent';
+        return $fallback !== '' ? $fallback : __('common.roles.parent');
     }
 
     protected function resolveBabysitterName(?User $user): string
     {
+        $fallback = __('common.roles.babysitter');
+
         if (! $user) {
-            return 'Babysitter';
+            return $fallback;
         }
 
         $profile = $user->babysitterProfile;
@@ -82,6 +86,6 @@ class AnnouncementApplicationSubmittedNotification extends Notification implemen
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Babysitter';
+        return $fallback !== '' ? $fallback : __('common.roles.babysitter');
     }
 }

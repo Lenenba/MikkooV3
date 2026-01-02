@@ -39,11 +39,11 @@ class AnnouncementApplicationStatusNotification extends Notification implements 
         $statusKey = strtolower(trim($this->status));
 
         $subject = match ($statusKey) {
-            'accepted' => 'Candidature acceptee',
-            'rejected' => 'Candidature refusee',
-            'expired' => 'Candidature expiree',
-            'withdrawn' => 'Candidature retiree',
-            default => 'Mise a jour de candidature',
+            'accepted' => __('notifications.announcement.application_status_subject.accepted'),
+            'rejected' => __('notifications.announcement.application_status_subject.rejected'),
+            'expired' => __('notifications.announcement.application_status_subject.expired'),
+            'withdrawn' => __('notifications.announcement.application_status_subject.withdrawn'),
+            default => __('notifications.announcement.application_status_subject.updated'),
         };
 
         return (new MailMessage)
@@ -59,8 +59,10 @@ class AnnouncementApplicationStatusNotification extends Notification implements 
 
     protected function resolveParentName(?User $user): string
     {
+        $fallback = __('common.roles.parent');
+
         if (! $user) {
-            return 'Parent';
+            return $fallback;
         }
 
         $profile = $user->parentProfile;
@@ -74,13 +76,15 @@ class AnnouncementApplicationStatusNotification extends Notification implements 
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Parent';
+        return $fallback !== '' ? $fallback : __('common.roles.parent');
     }
 
     protected function resolveBabysitterName(?User $user): string
     {
+        $fallback = __('common.roles.babysitter');
+
         if (! $user) {
-            return 'Babysitter';
+            return $fallback;
         }
 
         $profile = $user->babysitterProfile;
@@ -94,6 +98,6 @@ class AnnouncementApplicationStatusNotification extends Notification implements 
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Babysitter';
+        return $fallback !== '' ? $fallback : __('common.roles.babysitter');
     }
 }

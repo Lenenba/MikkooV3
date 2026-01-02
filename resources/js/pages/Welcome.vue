@@ -5,7 +5,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 
 <template>
 
-    <Head title="Mikoo | Garde d'enfants">
+    <Head :title="$t('welcome.head_title')">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="stylesheet"
@@ -29,20 +29,24 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                 </div>
 
                 <nav class="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex">
-                    <a class="nav-link" href="#services">Services</a>
-                    <a class="nav-link" href="#approche">Notre approche</a>
-                    <a class="nav-link" href="#process">Comment ca marche</a>
-                    <a class="nav-link" href="#avis">Avis</a>
+                    <a class="nav-link" href="#services">{{ $t('welcome.nav.services') }}</a>
+                    <a class="nav-link" href="#approche">{{ $t('welcome.nav.approach') }}</a>
+                    <a class="nav-link" href="#process">{{ $t('welcome.nav.process') }}</a>
+                    <a class="nav-link" href="#avis">{{ $t('welcome.nav.reviews') }}</a>
                 </nav>
 
                 <div class="flex items-center gap-2">
                     <Link v-if="$page.props.auth.user" :href="route('dashboard')"
                         class="btn btn-outline px-4 py-2 text-sm">
-                        Dashboard
+                        {{ $t('welcome.actions.dashboard') }}
                     </Link>
                     <template v-else>
-                        <Link :href="route('login')" class="btn btn-ghost px-4 py-2 text-sm">Connexion</Link>
-                        <Link :href="route('register')" class="btn btn-primary px-4 py-2 text-sm">Inscription</Link>
+                        <Link :href="route('login')" class="btn btn-ghost px-4 py-2 text-sm">
+                            {{ $t('welcome.actions.login') }}
+                        </Link>
+                        <Link :href="route('register')" class="btn btn-primary px-4 py-2 text-sm">
+                            {{ $t('welcome.actions.register') }}
+                        </Link>
                     </template>
                 </div>
             </div>
@@ -55,29 +59,29 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                         <div
                             class="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
                             <span class="h-2 w-2 rounded-full" style="background: var(--primary)"></span>
-                            Garde d'enfants a domicile
+                            {{ $t('welcome.hero.pill') }}
                         </div>
                         <h1
                             class="font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl fade-up">
-                            Des gardiennes douces, verifiees, et toujours proches de vous.
+                            {{ $t('welcome.hero.title') }}
                         </h1>
                         <p class="max-w-xl text-lg text-slate-600 fade-up" style="animation-delay: 0.1s">
-                            Mikoo aide les parents a trouver une gardienne qui respecte le rythme de chaque enfant.
-                            Planning
-                            flexible, messages simples, et une equipe qui veille.
+                            {{ $t('welcome.hero.description') }}
                         </p>
                         <div class="flex flex-wrap gap-3 fade-up" style="animation-delay: 0.2s">
                             <template v-if="!$page.props.auth.user">
                                 <Link :href="route('register')" class="btn btn-primary px-6 py-3 text-sm">
-                                    Trouver une gardienne
+                                    {{ $t('welcome.actions.find_babysitter') }}
                                 </Link>
                             </template>
                             <template v-else>
                                 <Link :href="route('dashboard')" class="btn btn-primary px-6 py-3 text-sm">
-                                    Ouvrir mon espace
+                                    {{ $t('welcome.actions.open_space') }}
                                 </Link>
                             </template>
-                            <a href="#process" class="btn btn-outline px-6 py-3 text-sm">Voir comment ca marche</a>
+                            <a href="#process" class="btn btn-outline px-6 py-3 text-sm">
+                                {{ $t('welcome.actions.see_process') }}
+                            </a>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2 fade-up" style="animation-delay: 0.3s">
                             <div class="feature-pill">
@@ -88,8 +92,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     </svg>
                                 </span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800">Profils verifies</p>
-                                    <p class="text-xs text-slate-500">References, experience, et validation.</p>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.hero.features.verified.title') }}</p>
+                                    <p class="text-xs text-slate-500">{{ $t('welcome.hero.features.verified.description') }}</p>
                                 </div>
                             </div>
                             <div class="feature-pill">
@@ -100,8 +104,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     </svg>
                                 </span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800">Matching intelligent</p>
-                                    <p class="text-xs text-slate-500">Age, besoins, et habitudes de vie.</p>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.hero.features.matching.title') }}</p>
+                                    <p class="text-xs text-slate-500">{{ $t('welcome.hero.features.matching.description') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -113,8 +117,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                 <span class="avatar">SO</span>
                             </div>
                             <div>
-                                <p class="text-base font-semibold text-slate-700">4.9/5 par 312 familles</p>
-                                <p class="text-xs text-slate-500">Note moyenne sur 3 mois</p>
+                                <p class="text-base font-semibold text-slate-700">{{ $t('welcome.hero.stats.headline') }}</p>
+                                <p class="text-xs text-slate-500">{{ $t('welcome.hero.stats.subline') }}</p>
                             </div>
                         </div>
                     </div>
@@ -123,12 +127,12 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                         <div class="hero-card">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Aujourd'hui</p>
-                                    <p class="font-display text-2xl text-slate-900">Disponible</p>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ $t('welcome.hero.card.today') }}</p>
+                                    <p class="font-display text-2xl text-slate-900">{{ $t('welcome.hero.card.available') }}</p>
                                 </div>
                                 <div class="rounded-full px-3 py-1 text-xs font-semibold"
                                     style="background: var(--primary-soft); color: var(--primary-strong)">
-                                    17:00 - 21:00
+                                    {{ $t('welcome.hero.card.time') }}
                                 </div>
                             </div>
                             <div class="mt-6 rounded-3xl bg-white/80 p-5 shadow-lg shadow-black/10">
@@ -138,43 +142,42 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                         LM
                                     </div>
                                     <div>
-                                        <p class="text-base font-semibold text-slate-800">Lea M.</p>
-                                        <p class="text-xs text-slate-500">4 ans d'experience, Montessori</p>
+                                        <p class="text-base font-semibold text-slate-800">{{ $t('welcome.hero.card.name') }}</p>
+                                        <p class="text-xs text-slate-500">{{ $t('welcome.hero.card.experience') }}</p>
                                     </div>
                                 </div>
                                 <div class="mt-4 grid grid-cols-3 gap-2 text-xs text-slate-600">
                                     <span class="rounded-full px-2 py-1 text-center"
                                         style="background: var(--primary-soft)">
-                                        Creative
+                                        {{ $t('welcome.hero.card.tags.creative') }}
                                     </span>
                                     <span class="rounded-full px-2 py-1 text-center"
                                         style="background: var(--primary-soft)">
-                                        Calme
+                                        {{ $t('welcome.hero.card.tags.calm') }}
                                     </span>
                                     <span class="rounded-full px-2 py-1 text-center"
                                         style="background: var(--primary-soft)">
-                                        Bilingue
+                                        {{ $t('welcome.hero.card.tags.bilingual') }}
                                     </span>
                                 </div>
                             </div>
                             <div class="mt-6 grid gap-4">
                                 <div class="rounded-3xl bg-white/90 p-4 shadow-lg shadow-black/5">
-                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Activites</p>
-                                    <p class="mt-2 text-sm text-slate-600">Lecture, dessin, jeux calmes, sortie parc.
-                                    </p>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ $t('welcome.hero.card.activities.title') }}</p>
+                                    <p class="mt-2 text-sm text-slate-600">{{ $t('welcome.hero.card.activities.description') }}</p>
                                 </div>
                                 <div class="rounded-3xl p-4 text-white shadow-lg" style="background: var(--primary)">
-                                    <p class="text-xs uppercase tracking-[0.2em] text-white/80">Parents rassures</p>
-                                    <p class="mt-2 text-sm">Suivi en direct, check-ins, et resume de la garde.</p>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-white/80">{{ $t('welcome.hero.card.parents.title') }}</p>
+                                    <p class="mt-2 text-sm">{{ $t('welcome.hero.card.parents.description') }}</p>
                                 </div>
                             </div>
                         </div>
                         <div class="floating-card hidden lg:flex">
                             <div>
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Prochaine garde</p>
-                                <p class="font-display text-lg text-slate-900">Mercredi 18:30</p>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ $t('welcome.hero.card.next.title') }}</p>
+                                <p class="font-display text-lg text-slate-900">{{ $t('welcome.hero.card.next.time') }}</p>
                             </div>
-                            <span class="badge">Confirmee</span>
+                            <span class="badge">{{ $t('welcome.hero.card.next.status') }}</span>
                         </div>
                     </div>
                 </div>
@@ -183,12 +186,11 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                 <div class="mx-auto w-full max-w-6xl px-6 py-16 lg:py-20">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <p class="section-eyebrow">Nos services</p>
-                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Une solution pour chaque moment
-                            </h2>
+                            <p class="section-eyebrow">{{ $t('welcome.services.eyebrow') }}</p>
+                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">{{ $t('welcome.services.title') }}</h2>
                         </div>
                         <p class="max-w-xl text-sm text-slate-500">
-                            Soirees, sorties d'ecole, ou garde reguliere. Mikoo s'adapte a votre rythme de famille.
+                            {{ $t('welcome.services.description') }}
                         </p>
                     </div>
                     <div class="mt-10 grid gap-6 md:grid-cols-3">
@@ -201,9 +203,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     <path d="M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
                                 </svg>
                             </div>
-                            <h3 class="font-display text-xl text-slate-900">Apres l'ecole</h3>
-                            <p class="mt-2 text-sm text-slate-500">Retour calme, gouter, devoirs, et activites
-                                creatrices.</p>
+                            <h3 class="font-display text-xl text-slate-900">{{ $t('welcome.services.cards.after_school.title') }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">{{ $t('welcome.services.cards.after_school.description') }}</p>
                         </div>
                         <div class="service-card">
                             <div class="service-icon">
@@ -213,10 +214,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     <path d="M15.5 8.5h0.01M18 10h0.01" />
                                 </svg>
                             </div>
-                            <h3 class="font-display text-xl text-slate-900">Soirees sereines</h3>
-                            <p class="mt-2 text-sm text-slate-500">
-                                Garde de fin de journee, routine du soir, et coucher en douceur.
-                            </p>
+                            <h3 class="font-display text-xl text-slate-900">{{ $t('welcome.services.cards.evening.title') }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">{{ $t('welcome.services.cards.evening.description') }}</p>
                         </div>
                         <div class="service-card">
                             <div class="service-icon">
@@ -226,10 +225,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     <path d="M8 3v4M16 3v4M4 10h16" />
                                 </svg>
                             </div>
-                            <h3 class="font-display text-xl text-slate-900">Garde reguliere</h3>
-                            <p class="mt-2 text-sm text-slate-500">
-                                Un planning fixe ou flexible, avec la meme gardienne quand c'est possible.
-                            </p>
+                            <h3 class="font-display text-xl text-slate-900">{{ $t('welcome.services.cards.regular.title') }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">{{ $t('welcome.services.cards.regular.description') }}</p>
                         </div>
                     </div>
                 </div>
@@ -239,36 +236,33 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                     <div class="approach-panel">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Suivi doux</p>
-                                <p class="font-display text-2xl text-slate-900">Journal de garde</p>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ $t('welcome.approach.panel.eyebrow') }}</p>
+                                <p class="font-display text-2xl text-slate-900">{{ $t('welcome.approach.panel.title') }}</p>
                             </div>
-                            <span class="badge">Temps reel</span>
+                            <span class="badge">{{ $t('welcome.approach.panel.badge') }}</span>
                         </div>
                         <div class="mt-6 grid gap-4">
                             <div class="approach-card">
-                                <p class="text-sm font-semibold text-slate-800">Check-in a l'arrivee</p>
-                                <p class="mt-2 text-xs text-slate-500">Notification simple pour savoir que tout va bien.
-                                </p>
+                                <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.approach.panel.cards.checkin.title') }}</p>
+                                <p class="mt-2 text-xs text-slate-500">{{ $t('welcome.approach.panel.cards.checkin.description') }}</p>
                             </div>
                             <div class="approach-card">
-                                <p class="text-sm font-semibold text-slate-800">Moments cles</p>
-                                <p class="mt-2 text-xs text-slate-500">Repas, devoirs, jeux, sieste et routine.</p>
+                                <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.approach.panel.cards.moments.title') }}</p>
+                                <p class="mt-2 text-xs text-slate-500">{{ $t('welcome.approach.panel.cards.moments.description') }}</p>
                             </div>
                             <div class="approach-card">
-                                <p class="text-sm font-semibold text-slate-800">Resume apres la garde</p>
-                                <p class="mt-2 text-xs text-slate-500">Un message clair pour garder le lien.</p>
+                                <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.approach.panel.cards.recap.title') }}</p>
+                                <p class="mt-2 text-xs text-slate-500">{{ $t('welcome.approach.panel.cards.recap.description') }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-6">
-                        <p class="section-eyebrow">Notre approche</p>
+                        <p class="section-eyebrow">{{ $t('welcome.approach.eyebrow') }}</p>
                         <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">
-                            Une experience agreable et rassurante pour les parents.
+                            {{ $t('welcome.approach.title') }}
                         </h2>
                         <p class="text-sm text-slate-600">
-                            Nous selectionnons des gardiennes attentives, puis nous restons proches pendant toute la
-                            garde. Vous
-                            restez au courant sans etre interrompu, avec un suivi clair et bienveillant.
+                            {{ $t('welcome.approach.description') }}
                         </p>
                         <div class="grid gap-4">
                             <div class="flex items-start gap-4">
@@ -279,8 +273,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     </svg>
                                 </span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800">Securite d'abord</p>
-                                    <p class="text-xs text-slate-500">References, entretien, et verification locale.</p>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.approach.features.safety.title') }}</p>
+                                    <p class="text-xs text-slate-500">{{ $t('welcome.approach.features.safety.description') }}</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-4">
@@ -291,8 +285,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     </svg>
                                 </span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800">Communication claire</p>
-                                    <p class="text-xs text-slate-500">Messages courts et utiles, sans surcharge.</p>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.approach.features.communication.title') }}</p>
+                                    <p class="text-xs text-slate-500">{{ $t('welcome.approach.features.communication.description') }}</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-4">
@@ -303,21 +297,21 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                                     </svg>
                                 </span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800">Activites adaptees</p>
-                                    <p class="text-xs text-slate-500">Jeux calmes, sorties, et routine du soir.</p>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.approach.features.activities.title') }}</p>
+                                    <p class="text-xs text-slate-500">{{ $t('welcome.approach.features.activities.description') }}</p>
                                 </div>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-3">
-                            <a href="#avis" class="btn btn-outline px-6 py-3 text-sm">Lire les avis</a>
+                            <a href="#avis" class="btn btn-outline px-6 py-3 text-sm">{{ $t('welcome.actions.read_reviews') }}</a>
                             <template v-if="!$page.props.auth.user">
                                 <Link :href="route('register')" class="btn btn-primary px-6 py-3 text-sm">
-                                    Commencer maintenant
+                                    {{ $t('welcome.actions.start_now') }}
                                 </Link>
                             </template>
                             <template v-else>
                                 <Link :href="route('dashboard')" class="btn btn-primary px-6 py-3 text-sm">
-                                    Acceder au tableau
+                                    {{ $t('welcome.actions.go_dashboard') }}
                                 </Link>
                             </template>
                         </div>
@@ -327,28 +321,27 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
             <section id="process" class="bg-white/70">
                 <div class="mx-auto w-full max-w-6xl px-6 py-16 lg:py-20">
                     <div class="mx-auto max-w-2xl text-center">
-                        <p class="section-eyebrow">Comment ca marche</p>
-                        <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Trois etapes simples</h2>
+                        <p class="section-eyebrow">{{ $t('welcome.process.eyebrow') }}</p>
+                        <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">{{ $t('welcome.process.title') }}</h2>
                         <p class="mt-4 text-sm text-slate-500">
-                            De la premiere demande a la garde, tout est pense pour vous faire gagner du temps.
+                            {{ $t('welcome.process.description') }}
                         </p>
                     </div>
                     <div class="mt-10 grid gap-6 md:grid-cols-3">
                         <div class="step-card">
                             <span class="step-number">1</span>
-                            <h3 class="mt-4 font-display text-xl text-slate-900">Decrivez vos besoins</h3>
-                            <p class="mt-2 text-sm text-slate-500">Age, horaires, habitudes, et adresse.</p>
+                            <h3 class="mt-4 font-display text-xl text-slate-900">{{ $t('welcome.process.steps.one.title') }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">{{ $t('welcome.process.steps.one.description') }}</p>
                         </div>
                         <div class="step-card">
                             <span class="step-number">2</span>
-                            <h3 class="mt-4 font-display text-xl text-slate-900">Choisissez une gardienne</h3>
-                            <p class="mt-2 text-sm text-slate-500">Nous proposons des profils proches et disponibles.
-                            </p>
+                            <h3 class="mt-4 font-display text-xl text-slate-900">{{ $t('welcome.process.steps.two.title') }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">{{ $t('welcome.process.steps.two.description') }}</p>
                         </div>
                         <div class="step-card">
                             <span class="step-number">3</span>
-                            <h3 class="mt-4 font-display text-xl text-slate-900">Suivez la garde</h3>
-                            <p class="mt-2 text-sm text-slate-500">Check-ins et resume complet apres la garde.</p>
+                            <h3 class="mt-4 font-display text-xl text-slate-900">{{ $t('welcome.process.steps.three.title') }}</h3>
+                            <p class="mt-2 text-sm text-slate-500">{{ $t('welcome.process.steps.three.description') }}</p>
                         </div>
                     </div>
                 </div>
@@ -357,39 +350,39 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
             <section id="avis" class="mx-auto w-full max-w-6xl px-6 py-16 lg:py-20">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <p class="section-eyebrow">Avis</p>
-                        <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Les parents parlent de Mikoo</h2>
+                        <p class="section-eyebrow">{{ $t('welcome.reviews.eyebrow') }}</p>
+                        <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">{{ $t('welcome.reviews.title') }}</h2>
                     </div>
                     <p class="max-w-xl text-sm text-slate-500">
-                        Une experience douce, claire, et rassurante. Les familles retrouvent du temps et de la serenite.
+                        {{ $t('welcome.reviews.description') }}
                     </p>
                 </div>
                 <div class="mt-10 grid gap-6 md:grid-cols-3">
                     <div class="testimonial-card">
                         <p class="text-sm text-slate-600">
-                            "Mikoo nous a trouve une gardienne douce et ponctuelle. Les enfants l'adorent."
+                            {{ $t('welcome.reviews.items.first.quote') }}
                         </p>
                         <div class="mt-4 flex items-center justify-between">
-                            <p class="text-sm font-semibold text-slate-800">Sophie R.</p>
-                            <span class="text-xs text-slate-500">5/5</span>
+                            <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.reviews.items.first.name') }}</p>
+                            <span class="text-xs text-slate-500">{{ $t('welcome.reviews.items.first.rating') }}</span>
                         </div>
                     </div>
                     <div class="testimonial-card">
                         <p class="text-sm text-slate-600">
-                            "Le planning est simple et les updates rassurent vraiment. Je recommande."
+                            {{ $t('welcome.reviews.items.second.quote') }}
                         </p>
                         <div class="mt-4 flex items-center justify-between">
-                            <p class="text-sm font-semibold text-slate-800">Karim T.</p>
-                            <span class="text-xs text-slate-500">5/5</span>
+                            <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.reviews.items.second.name') }}</p>
+                            <span class="text-xs text-slate-500">{{ $t('welcome.reviews.items.second.rating') }}</span>
                         </div>
                     </div>
                     <div class="testimonial-card">
                         <p class="text-sm text-slate-600">
-                            "Nous avons un vrai feeling de confiance. Merci a toute l'equipe Mikoo."
+                            {{ $t('welcome.reviews.items.third.quote') }}
                         </p>
                         <div class="mt-4 flex items-center justify-between">
-                            <p class="text-sm font-semibold text-slate-800">Laura P.</p>
-                            <span class="text-xs text-slate-500">4.9/5</span>
+                            <p class="text-sm font-semibold text-slate-800">{{ $t('welcome.reviews.items.third.name') }}</p>
+                            <span class="text-xs text-slate-500">{{ $t('welcome.reviews.items.third.rating') }}</span>
                         </div>
                     </div>
                 </div>
@@ -398,22 +391,24 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                 <div class="cta-block">
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <p class="section-eyebrow">Pret a commencer</p>
-                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">Parlons de votre prochain
-                                besoin</h2>
+                            <p class="section-eyebrow">{{ $t('welcome.cta.eyebrow') }}</p>
+                            <h2 class="font-display text-3xl text-slate-900 sm:text-4xl">{{ $t('welcome.cta.title') }}</h2>
                             <p class="mt-2 text-sm text-slate-600">
-                                Inscrivez votre famille et recevez une selection de profils adaptes.
+                                {{ $t('welcome.cta.description') }}
                             </p>
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <template v-if="!$page.props.auth.user">
-                                <Link :href="route('register')" class="btn btn-primary px-6 py-3 text-sm">Commencer
+                                <Link :href="route('register')" class="btn btn-primary px-6 py-3 text-sm">
+                                    {{ $t('welcome.cta.actions.start') }}
                                 </Link>
-                                <Link :href="route('login')" class="btn btn-outline px-6 py-3 text-sm">Connexion</Link>
+                                <Link :href="route('login')" class="btn btn-outline px-6 py-3 text-sm">
+                                    {{ $t('welcome.cta.actions.login') }}
+                                </Link>
                             </template>
                             <template v-else>
                                 <Link :href="route('dashboard')" class="btn btn-primary px-6 py-3 text-sm">
-                                    Acceder au tableau
+                                    {{ $t('welcome.cta.actions.go_dashboard') }}
                                 </Link>
                             </template>
                         </div>
@@ -429,12 +424,12 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
                     <AppLogoIcon class="h-8 w-auto" />
                 </div>
                 <div class="flex flex-wrap gap-6 text-sm text-slate-500">
-                    <a class="nav-link" href="#services">Services</a>
-                    <a class="nav-link" href="#approche">Approche</a>
-                    <a class="nav-link" href="#process">Process</a>
-                    <a class="nav-link" href="#avis">Avis</a>
+                    <a class="nav-link" href="#services">{{ $t('welcome.nav.services') }}</a>
+                    <a class="nav-link" href="#approche">{{ $t('welcome.nav.approach') }}</a>
+                    <a class="nav-link" href="#process">{{ $t('welcome.nav.process') }}</a>
+                    <a class="nav-link" href="#avis">{{ $t('welcome.nav.reviews') }}</a>
                 </div>
-                <p class="text-xs text-slate-400">(c) 2026 Mikoo. Tous droits reserves.</p>
+                <p class="text-xs text-slate-400">{{ $t('welcome.footer.copyright') }}</p>
             </div>
         </footer>
     </div>

@@ -29,7 +29,7 @@ class WelcomeNotification extends Notification implements ShouldQueue
         $name = $this->resolveName($this->user);
 
         return (new MailMessage)
-            ->subject('Bienvenue sur Mikoo')
+            ->subject(__('notifications.welcome.subject'))
             ->markdown('emails.welcome', [
                 'user' => $this->user,
                 'name' => $name,

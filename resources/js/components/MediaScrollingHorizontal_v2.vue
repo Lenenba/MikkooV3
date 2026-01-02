@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import type { MediaItem } from '@/types';
-import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 const props = defineProps<{
     items: MediaItem[];
 }>();
+const { t } = useI18n();
 
 </script>
 
 <template>
     <div v-if="!items || items.length === 0">
-        <p class="p-4 text-sm text-muted-foreground">No media uploaded yet.</p>
+        <p class="p-4 text-sm text-muted-foreground">{{ t('media.empty') }}</p>
     </div>
     <ScrollArea v-else class="w-full whitespace-nowrap rounded-md border">
         <div class="flex w-max space-x-4 p-4">
@@ -25,9 +25,9 @@ const props = defineProps<{
                     <span class="font-semibold text-foreground">
                         {{
                             mediaItem.is_profile
-                                ? 'Profile'
+                                ? t('media.collection.profile')
                                 : mediaItem.collection_name === 'garde' // Exemple de logique de nom d'affichage
-                                    ? 'Collection de Garde'
+                                    ? t('media.collection.guard')
                                     : mediaItem.collection_name
                         }}
                     </span>

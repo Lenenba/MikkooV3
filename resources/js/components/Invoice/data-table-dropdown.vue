@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal } from 'lucide-vue-next'
@@ -13,11 +14,12 @@ const props = defineProps<{
 }>()
 
 const page = usePage()
+const { t } = useI18n()
 const role = computed(() => (page.props.auth as { role?: string }).role ?? 'Parent')
 const status = computed(() => (props.invoice.status ?? '').toString().toLowerCase())
 const isBabysitter = computed(() => role.value === 'Babysitter')
 const canEdit = computed(() => isBabysitter.value && status.value === 'draft')
-const viewLabel = computed(() => (canEdit.value ? 'Voir / Modifier' : 'Voir'))
+const viewLabel = computed(() => (canEdit.value ? t('invoices.actions.view_edit') : t('invoices.actions.view')))
 
 function viewInvoice(id: number | string) {
     router.get(`/invoices/${id}`)
@@ -32,17 +34,17 @@ function downloadInvoice(id: number | string) {
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
             <Button variant="ghost" class="w-8 h-8 p-0">
-                <span class="sr-only">Open menu</span>
+                <span class="sr-only">{{ $t('common.labels.open_menu') }}</span>
                 <MoreHorizontal class="w-4 h-4" />
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{{ $t('common.table.actions') }}</DropdownMenuLabel>
             <DropdownMenuItem @click="viewInvoice(props.invoice.id)">
                 {{ viewLabel }}
             </DropdownMenuItem>
             <DropdownMenuItem @click="downloadInvoice(props.invoice.id)">
-                Telecharger PDF
+                {{ $t('invoices.actions.download_pdf') }}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
         </DropdownMenuContent>

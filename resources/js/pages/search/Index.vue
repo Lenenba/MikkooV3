@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { computed, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { type BreadcrumbItem, type Babysitter, type SharedData } from '@/types';
 import { Head, usePage, useForm, router } from '@inertiajs/vue3';
 import BabysitterList from '@/components/BabysitterList.vue';
@@ -8,14 +9,14 @@ import FloatingInput from '@/components/FloatingInput.vue';
 import FloatingSelect from '@/components/FloatingSelect.vue';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-vue-next';
-const breadcrumbs: BreadcrumbItem[] = [
+const page = usePage<SharedData>();
+const { t } = useI18n();
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Search Babysitter',
+        title: t('search.title'),
         href: '/search',
     },
-];
-
-const page = usePage<SharedData>();
+]);
 const babysitters = computed<Babysitter[]>(() => page.props.babysitters?.data ?? []);
 const pagination = computed(() => page.props.babysitters ?? null);
 const hasPrevPage = computed(() => Boolean(pagination.value?.prev_page_url));
@@ -23,7 +24,7 @@ const hasNextPage = computed(() => Boolean(pagination.value?.next_page_url));
 const serviceOptions = computed(() => {
     const options = Array.isArray(page.props.serviceOptions) ? page.props.serviceOptions : [];
     return [
-        { value: 'all', label: 'Tous services' },
+        { value: 'all', label: t('search.filters.all_services') },
         ...options.map((service: string) => ({ value: service, label: service })),
     ];
 });
@@ -78,30 +79,30 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const sortOptions = [
-    { value: 'default', label: 'Recommande' },
-    { value: 'distance', label: 'Proximite' },
-    { value: 'rating', label: 'Mieux notes' },
-    { value: 'price_low', label: 'Prix: bas a haut' },
-    { value: 'price_high', label: 'Prix: haut a bas' },
-    { value: 'recent', label: 'Plus recentes' },
-];
+const sortOptions = computed(() => [
+    { value: 'default', label: t('search.sort.default') },
+    { value: 'distance', label: t('search.sort.distance') },
+    { value: 'rating', label: t('search.sort.rating') },
+    { value: 'price_low', label: t('search.sort.price_low') },
+    { value: 'price_high', label: t('search.sort.price_high') },
+    { value: 'recent', label: t('search.sort.recent') },
+]);
 
-const ratingOptions = [
-    { value: 'all', label: 'Toutes notes' },
-    { value: '3', label: '3+ etoiles' },
-    { value: '4', label: '4+ etoiles' },
-    { value: '4.5', label: '4.5+ etoiles' },
-];
+const ratingOptions = computed(() => [
+    { value: 'all', label: t('search.filters.all_ratings') },
+    { value: '3', label: t('search.filters.rating_3') },
+    { value: '4', label: t('search.filters.rating_4') },
+    { value: '4.5', label: t('search.filters.rating_4_5') },
+]);
 
-const paymentOptions = [
-    { value: 'all', label: 'Tous paiements' },
-    { value: 'per_task', label: 'Par mission' },
-    { value: 'daily', label: 'Par jour' },
-    { value: 'weekly', label: 'Par semaine' },
-    { value: 'biweekly', label: 'Toutes les 2 semaines' },
-    { value: 'monthly', label: 'Par mois' },
-];
+const paymentOptions = computed(() => [
+    { value: 'all', label: t('search.filters.all_payments') },
+    { value: 'per_task', label: t('search.payment.per_task') },
+    { value: 'daily', label: t('search.payment.daily') },
+    { value: 'weekly', label: t('search.payment.weekly') },
+    { value: 'biweekly', label: t('search.payment.biweekly') },
+    { value: 'monthly', label: t('search.payment.monthly') },
+]);
 
 onBeforeUnmount(() => {
     if (filterTimeout) {
@@ -113,7 +114,7 @@ onBeforeUnmount(() => {
 
 <template>
 
-    <Head title="Dashboard" />
+    <Head :title="$t('search.head_title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 my-8">
@@ -121,11 +122,11 @@ onBeforeUnmount(() => {
                 <aside class="order-2 space-y-4 lg:order-1 lg:sticky lg:top-24">
                     <div
                         class="rounded-sm border border-border bg-card p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                        <h3 class="text-sm font-semibold text-foreground dark:text-neutral-100">Recherche</h3>
+                        <h3 class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('search.search.title') }}</h3>
                         <div class="relative mt-3">
                             <FloatingInput
                                 id="search"
-                                label="Recherche"
+                                :label="$t('search.search.label')"
                                 label-class="pl-9"
                                 type="text"
                                 class="w-full pl-9"
@@ -137,23 +138,23 @@ onBeforeUnmount(() => {
                             </span>
                         </div>
                         <p class="mt-2 text-xs text-muted-foreground dark:text-neutral-400">
-                            Nom, ville, ou pays.
+                            {{ $t('search.search.hint') }}
                         </p>
                     </div>
 
                     <div
                         class="rounded-sm border border-border bg-card p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-foreground dark:text-neutral-100">Filtres</h3>
+                            <h3 class="text-sm font-semibold text-foreground dark:text-neutral-100">{{ $t('search.filters.title') }}</h3>
                             <Button variant="outline" size="sm" class="h-7 px-2 text-xs" @click="resetFilters">
-                                Reset
+                                {{ $t('common.actions.reset') }}
                             </Button>
                         </div>
                         <div class="mt-4 space-y-4">
                             <div class="space-y-2">
                                 <FloatingInput
                                     id="filter-city"
-                                    label="Ville"
+                                    :label="$t('common.labels.city')"
                                     type="text"
                                     v-model="filterForm.city"
                                     @input="applyFilters"
@@ -162,7 +163,7 @@ onBeforeUnmount(() => {
                             <div class="space-y-2">
                                 <FloatingInput
                                     id="filter-country"
-                                    label="Pays"
+                                    :label="$t('common.labels.country')"
                                     type="text"
                                     v-model="filterForm.country"
                                     @input="applyFilters"
@@ -172,7 +173,7 @@ onBeforeUnmount(() => {
                                 <div class="grid grid-cols-2 gap-2">
                                     <FloatingInput
                                         id="filter-min-price"
-                                        label="Prix min"
+                                        :label="$t('search.filters.price_min')"
                                         type="number"
                                         min="0"
                                         step="1"
@@ -181,7 +182,7 @@ onBeforeUnmount(() => {
                                     />
                                     <FloatingInput
                                         id="filter-max-price"
-                                        label="Prix max"
+                                        :label="$t('search.filters.price_max')"
                                         type="number"
                                         min="0"
                                         step="1"
@@ -193,7 +194,7 @@ onBeforeUnmount(() => {
                             <div class="space-y-2">
                                 <FloatingSelect
                                     id="filter-min-rating"
-                                    label="Note minimale"
+                                    :label="$t('search.filters.rating_min')"
                                     :options="ratingOptions"
                                     :model-value="filterForm.min_rating ? `${filterForm.min_rating}` : 'all'"
                                     @update:model-value="value => { filterForm.min_rating = value === 'all' ? '' : value; applyFilters(); }"
@@ -202,7 +203,7 @@ onBeforeUnmount(() => {
                             <div class="space-y-2">
                                 <FloatingSelect
                                     id="filter-payment"
-                                    label="Paiement"
+                                    :label="$t('search.filters.payment')"
                                     :options="paymentOptions"
                                     :model-value="filterForm.payment_frequency ? `${filterForm.payment_frequency}` : 'all'"
                                     @update:model-value="value => { filterForm.payment_frequency = value === 'all' ? '' : value; applyFilters(); }"
@@ -211,7 +212,7 @@ onBeforeUnmount(() => {
                             <div class="space-y-2">
                                 <FloatingSelect
                                     id="filter-service"
-                                    label="Type de service"
+                                    :label="$t('search.filters.service')"
                                     :options="serviceOptions"
                                     :model-value="filterForm.service ? `${filterForm.service}` : 'all'"
                                     @update:model-value="value => { filterForm.service = value === 'all' ? '' : value; applyFilters(); }"
@@ -220,7 +221,7 @@ onBeforeUnmount(() => {
                             <div class="space-y-2">
                                 <FloatingSelect
                                     id="filter-sort"
-                                    label="Trier par"
+                                    :label="$t('search.filters.sort')"
                                     :options="sortOptions"
                                     :model-value="filterForm.sort ? `${filterForm.sort}` : 'default'"
                                     @update:model-value="value => { filterForm.sort = value === 'default' ? '' : value; applyFilters(); }"
@@ -235,14 +236,14 @@ onBeforeUnmount(() => {
                     <div v-if="pagination" class="mt-6 flex flex-wrap items-center justify-center gap-3">
                         <Button variant="outline" size="sm" :disabled="!hasPrevPage"
                             @click="goToPage(pagination?.prev_page_url)">
-                            Precedent
+                            {{ $t('common.actions.previous') }}
                         </Button>
                         <span class="text-xs text-muted-foreground">
-                            Page {{ pagination?.current_page ?? 1 }}
+                            {{ $t('search.pagination.page') }} {{ pagination?.current_page ?? 1 }}
                         </span>
                         <Button variant="outline" size="sm" :disabled="!hasNextPage"
                             @click="goToPage(pagination?.next_page_url)">
-                            Suivant
+                            {{ $t('common.actions.next') }}
                         </Button>
                     </div>
                 </section>

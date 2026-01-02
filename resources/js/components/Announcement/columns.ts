@@ -6,7 +6,7 @@ import DropdownAction from '@/components/Announcement/data-table-dropdown.vue'
 
 const headerClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 
-const renderTitleCell = (announcement: Announcement) => {
+const renderTitleCell = (announcement: Announcement, fallbackLabel: string) => {
     const title = announcement.title ?? '-'
     const description = announcement.description ?? ''
 
@@ -14,7 +14,7 @@ const renderTitleCell = (announcement: Announcement) => {
         h('span', { class: 'truncate text-sm font-semibold text-foreground' }, title),
         description
             ? h('span', { class: 'text-xs text-muted-foreground' }, description)
-            : h('span', { class: 'text-xs text-muted-foreground/70' }, '-'),
+            : h('span', { class: 'text-xs text-muted-foreground/70' }, fallbackLabel),
     ])
 }
 
@@ -38,10 +38,10 @@ const resolveServiceLabels = (announcement: Announcement) => {
         .filter(Boolean)
 }
 
-const renderServiceCell = (announcement: Announcement) => {
+const renderServiceCell = (announcement: Announcement, fallbackLabel: string) => {
     const labels = resolveServiceLabels(announcement)
     if (!labels.length) {
-        return h('span', { class: 'text-xs text-muted-foreground' }, '-')
+        return h('span', { class: 'text-xs text-muted-foreground' }, fallbackLabel)
     }
 
     return h('div', { class: 'flex flex-wrap gap-1' }, labels.map((label) =>
@@ -49,7 +49,7 @@ const renderServiceCell = (announcement: Announcement) => {
     ))
 }
 
-const renderChildCell = (announcement: Announcement) => {
+const renderChildCell = (announcement: Announcement, fallbackLabel: string, countLabel: string) => {
     const children = (announcement.children ?? []).filter(Boolean)
     const names = children
         .map((child) => (child?.name ?? '').toString().trim())
@@ -58,34 +58,37 @@ const renderChildCell = (announcement: Announcement) => {
     const ageValue = announcement.child_age?.toString().trim() || ''
     const label = [nameLabel, ageValue].filter(Boolean).join(' · ') || '-'
     const notes = announcement.child_notes?.trim() || ''
-    const countLabel = names.length > 1 ? `${names.length} enfants` : ''
+    const countValue = names.length > 1 ? countLabel : ''
 
     return h('div', { class: 'flex max-w-[220px] flex-col' }, [
         h('span', { class: 'text-sm font-medium text-foreground' }, label),
         notes
             ? h('span', { class: 'text-xs text-muted-foreground' }, notes)
-            : countLabel
-                ? h('span', { class: 'text-xs text-muted-foreground' }, countLabel)
-                : h('span', { class: 'text-xs text-muted-foreground/70' }, '-'),
+            : countValue
+                ? h('span', { class: 'text-xs text-muted-foreground' }, countValue)
+                : h('span', { class: 'text-xs text-muted-foreground/70' }, fallbackLabel),
     ])
 }
 
-const renderStatusCell = (announcement: Announcement) => {
+const renderStatusCell = (
+    announcement: Announcement,
+    labels: { open: string; closed: string; applications: string; unknown: string },
+) => {
     const key = (announcement.status ?? '').toString().toLowerCase()
     const pendingCount = Number(announcement.pending_applications_count ?? 0)
     const statusMap: Record<string, { text: string; classes: string }> = {
         open: {
-            text: pendingCount > 0 ? `Candidatures (${pendingCount})` : 'Ouverte',
+            text: pendingCount > 0 ? labels.applications.replace(':count', `${pendingCount}`) : labels.open,
             classes: pendingCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700',
         },
         closed: {
-            text: 'Pourvue',
+            text: labels.closed,
             classes: 'bg-slate-100 text-slate-600',
         },
     }
 
     const mapped = statusMap[key] ?? {
-        text: key || 'Inconnu',
+        text: key || labels.unknown,
         classes: 'bg-muted text-foreground',
     }
 
@@ -104,22 +107,33 @@ const renderParentCell = (announcement: Announcement) => {
     ])
 }
 
-export const getAnnouncementColumns = (role?: string): ColumnDef<Announcement>[] => {
+type Translator = (key: string, params?: Record<string, string | number>) => string
+
+export const getAnnouncementColumns = (role?: string, t?: Translator): ColumnDef<Announcement>[] => {
+    const translate = t ?? ((key: string) => key)
     const roleKey = getRoleKey(role)
     const isAdmin = roleKey === 'superadmin' || roleKey === 'admin'
+    const fallbackLabel = translate('common.misc.unknown')
+    const childCountLabel = (count: number) => translate('announcements.child.count', { count })
+    const statusLabels = {
+        open: translate('announcements.status.open'),
+        closed: translate('announcements.status.closed'),
+        applications: translate('announcements.status.applications'),
+        unknown: translate('common.misc.unknown'),
+    }
 
     const columns: ColumnDef<Announcement>[] = [
         {
             accessorKey: 'title',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Titre', class: headerClass }),
-            cell: ({ row }) => renderTitleCell(row.original),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('announcements.columns.title'), class: headerClass }),
+            cell: ({ row }) => renderTitleCell(row.original, fallbackLabel),
         },
     ]
 
     if (isAdmin) {
         columns.push({
             id: 'parent',
-            header: () => h('span', { class: headerClass }, 'Parent'),
+            header: () => h('span', { class: headerClass }, translate('announcements.columns.parent')),
             cell: ({ row }) => renderParentCell(row.original),
             enableSorting: false,
         })
@@ -128,22 +142,22 @@ export const getAnnouncementColumns = (role?: string): ColumnDef<Announcement>[]
     columns.push(
         {
             accessorKey: 'child_name',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Enfant', class: headerClass }),
-            cell: ({ row }) => renderChildCell(row.original),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('announcements.columns.child'), class: headerClass }),
+            cell: ({ row }) => renderChildCell(row.original, fallbackLabel, childCountLabel((row.original.children ?? []).length)),
         },
         {
             accessorKey: 'service',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Service', class: headerClass }),
-            cell: ({ row }) => renderServiceCell(row.original),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('announcements.columns.service'), class: headerClass }),
+            cell: ({ row }) => renderServiceCell(row.original, fallbackLabel),
         },
         {
             accessorKey: 'status',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
-            cell: ({ row }) => renderStatusCell(row.original),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('announcements.columns.status'), class: headerClass }),
+            cell: ({ row }) => renderStatusCell(row.original, statusLabels),
         },
         {
             accessorKey: 'created_at',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('announcements.columns.created_at'), class: headerClass }),
             cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, row.getValue('created_at') ?? '-'),
         },
         {

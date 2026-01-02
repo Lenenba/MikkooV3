@@ -192,7 +192,7 @@ class InvoiceController extends Controller
 
         $invoiceService->recalculate($invoice);
 
-        return back()->with('success', 'Facture mise a jour.');
+        return back()->with('success', __('flash.invoice.updated'));
     }
 
     protected function buildStats($user): array

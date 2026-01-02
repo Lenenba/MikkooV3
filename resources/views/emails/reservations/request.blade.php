@@ -5,33 +5,33 @@
 @endcomponent
 @endslot
 
-# Nouvelle reservation recue
+# {{ __('emails.reservations.request.heading') }}
 
-Bonjour{{ $babysitterName ? ' ' . $babysitterName : '' }},
+{{ __('emails.common.greeting', ['name' => $babysitterName ? ' ' . $babysitterName : '' ]) }}
 
-Une nouvelle reservation a ete demandee par {{ $parentName }}.
+{{ __('emails.reservations.request.intro', ['parent' => $parentName]) }}
 
 @component('mail::panel')
-Reference : {{ $reservation->number ?? $reservation->id }}
-Date : {{ $details?->date ?? '-' }}
-Heure : {{ $details?->start_time ?? '-' }} - {{ $details?->end_time ?? '-' }}
+{{ __('common.labels.reference') }} : {{ $reservation->number ?? $reservation->id }}
+{{ __('common.labels.date') }} : {{ $details?->date ?? '-' }}
+{{ __('common.labels.time') }} : {{ $details?->start_time ?? '-' }} - {{ $details?->end_time ?? '-' }}
 @if(!empty($serviceNames))
-Services : {{ implode(', ', $serviceNames) }}
+{{ __('common.labels.services') }} : {{ implode(', ', $serviceNames) }}
 @endif
-Total : {{ number_format((float) ($reservation->total_amount ?? 0), 2) }}
+{{ __('common.labels.total') }} : {{ number_format((float) ($reservation->total_amount ?? 0), 2) }}
 @endcomponent
 
 @if($reservation->notes)
-Notes : {{ $reservation->notes }}
+{{ __('common.labels.notes') }} : {{ $reservation->notes }}
 @endif
 
 @component('mail::button', ['url' => route('reservations.show', $reservation->id)])
-Voir la reservation
+{{ __('emails.reservations.request.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Head, useForm, usePage, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ type InvoiceShow = {
 }
 
 const page = usePage<SharedData>()
+const { t } = useI18n()
 const invoice = computed(() => page.props.invoice as InvoiceShow | undefined)
 const role = computed(() => (page.props.auth?.role ?? '').toString().toLowerCase())
 const isBabysitter = computed(() => role.value === 'babysitter')
@@ -81,16 +83,16 @@ const formatDate = (value?: string | null) => {
     return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(parsed)
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Factures',
+        title: t('invoices.title'),
         href: '/invoices',
     },
     {
-        title: 'Facture',
+        title: t('invoices.show.head_title'),
         href: `/invoices/${invoice.value?.id ?? ''}`,
     },
-]
+])
 
 const submit = () => {
     if (!invoice.value?.id) {
@@ -102,29 +104,29 @@ const submit = () => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Facture" />
+        <Head :title="$t('invoices.show.head_title')" />
 
         <div v-if="invoice" class="mx-auto w-full max-w-5xl space-y-6 p-4">
             <div class="rounded-sm border border-border bg-card p-6 shadow-sm">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Facture</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ $t('invoices.show.head_title') }}</p>
                         <h1 class="text-2xl font-semibold text-foreground">
                             #{{ invoice.number ?? invoice.id }}
                         </h1>
                         <p class="mt-2 text-sm text-muted-foreground">
-                            Periode: {{ formatDate(invoice.period_start) }} - {{ formatDate(invoice.period_end) }}
+                            {{ $t('invoices.columns.period') }}: {{ formatDate(invoice.period_start) }} - {{ formatDate(invoice.period_end) }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
                         <Button asChild variant="outline" size="sm">
-                            <Link href="/invoices">Retour</Link>
+                            <Link href="/invoices">{{ $t('invoices.show.back') }}</Link>
                         </Button>
                         <Button asChild variant="outline" size="sm">
-                            <a :href="route('invoices.download', invoice.id)">Telecharger PDF</a>
+                            <a :href="route('invoices.download', invoice.id)">{{ $t('invoices.show.download') }}</a>
                         </Button>
                         <Button v-if="canEdit" size="sm" :disabled="form.processing" @click="submit">
-                            Enregistrer
+                            {{ $t('common.actions.save') }}
                         </Button>
                     </div>
                 </div>
@@ -135,11 +137,11 @@ const submit = () => {
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
                         <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quantite</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prix unitaire</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ $t('invoices.show.description') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ $t('invoices.show.date') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ $t('invoices.show.quantity') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ $t('invoices.show.unit_price') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ $t('invoices.show.total') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -197,22 +199,22 @@ const submit = () => {
             <div class="rounded-sm border border-border bg-card p-6 shadow-sm">
                 <div class="grid gap-3 text-sm sm:max-w-md sm:ml-auto">
                     <div class="flex items-center justify-between">
-                        <span class="text-muted-foreground">Sous-total</span>
+                        <span class="text-muted-foreground">{{ $t('invoices.show.subtotal') }}</span>
                         <span class="font-semibold text-foreground">{{ formatCurrency(displaySubtotal) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-muted-foreground">TVA</span>
+                        <span class="text-muted-foreground">{{ $t('invoices.show.tax') }}</span>
                         <span class="font-semibold text-foreground">{{ formatCurrency(displayTax) }}</span>
                     </div>
                     <div class="flex items-center justify-between border-t border-border pt-3">
-                        <span class="font-semibold text-foreground">Total</span>
+                        <span class="font-semibold text-foreground">{{ $t('invoices.show.total') }}</span>
                         <span class="font-semibold text-foreground">{{ formatCurrency(displayTotal) }}</span>
                     </div>
                 </div>
             </div>
         </div>
         <div v-else class="mx-auto w-full max-w-3xl p-6 text-sm text-muted-foreground">
-            Facture introuvable.
+            {{ $t('invoices.show.not_found') }}
         </div>
     </AppLayout>
 </template>

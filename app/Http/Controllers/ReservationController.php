@@ -279,6 +279,6 @@ class ReservationController extends Controller
         // Redirect back with a success message
         return redirect()
             ->route('reservations.index')
-            ->with('success', __('Reservation created successfully.'));
+            ->with('success', __('flash.reservation.created'));
     }
 }

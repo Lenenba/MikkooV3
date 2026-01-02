@@ -2,6 +2,7 @@
 import { ref, computed, defineProps, defineEmits, withDefaults } from 'vue'
 import { format as formatDateFns } from 'date-fns'
 import { CalendarIcon } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -16,8 +17,9 @@ interface DatePickerProps {
 }
 
 // On définit les props et leurs valeurs par défaut
+const { t } = useI18n()
 const props = withDefaults(defineProps<DatePickerProps>(), {
-    placeholder: 'Pick a date',
+    placeholder: '',
     displayFormat: 'PPP',
 })
 
@@ -33,10 +35,10 @@ const formattedDisplayDate = computed(() => {
         try {
             return formatDateFns(props.modelValue, props.displayFormat!)
         } catch {
-            return 'Invalid date'
+            return t('common.date_picker.invalid')
         }
     }
-    return props.placeholder!
+    return props.placeholder || t('common.date_picker.placeholder')
 })
 
 // Quand l’utilisateur choisit une date

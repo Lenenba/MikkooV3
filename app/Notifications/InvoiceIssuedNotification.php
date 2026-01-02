@@ -33,12 +33,14 @@ class InvoiceIssuedNotification extends Notification implements ShouldQueue
             'items',
         ]);
 
-        $parentName = $this->resolveName($invoice->parent);
-        $babysitterName = $this->resolveName($invoice->babysitter, 'Babysitter');
+        $parentName = $this->resolveName($invoice->parent, __('common.roles.parent'));
+        $babysitterName = $this->resolveName($invoice->babysitter, __('common.roles.babysitter'));
         $vatPercent = round(((float) $invoice->vat_rate) * 100, 2);
 
         return (new MailMessage)
-            ->subject('Facture ' . ($invoice->number ?? $invoice->id))
+            ->subject(__('notifications.invoice.issued_subject', [
+                'number' => $invoice->number ?? $invoice->id,
+            ]))
             ->markdown('emails.invoices.issued', [
                 'invoice' => $invoice,
                 'parentName' => $parentName,
@@ -47,10 +49,10 @@ class InvoiceIssuedNotification extends Notification implements ShouldQueue
             ]);
     }
 
-    private function resolveName(?User $user, string $fallback = 'Parent'): string
+    private function resolveName(?User $user, string $fallback = ''): string
     {
         if (! $user) {
-            return $fallback;
+            return $fallback !== '' ? $fallback : __('common.roles.parent');
         }
 
         $profile = $user->parentProfile ?? $user->babysitterProfile;
@@ -64,6 +66,10 @@ class InvoiceIssuedNotification extends Notification implements ShouldQueue
 
         $name = trim((string) $user->name);
 
-        return $name !== '' ? $name : $fallback;
+        if ($name !== '') {
+            return $name;
+        }
+
+        return $fallback !== '' ? $fallback : __('common.roles.parent');
     }
 }

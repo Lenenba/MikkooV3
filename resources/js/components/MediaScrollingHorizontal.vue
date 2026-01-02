@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import type { MediaItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
@@ -7,6 +8,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 const props = defineProps<{
     items: MediaItem[];
 }>();
+const { t } = useI18n();
 
 const handleSetProfile = (media: MediaItem) => {
     router.post('/settings/media/setAsProfile', { media_id: media.id }, {
@@ -24,7 +26,7 @@ const handleSetProfile = (media: MediaItem) => {
 };
 
 const handleDelete = (media: MediaItem) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer cette image ? (${media.collection_name} #${media.id})`)) {
+    if (confirm(t('media.confirm_delete', { collection: media.collection_name, id: media.id }))) {
         router.delete(`/settings/media/${media.id}`, {
             preserveScroll: true,
             onSuccess: () => {
@@ -40,7 +42,7 @@ const handleDelete = (media: MediaItem) => {
 
 <template>
     <div v-if="!items || items.length === 0">
-        <p class="p-4 text-sm text-muted-foreground">No media uploaded yet.</p>
+        <p class="p-4 text-sm text-muted-foreground">{{ t('media.empty') }}</p>
     </div>
     <ScrollArea v-else class="w-full whitespace-nowrap rounded-md border">
         <div class="flex w-max space-x-4 p-4">
@@ -50,26 +52,28 @@ const handleDelete = (media: MediaItem) => {
                         class="aspect-[3/4] h-auto w-full object-cover" loading="lazy" />
                 </div>
                 <figcaption class="pt-2 text-xs text-muted-foreground">
-                    Collection :
+                    {{ t('media.collection.label_short') }}:
                     <span class="font-semibold text-foreground">
                         {{
                             mediaItem.is_profile
-                                ? 'Profile'
+                                ? t('media.collection.profile')
                                 : mediaItem.collection_name === 'garde' // Exemple de logique de nom d'affichage
-                                    ? 'Collection de Garde'
+                                    ? t('media.collection.guard')
                                     : mediaItem.collection_name
                         }}
                     </span>
                     <span v-if="mediaItem.is_profile"
-                        class="ml-1 px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">Actif</span>
+                        class="ml-1 px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                        {{ t('media.status.active') }}
+                    </span>
                 </figcaption>
                 <figcaption v-if="!mediaItem.is_profile"
                     class="flex justify-between items-center space-x-2 w-full pt-2">
                     <Button @click="() => handleSetProfile(mediaItem)" size="sm" variant="outline">
-                        Mettre en profile
+                        {{ t('media.actions.set_profile') }}
                     </Button>
                     <Button variant="destructive" size="sm" @click="() => handleDelete(mediaItem)">
-                        Supprimer
+                        {{ t('common.actions.delete') }}
                     </Button>
                 </figcaption>
             </figure>

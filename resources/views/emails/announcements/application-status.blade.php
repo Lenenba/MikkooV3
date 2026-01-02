@@ -7,43 +7,41 @@
 
 @php
     $statusKey = $status ?? 'updated';
-    $labelMap = [
-        'accepted' => 'Candidature acceptee',
-        'rejected' => 'Candidature refusee',
-        'expired' => 'Candidature expiree',
-        'withdrawn' => 'Candidature retiree',
-        'updated' => 'Mise a jour de candidature',
-    ];
-    $title = $labelMap[$statusKey] ?? $labelMap['updated'];
+    $labelMap = __('emails.announcements.application_status.status_labels');
+    $title = is_array($labelMap)
+        ? ($labelMap[$statusKey] ?? ($labelMap['updated'] ?? $statusKey))
+        : $statusKey;
     $actionUrl = $statusKey === 'accepted' && $application?->reservation_id
         ? route('reservations.show', $application->reservation_id)
         : route('announcements.show', $announcement?->id);
-    $actionLabel = $statusKey === 'accepted' ? 'Voir la reservation' : 'Voir l\'annonce';
+    $actionLabel = $statusKey === 'accepted'
+        ? __('emails.announcements.application_status.action.reservation')
+        : __('emails.announcements.application_status.action.announcement');
     $serviceList = $announcement?->resolveServices() ?? [];
     $serviceLabel = !empty($serviceList) ? implode(', ', $serviceList) : ($announcement?->service ?? '-');
 @endphp
 
 # {{ $title }}
 
-Bonjour{{ $babysitterName ? ' ' . $babysitterName : '' }},
+{{ __('emails.common.greeting', ['name' => $babysitterName ? ' ' . $babysitterName : '' ]) }}
 
 @if($statusKey === 'accepted')
-Votre candidature a ete acceptee par {{ $parentName }}.
+{{ __('emails.announcements.application_status.message.accepted', ['parent' => $parentName]) }}
 @elseif($statusKey === 'rejected')
-Le parent a selectionne une autre babysitter.
+{{ __('emails.announcements.application_status.message.rejected') }}
 @elseif($statusKey === 'expired')
-Votre candidature a expire faute de reponse.
+{{ __('emails.announcements.application_status.message.expired') }}
 @elseif($statusKey === 'withdrawn')
-Votre candidature a ete retiree.
+{{ __('emails.announcements.application_status.message.withdrawn') }}
 @else
-Votre candidature a ete mise a jour.
+{{ __('emails.announcements.application_status.message.updated') }}
 @endif
 
 @component('mail::panel')
-Annonce : {{ $announcement?->title ?? '-' }}
-Service : {{ $serviceLabel }}
-Date : {{ $announcement?->start_date ?? '-' }}
-Heure : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
+{{ __('emails.announcements.labels.announcement') }} : {{ $announcement?->title ?? '-' }}
+{{ __('emails.announcements.labels.service') }} : {{ $serviceLabel }}
+{{ __('emails.announcements.labels.date') }} : {{ $announcement?->start_date ?? '-' }}
+{{ __('emails.announcements.labels.time') }} : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
 @endcomponent
 
 @component('mail::button', ['url' => $actionUrl])
@@ -52,7 +50,7 @@ Heure : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ??
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

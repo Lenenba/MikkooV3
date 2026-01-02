@@ -5,11 +5,11 @@
 @endcomponent
 @endslot
 
-# Candidature envoyee
+# {{ __('emails.announcements.application_submitted.heading') }}
 
-Bonjour{{ $babysitterName ? ' ' . $babysitterName : '' }},
+{{ __('emails.common.greeting', ['name' => $babysitterName ? ' ' . $babysitterName : '' ]) }}
 
-Votre proposition a bien ete envoyee. Le parent recevra votre candidature et reviendra vers vous.
+{{ __('emails.announcements.application_submitted.intro') }}
 
 @php
     $serviceList = $announcement?->resolveServices() ?? [];
@@ -17,23 +17,23 @@ Votre proposition a bien ete envoyee. Le parent recevra votre candidature et rev
 @endphp
 
 @component('mail::panel')
-Annonce : {{ $announcement?->title ?? '-' }}
-Service : {{ $serviceLabel }}
-Parent : {{ $parentName }}
-Date : {{ $announcement?->start_date ?? '-' }}
-Heure : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
+{{ __('emails.announcements.labels.announcement') }} : {{ $announcement?->title ?? '-' }}
+{{ __('emails.announcements.labels.service') }} : {{ $serviceLabel }}
+{{ __('emails.announcements.labels.parent') }} : {{ $parentName }}
+{{ __('emails.announcements.labels.date') }} : {{ $announcement?->start_date ?? '-' }}
+{{ __('emails.announcements.labels.time') }} : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
 @if($application?->message)
-Votre message : {{ $application->message }}
+{{ __('emails.announcements.labels.your_message') }} : {{ $application->message }}
 @endif
 @endcomponent
 
 @component('mail::button', ['url' => route('announcements.show', $announcement?->id)])
-Voir l'annonce
+{{ __('emails.announcements.application_submitted.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

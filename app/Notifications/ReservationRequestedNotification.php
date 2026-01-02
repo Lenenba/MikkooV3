@@ -45,7 +45,7 @@ class ReservationRequestedNotification extends Notification implements ShouldQue
             ->all();
 
         return (new MailMessage)
-            ->subject('Nouvelle reservation recue')
+            ->subject(__('notifications.reservation.requested_subject'))
             ->markdown('emails.reservations.request', [
                 'reservation' => $reservation,
                 'details' => $details,
@@ -57,8 +57,10 @@ class ReservationRequestedNotification extends Notification implements ShouldQue
 
     protected function resolveParentName(?User $user): string
     {
+        $fallback = __('common.roles.parent');
+
         if (! $user) {
-            return 'Parent';
+            return $fallback;
         }
 
         $profile = $user->parentProfile;
@@ -72,13 +74,15 @@ class ReservationRequestedNotification extends Notification implements ShouldQue
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Parent';
+        return $fallback !== '' ? $fallback : __('common.roles.parent');
     }
 
     protected function resolveBabysitterName(?User $user): string
     {
+        $fallback = __('common.roles.babysitter');
+
         if (! $user) {
-            return 'Babysitter';
+            return $fallback;
         }
 
         $profile = $user->babysitterProfile;
@@ -92,6 +96,6 @@ class ReservationRequestedNotification extends Notification implements ShouldQue
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Babysitter';
+        return $fallback !== '' ? $fallback : __('common.roles.babysitter');
     }
 }

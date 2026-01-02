@@ -35,9 +35,9 @@ type PersonWithMedia = {
     media?: Array<{ is_profile_picture?: boolean; file_path?: string }>
 }
 
-const resolvePersonName = (person?: PersonWithMedia) => {
+const resolvePersonName = (person: PersonWithMedia | undefined, fallbackLabel: string) => {
     const fullName = [person?.first_name, person?.last_name].filter(Boolean).join(' ').trim()
-    return person?.name ?? (fullName || 'Unknown')
+    return person?.name ?? (fullName || fallbackLabel)
 }
 
 const resolvePersonImage = (person: PersonWithMedia | undefined, fallback: string) => {
@@ -52,8 +52,13 @@ const resolvePersonImage = (person: PersonWithMedia | undefined, fallback: strin
         ?? fallback
 }
 
-const renderPersonCell = (person: PersonWithMedia | undefined, withAvatar: boolean, fallback: string) => {
-    const nameLabel = resolvePersonName(person)
+const renderPersonCell = (
+    person: PersonWithMedia | undefined,
+    withAvatar: boolean,
+    fallback: string,
+    fallbackLabel: string,
+) => {
+    const nameLabel = resolvePersonName(person, fallbackLabel)
     const imageUrl = resolvePersonImage(person, fallback)
     const initial = nameLabel.trim().charAt(0).toUpperCase() || '?'
 
@@ -94,29 +99,37 @@ const renderDateCell = (details?: { date?: string; start_time?: string; end_time
     ])
 }
 
-const getPersonColumn = (key: 'babysitter' | 'parent', label: string): ColumnDef<Reservation> => {
+const getPersonColumn = (
+    key: 'babysitter' | 'parent',
+    label: string,
+    fallbackLabel: string,
+): ColumnDef<Reservation> => {
     const fallback = key === 'parent' ? defaultParentPhoto : defaultBabysitterPhoto
     return {
         id: key,
         header: () => h('span', { class: headerClass }, label),
-        cell: ({ row }) => renderPersonCell(row.original[key] as PersonWithMedia, true, fallback),
+        cell: ({ row }) => renderPersonCell(row.original[key] as PersonWithMedia, true, fallback, fallbackLabel),
         enableSorting: false,
     }
 }
 
 const getRoleKey = (role?: string) => (role ?? '').toString().toLowerCase()
 
-export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] => {
+type Translator = (key: string) => string
+
+export const getReservationColumns = (role?: string, t?: Translator): ColumnDef<Reservation>[] => {
+    const translate = t ?? ((key: string) => key)
     const roleKey = getRoleKey(role)
     const isAdmin = roleKey === 'superadmin' || roleKey === 'admin'
+    const fallbackLabel = translate('common.misc.unknown')
     const personColumn = roleKey === 'babysitter'
-        ? getPersonColumn('parent', 'Parent')
-        : getPersonColumn('babysitter', 'Babysitter')
+        ? getPersonColumn('parent', translate('reservations.columns.parent'), fallbackLabel)
+        : getPersonColumn('babysitter', translate('reservations.columns.babysitter'), fallbackLabel)
 
     const columns: ColumnDef<Reservation>[] = [
         {
             accessorKey: 'ref',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Reference', class: headerClass }),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('reservations.columns.reference'), class: headerClass }),
             cell: ({ row }) => {
                 const refValue = row.getValue('ref') ?? row.original.id
                 return h('span', { class: 'text-sm font-semibold text-foreground' }, `#${refValue ?? '-'}`)
@@ -125,8 +138,8 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
     ]
 
     if (isAdmin) {
-        columns.push(getPersonColumn('parent', 'Parent'))
-        columns.push(getPersonColumn('babysitter', 'Babysitter'))
+        columns.push(getPersonColumn('parent', translate('reservations.columns.parent'), fallbackLabel))
+        columns.push(getPersonColumn('babysitter', translate('reservations.columns.babysitter'), fallbackLabel))
     } else {
         columns.push(personColumn)
     }
@@ -134,42 +147,42 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
     columns.push(
         {
             id: 'details',
-            header: () => h('span', { class: headerClass }, 'Date'),
+            header: () => h('span', { class: headerClass }, translate('reservations.columns.date')),
             cell: ({ row }) => renderDateCell(row.original.details as { date?: string; start_time?: string; end_time?: string }),
             enableSorting: false,
         },
         {
             accessorKey: 'total_amount',
-            header: () => h('span', { class: headerClass }, 'Total'),
+            header: () => h('span', { class: headerClass }, translate('reservations.columns.total')),
             cell: ({ row }) =>
                 h('span', { class: 'text-sm font-semibold text-foreground' }, formatCurrency(row.getValue('total_amount'))),
         },
         {
             accessorKey: 'status',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('reservations.columns.status'), class: headerClass }),
             cell: ({ row }) => {
                 const status = row.getValue<string>('status')
                 const statusMap: Record<string, { text: string; classes: string }> = {
                     pending: {
-                        text: 'En attente',
+                        text: translate('common.status.pending'),
                         classes: 'bg-amber-50 text-amber-700',
                     },
                     confirmed: {
-                        text: 'Confirmee',
+                        text: translate('common.status.confirmed'),
                         classes: 'bg-emerald-50 text-emerald-700',
                     },
                     completed: {
-                        text: 'Terminee',
+                        text: translate('common.status.completed'),
                         classes: 'bg-sky-50 text-sky-700',
                     },
                     canceled: {
-                        text: 'Annulee',
+                        text: translate('common.status.canceled'),
                         classes: 'bg-red-50 text-red-700',
                     },
                 }
 
                 const mapped = statusMap[status] ?? {
-                    text: status ?? 'Inconnu',
+                    text: status ?? translate('common.misc.unknown'),
                     classes: 'bg-muted text-foreground',
                 }
 
@@ -178,7 +191,7 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
         },
         {
             accessorKey: 'created_at',
-            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: translate('reservations.columns.created_at'), class: headerClass }),
             cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, row.getValue('created_at') ?? '-'),
         },
         {

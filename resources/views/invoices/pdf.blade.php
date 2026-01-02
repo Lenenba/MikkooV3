@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <title>Facture {{ $invoice->number ?? $invoice->id }}</title>
+    <title>{{ __('invoices.pdf.title', ['number' => $invoice->number ?? $invoice->id]) }}</title>
     <style>
         body {
             font-family: DejaVu Sans, Arial, sans-serif;
@@ -64,31 +64,31 @@
 <body>
     <div class="header">
         <div>
-            <h1>Facture #{{ $invoice->number ?? $invoice->id }}</h1>
+            <h1>{{ __('invoices.pdf.title', ['number' => $invoice->number ?? $invoice->id]) }}</h1>
             <div class="muted">
-                Periode: {{ optional($invoice->period_start)->format('d/m/Y') ?? '-' }}
+                {{ __('invoices.pdf.period') }}: {{ optional($invoice->period_start)->format('d/m/Y') ?? '-' }}
                 -
                 {{ optional($invoice->period_end)->format('d/m/Y') ?? '-' }}
             </div>
             <div class="muted">
-                Statut: {{ $invoice->status }}
+                {{ __('common.labels.status') }}: {{ $invoice->status }}
             </div>
         </div>
         <div class="box">
-            <div>Parent: {{ $parentName }}</div>
-            <div>Babysitter: {{ $babysitterName }}</div>
-            <div>Devise: {{ $invoice->currency }}</div>
+            <div>{{ __('common.roles.parent') }}: {{ $parentName }}</div>
+            <div>{{ __('common.roles.babysitter') }}: {{ $babysitterName }}</div>
+            <div>{{ __('common.labels.currency') }}: {{ $invoice->currency }}</div>
         </div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Description</th>
-                <th>Date</th>
-                <th class="right">Quantite</th>
-                <th class="right">Prix unitaire</th>
-                <th class="right">Total</th>
+                <th>{{ __('common.labels.description') }}</th>
+                <th>{{ __('common.labels.date') }}</th>
+                <th class="right">{{ __('common.labels.quantity') }}</th>
+                <th class="right">{{ __('common.labels.unit_price') }}</th>
+                <th class="right">{{ __('common.labels.total') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -113,15 +113,15 @@
     <table class="totals">
         <tbody>
             <tr>
-                <td class="right muted">Sous-total</td>
+                <td class="right muted">{{ __('common.labels.subtotal') }}</td>
                 <td class="right">{{ number_format((float) ($invoice->subtotal_amount ?? 0), 2) }} {{ $invoice->currency }}</td>
             </tr>
             <tr>
-                <td class="right muted">TVA ({{ number_format((float) $vatPercent, 2) }}%)</td>
+                <td class="right muted">{{ __('invoices.pdf.tax_label', ['rate' => number_format((float) $vatPercent, 2)]) }}</td>
                 <td class="right">{{ number_format((float) ($invoice->tax_amount ?? 0), 2) }} {{ $invoice->currency }}</td>
             </tr>
             <tr>
-                <td class="right total-line">Total</td>
+                <td class="right total-line">{{ __('common.labels.total') }}</td>
                 <td class="right total-line">{{ number_format((float) ($invoice->total_amount ?? 0), 2) }} {{ $invoice->currency }}</td>
             </tr>
         </tbody>

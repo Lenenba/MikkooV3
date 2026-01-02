@@ -24,6 +24,6 @@ class DeleteProfilePhotoController extends Controller
 
         $media->delete();
 
-        return redirect()->back()->with('success', 'Profile photo deleted successfully!');
+        return redirect()->back()->with('success', __('flash.profile.photo_deleted'));
     }
 }

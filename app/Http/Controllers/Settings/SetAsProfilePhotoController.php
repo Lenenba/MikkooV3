@@ -40,6 +40,6 @@ class SetAsProfilePhotoController extends Controller
         ]);
 
         // Redirect back with success message
-        return back()->with('success', 'Profile photo updated successfully.');
+        return back()->with('success', __('flash.profile.photo_updated'));
     }
 }

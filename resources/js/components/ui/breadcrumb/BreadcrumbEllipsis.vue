@@ -18,6 +18,6 @@ const props = defineProps<{
     <slot>
       <MoreHorizontal class="size-4" />
     </slot>
-    <span class="sr-only">More</span>
+    <span class="sr-only">{{ $t('common.labels.more') }}</span>
   </span>
 </template>

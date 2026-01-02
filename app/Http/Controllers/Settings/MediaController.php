@@ -72,6 +72,6 @@ class MediaController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Images uploaded successfully.');
+            ->with('success', __('flash.profile.media_uploaded'));
     }
 }

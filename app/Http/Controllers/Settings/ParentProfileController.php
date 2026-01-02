@@ -112,7 +112,7 @@ class ParentProfileController extends Controller
         if ($updated) {
             return redirect()
                 ->back()
-                ->with('success', 'Profile details updated!');
+                ->with('success', __('flash.profile.updated'));
         }
 
         return redirect()

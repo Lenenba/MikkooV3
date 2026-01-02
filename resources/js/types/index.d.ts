@@ -215,6 +215,10 @@ export interface SearchFilters {
 export interface SharedData extends PageProps {
     name: string;
     quote: { message: string; author: string };
+    locale?: string;
+    fallbackLocale?: string;
+    availableLocales?: string[];
+    translations?: Record<string, unknown>;
     auth: Auth;
     ratings?: RatingsPayload;
     filters?: SearchFilters;

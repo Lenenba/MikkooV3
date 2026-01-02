@@ -38,7 +38,7 @@ class AnnouncementMatchNotification extends Notification implements ShouldQueue
         $city = trim((string) ($announcement->parent?->address?->city ?? ''));
 
         return (new MailMessage)
-            ->subject('Nouvelle annonce disponible')
+            ->subject(__('notifications.announcement.match_subject'))
             ->markdown('emails.announcements.match', [
                 'announcement' => $announcement,
                 'parentName' => $parentName,
@@ -50,8 +50,10 @@ class AnnouncementMatchNotification extends Notification implements ShouldQueue
 
     protected function resolveParentName(?User $user): string
     {
+        $fallback = __('common.roles.parent');
+
         if (! $user) {
-            return 'Parent';
+            return $fallback;
         }
 
         $profile = $user->parentProfile;
@@ -65,13 +67,15 @@ class AnnouncementMatchNotification extends Notification implements ShouldQueue
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Parent';
+        return $fallback !== '' ? $fallback : __('common.roles.parent');
     }
 
     protected function resolveBabysitterName(?User $user): string
     {
+        $fallback = __('common.roles.babysitter');
+
         if (! $user) {
-            return 'Babysitter';
+            return $fallback;
         }
 
         $profile = $user->babysitterProfile;
@@ -85,7 +89,7 @@ class AnnouncementMatchNotification extends Notification implements ShouldQueue
 
         $fallback = trim((string) $user->name);
 
-        return $fallback !== '' ? $fallback : 'Babysitter';
+        return $fallback !== '' ? $fallback : __('common.roles.babysitter');
     }
 
     protected function buildChildLabel(Announcement $announcement): ?string
@@ -93,7 +97,8 @@ class AnnouncementMatchNotification extends Notification implements ShouldQueue
         $name = trim((string) ($announcement->child_name ?? ''));
         $age = $announcement->child_age !== null ? trim((string) $announcement->child_age) : '';
 
-        $parts = array_filter([$name, $age !== '' ? $age . ' ans' : null]);
+        $ageLabel = $age !== '' ? __('notifications.child.age', ['age' => $age]) : null;
+        $parts = array_filter([$name, $ageLabel]);
         $label = trim(implode(' - ', $parts));
 
         return $label !== '' ? $label : null;

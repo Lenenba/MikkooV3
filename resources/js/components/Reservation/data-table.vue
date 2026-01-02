@@ -4,6 +4,7 @@ import DataTableViewOptions from '@/components/columnToggle.vue'
 import { Search } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
     Table,
     TableBody,
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<{
 
 const columnFilters = ref<ColumnFiltersState>([])
 const rowSelection = ref({})
+const { t } = useI18n()
 
 const table = useVueTable({
     get data() { return props.data },
@@ -55,7 +57,7 @@ const table = useVueTable({
 })
 
 const searchColumn = computed(() => table.getColumn(props.searchColumn ?? 'ref'))
-const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
+const searchPlaceholder = computed(() => props.searchPlaceholder ?? t('common.actions.search'))
 </script>
 
 <template>
@@ -76,8 +78,8 @@ const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
                     <slot name="toolbar-filters" :table="table" />
                     <DataTableViewOptions
                         :table="table"
-                        label="Filtres"
-                        menu-label="Colonnes"
+                        :label="$t('common.actions.filters')"
+                        :menu-label="$t('common.labels.columns')"
                         button-class="h-9 w-full sm:w-auto"
                     />
                     <slot name="toolbar-actions" :table="table" />
@@ -106,7 +108,7 @@ const searchPlaceholder = computed(() => props.searchPlaceholder ?? 'Search')
                 <template v-else>
                     <TableRow>
                         <TableCell :colspan="props.columns.length" class="h-24 text-center text-sm text-muted-foreground">
-                            {{ props.emptyMessage ?? 'No results.' }}
+                            {{ props.emptyMessage ?? $t('common.table.empty') }}
                         </TableCell>
                     </TableRow>
                 </template>

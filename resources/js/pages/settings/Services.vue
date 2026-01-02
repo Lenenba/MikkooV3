@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, h, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import FloatingInput from '@/components/FloatingInput.vue';
@@ -61,12 +62,13 @@ const props = defineProps<{
     kpis: Kpis;
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+const { t } = useI18n();
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Services',
+        title: t('settings.services.title'),
         href: '/settings/services',
     },
-];
+]);
 
 const editingId = ref<number | null>(null);
 const form = useForm({
@@ -95,28 +97,26 @@ const formatCount = (value: number | string | null | undefined) => numberFormatt
 
 const topServiceLabel = computed(() => {
     if (!props.kpis?.top_service_name) {
-        return 'Aucun service';
+        return t('settings.services.kpis.none');
     }
     const count = props.kpis.top_service_count ?? 0;
-    return `${props.kpis.top_service_name} (${count})`;
+    return t('settings.services.kpis.top_service', { name: props.kpis.top_service_name, count });
 });
 
-const serviceCountLabel = computed(() =>
-    props.services.length === 1 ? 'service' : 'services'
-);
+const serviceCountLabel = computed(() => t('settings.services.kpis.count', { count: props.services.length }));
 
 const dialogTitle = computed(() =>
-    editingId.value ? 'Modifier le service' : 'Ajouter un service'
+    editingId.value ? t('settings.services.dialog.edit_title') : t('settings.services.dialog.create_title')
 );
 
 const dialogDescription = computed(() =>
     editingId.value
-        ? 'Mettez a jour les informations de votre service.'
-        : 'Ajoutez un service que vous proposez.'
+        ? t('settings.services.dialog.edit_description')
+        : t('settings.services.dialog.create_description')
 );
 
 const submitLabel = computed(() =>
-    editingId.value ? 'Mettre a jour' : 'Ajouter le service'
+    editingId.value ? t('common.actions.update') : t('settings.services.dialog.submit_create')
 );
 
 const sparklinePoints = (values: number[]) => {
@@ -160,10 +160,10 @@ const statCards = computed(() => {
 
     return [
         {
-            title: 'Services proposes',
+            title: t('settings.services.kpis.offered'),
             value: formatCount(totalServices),
             change: '',
-            changeText: 'au total',
+            changeText: t('settings.services.kpis.total_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -173,10 +173,10 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-violet-400',
         },
         {
-            title: 'Services reserves',
+            title: t('settings.services.kpis.booked'),
             value: formatCount(totalBookings),
             change: '',
-            changeText: 'au total',
+            changeText: t('settings.services.kpis.total_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -186,11 +186,11 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-amber-400',
         },
         {
-            title: 'Plus sollicite',
+            title: t('settings.services.kpis.top_requested'),
             value: topServiceLabel.value,
             valueClass: 'text-lg',
             change: '',
-            changeText: 'le plus demande',
+            changeText: t('settings.services.kpis.top_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -261,7 +261,7 @@ const submitForm = () => {
 };
 
 const deleteService = (service: ServiceItem) => {
-    if (!confirm(`Supprimer le service "${service.name}" ?`)) {
+    if (!confirm(t('settings.services.confirm_delete', { name: service.name }))) {
         return;
     }
     form.delete(route('services.destroy', { service: service.id }), {
@@ -275,7 +275,7 @@ const headerClass = 'text-xs font-semibold uppercase tracking-wide text-muted-fo
 const columns: ColumnDef<ServiceItem>[] = [
     {
         accessorKey: 'name',
-        header: () => h('span', { class: headerClass }, 'Service'),
+        header: () => h('span', { class: headerClass }, t('common.labels.service')),
         cell: ({ row }) => {
             const service = row.original;
             return h('div', { class: 'flex flex-col' }, [
@@ -288,20 +288,20 @@ const columns: ColumnDef<ServiceItem>[] = [
     },
     {
         accessorKey: 'price',
-        header: () => h('div', { class: ['text-right', headerClass] }, 'Prix'),
+        header: () => h('div', { class: ['text-right', headerClass] }, t('common.labels.price')),
         cell: ({ row }) =>
             h('div', { class: 'text-right text-sm font-semibold text-foreground' }, formatPrice(row.original.price)),
     },
     {
         accessorKey: 'bookings_count',
-        header: () => h('div', { class: ['text-right', headerClass] }, 'Demandes'),
+        header: () => h('div', { class: ['text-right', headerClass] }, t('settings.services.columns.requests')),
         cell: ({ row }) =>
             h('div', { class: 'text-right text-sm text-muted-foreground' }, formatCount(row.original.bookings_count)),
     },
     {
         id: 'actions',
         enableHiding: false,
-        header: () => h('div', { class: ['text-right', headerClass] }, 'Actions'),
+        header: () => h('div', { class: ['text-right', headerClass] }, t('common.table.actions')),
         cell: ({ row }) =>
             h('div', { class: 'flex justify-end' }, [
                 h(
@@ -335,14 +335,14 @@ const columns: ColumnDef<ServiceItem>[] = [
                                         h(
                                             DropdownMenuItem,
                                             { onSelect: () => startEdit(row.original) },
-                                            { default: () => 'Modifier' }
+                                            { default: () => t('common.actions.edit') }
                                         ),
                                         h(
                                             DropdownMenuItem,
                                             {
                                                 onSelect: () => deleteService(row.original),
                                             },
-                                            { default: () => 'Supprimer' }
+                                            { default: () => t('common.actions.delete') }
                                         ),
                                     ],
                                 }
@@ -357,7 +357,7 @@ const columns: ColumnDef<ServiceItem>[] = [
 const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
     {
         accessorKey: 'name',
-        header: () => h('span', { class: headerClass }, 'Service'),
+        header: () => h('span', { class: headerClass }, t('common.labels.service')),
         cell: ({ row }) => {
             const service = row.original;
             return h('div', { class: 'flex flex-col' }, [
@@ -371,7 +371,7 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
     {
         id: 'actions',
         enableHiding: false,
-        header: () => h('div', { class: ['text-right', headerClass] }, 'Actions'),
+        header: () => h('div', { class: ['text-right', headerClass] }, t('common.table.actions')),
         cell: ({ row }) => {
             const service = row.original;
             const isAdded = service.is_added;
@@ -384,7 +384,7 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
                         disabled: isAdded,
                         onClick: () => openCatalogDialog(service),
                     },
-                    { default: () => (isAdded ? 'Ajoute' : 'Ajouter') }
+                    { default: () => (isAdded ? t('settings.services.catalog.added') : t('common.actions.add')) }
                 ),
             ]);
         },
@@ -394,7 +394,7 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
 
 <template>
 
-    <Head title="Services" />
+    <Head :title="$t('settings.services.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
@@ -442,23 +442,23 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
 
                     <form @submit.prevent="submitForm" class="space-y-4">
                         <div class="space-y-2">
-                            <FloatingInput id="service-name" label="Nom du service" v-model="form.name" />
+                            <FloatingInput id="service-name" :label="$t('settings.services.form.name_label')" v-model="form.name" />
                             <InputError :message="form.errors.name" />
                         </div>
                         <div class="space-y-2">
-                            <FloatingTextarea id="service-description" label="Description" rows="3"
+                            <FloatingTextarea id="service-description" :label="$t('common.labels.description')" rows="3"
                                 v-model="form.description" />
                             <InputError :message="form.errors.description" />
                         </div>
                         <div class="space-y-2">
-                            <FloatingInput id="service-price" label="Prix (CAD)" type="number" min="0" step="0.01"
+                            <FloatingInput id="service-price" :label="$t('settings.services.form.price_label')" type="number" min="0" step="0.01"
                                 v-model="form.price" />
                             <InputError :message="form.errors.price" />
                         </div>
                         <DialogFooter class="mt-4">
                             <DialogClose as-child>
                                 <Button type="button" variant="outline" @click="resetForm">
-                                    Annuler
+                                    {{ $t('common.actions.cancel') }}
                                 </Button>
                             </DialogClose>
                             <Button type="submit" :disabled="form.processing">
@@ -471,25 +471,25 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
 
             <div class="space-y-3">
                 <div class="flex flex-col gap-1">
-                    <h2 class="text-base font-semibold text-foreground">Catalogue de services</h2>
+                    <h2 class="text-base font-semibold text-foreground">{{ $t('settings.services.catalog.title') }}</h2>
                     <p class="text-sm text-muted-foreground">
-                        Selectionnez un service connu puis ajustez votre prix, ou creez votre propre service.
+                        {{ $t('settings.services.catalog.description') }}
                     </p>
                 </div>
                 <DataTable :columns="catalogColumns" :data="catalogItems" search-column="name"
-                    search-placeholder="Rechercher un service du catalogue..."
-                    empty-message="Aucun service catalogue disponible." />
+                    :search-placeholder="$t('settings.services.catalog.search')"
+                    :empty-message="$t('settings.services.catalog.empty')" />
             </div>
 
             <DataTable :columns="columns" :data="props.services" search-column="name"
-                search-placeholder="Rechercher un service..." empty-message="Aucun service ajoute pour le moment.">
+                :search-placeholder="$t('settings.services.table.search')" :empty-message="$t('settings.services.table.empty')">
                 <template #toolbar-actions="{ table }">
                     <Button variant="outline" class="h-9 w-full sm:w-auto" @click="table.resetColumnFilters()">
-                        Effacer
+                        {{ $t('common.actions.clear') }}
                     </Button>
                     <Button class="h-9 w-full sm:w-auto" size="sm" @click="openCreateDialog">
                         <Plus class="mr-2 h-4 w-4" />
-                        Nouveau service
+                        {{ $t('settings.services.actions.new') }}
                     </Button>
                 </template>
             </DataTable>

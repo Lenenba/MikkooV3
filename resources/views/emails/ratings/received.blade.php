@@ -5,26 +5,26 @@
 @endcomponent
 @endslot
 
-# Nouvelle evaluation recue
+# {{ __('emails.ratings.received.heading') }}
 
-Bonjour,
+{{ __('emails.common.greeting', ['name' => '']) }}
 
-{{ $reviewerName }} a laisse une evaluation pour la reservation {{ $reservationNumber }}.
+{{ __('emails.ratings.received.intro', ['reviewer' => $reviewerName, 'reference' => $reservationNumber]) }}
 
 @component('mail::panel')
-Note : {{ $rating->rating }}/5
+{{ __('emails.ratings.received.rating_label') }} : {{ $rating->rating }}/5
 @if($comment)
-Commentaire : {{ $comment }}
+{{ __('emails.ratings.received.comment_label') }} : {{ $comment }}
 @endif
 @endcomponent
 
 @component('mail::button', ['url' => route('reservations.show', $rating->reservation_id)])
-Voir la reservation
+{{ __('emails.ratings.received.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

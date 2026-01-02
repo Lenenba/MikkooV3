@@ -144,7 +144,7 @@ class AnnouncementApplicationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Votre candidature a ete envoyee.');
+        return back()->with('success', __('flash.application.submitted'));
     }
 
     public function accept(Request $request, Announcement $announcement, AnnouncementApplication $application)
@@ -275,7 +275,7 @@ class AnnouncementApplicationController extends Controller
             }
         }
 
-        return back()->with('success', 'Reservation confirmee avec cette babysitter.');
+        return back()->with('success', __('flash.application.confirmed'));
     }
 
     public function reject(Request $request, Announcement $announcement, AnnouncementApplication $application)
@@ -322,7 +322,7 @@ class AnnouncementApplicationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Candidature refusee.');
+        return back()->with('success', __('flash.application.rejected'));
     }
 
     public function withdraw(Request $request, Announcement $announcement, AnnouncementApplication $application)
@@ -369,7 +369,7 @@ class AnnouncementApplicationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Candidature retiree.');
+        return back()->with('success', __('flash.application.withdrawn'));
     }
 
     /**

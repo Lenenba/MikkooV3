@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { BreadcrumbItem, MediaItem } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -11,27 +13,31 @@ defineProps<{
     media: MediaItem[];
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+const { t } = useI18n();
+const breadcrumbs = computed<BreadcrumbItem[]>(() => ([
     {
-        title: 'Media settings',
+        title: t('settings.media.title'),
         href: '/settings/media',
     },
-];
+]));
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
 
-        <Head title="Media settings" />
+        <Head :title="$t('settings.media.title')" />
 
         <SettingsLayout>
             <div class="space-y-6">
-                <HeadingSmall title="Media settings" description="Manage your uploaded media here" />
+                <HeadingSmall
+                    :title="$t('settings.media.title')"
+                    :description="$t('settings.media.description')"
+                />
                 <p class="text-sm text-muted-foreground">
-                    You can upload images, videos, and other media files here. You can also set a profile photo.
+                    {{ $t('settings.media.body.line_1') }}
                 </p>
                 <p class="text-sm text-muted-foreground">
-                    You can upload up to 5 images at a time. The maximum file size is 5MB per image.
+                    {{ $t('settings.media.body.line_2') }}
                 </p>
 
                 <MediaUploadForm />

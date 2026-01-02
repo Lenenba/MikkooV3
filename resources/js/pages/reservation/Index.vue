@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { getReservationColumns } from '@/components/Reservation/columns';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,7 @@ import {
 
 // Shared page props
 const page = usePage<SharedData>();
+const { t } = useI18n();
 
 const emptyStats: Stats = {
     current_month_revenue: 0,
@@ -128,15 +130,15 @@ const statistique = computed<Stats>(
 const role = computed(() => (page.props.auth?.role ?? 'Parent').toString().toLowerCase());
 const isBabysitter = computed(() => role.value === 'babysitter');
 const isAdmin = computed(() => role.value === 'superadmin' || role.value === 'admin');
-const tableColumns = computed(() => getReservationColumns(role.value));
+const tableColumns = computed(() => getReservationColumns(role.value, t));
 
-const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'pending', label: 'En attente' },
-    { value: 'confirmed', label: 'Confirmee' },
-    { value: 'completed', label: 'Terminee' },
-    { value: 'canceled', label: 'Annulee' },
-];
+const statusOptions = computed(() => [
+    { value: 'all', label: t('reservations.status.all') },
+    { value: 'pending', label: t('common.status.pending') },
+    { value: 'confirmed', label: t('common.status.confirmed') },
+    { value: 'completed', label: t('common.status.completed') },
+    { value: 'canceled', label: t('common.status.canceled') },
+]);
 
 const statCards = computed(() => {
     const currentMonthRevenue = toNumber(statistique.value.current_month_revenue);
@@ -154,10 +156,10 @@ const statCards = computed(() => {
     if (isAdmin.value) {
         return [
             {
-                title: 'Reservations totales',
+                title: t('reservations.stats.total'),
                 value: formatCount(totalCount),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -167,10 +169,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-violet-400',
             },
             {
-                title: 'En attente',
+                title: t('reservations.stats.pending'),
                 value: formatCount(pendingCount),
                 change: '',
-                changeText: 'en cours',
+                changeText: t('reservations.stats.in_progress_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -180,10 +182,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-amber-400',
             },
             {
-                title: 'Confirmees',
+                title: t('reservations.stats.confirmed'),
                 value: formatCount(confirmedCount),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -193,10 +195,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-emerald-400',
             },
             {
-                title: 'Revenu total',
+                title: t('reservations.stats.total_revenue'),
                 value: formatCurrency(totalRevenue),
                 change: revenueChangeLabel,
-                changeText: 'vs mois dernier',
+                changeText: t('reservations.stats.vs_last_month'),
                 trendIcon: revenueTrend.icon,
                 trendClass: revenueTrend.className,
                 showTrend: revenueTrend.show,
@@ -206,10 +208,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-blue-400',
             },
             {
-                title: 'Babysitters actifs',
+                title: t('reservations.stats.active_babysitters'),
                 value: formatCount(uniqueBabysitters),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -219,10 +221,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-sky-400',
             },
             {
-                title: 'Parents actifs',
+                title: t('reservations.stats.active_parents'),
                 value: formatCount(uniqueParents),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -237,10 +239,10 @@ const statCards = computed(() => {
     if (isBabysitter.value) {
         return [
             {
-                title: 'Reservations confirmees',
+                title: t('reservations.stats.confirmed_reservations'),
                 value: formatCount(confirmedCount),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -250,10 +252,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-amber-400',
             },
             {
-                title: 'En attente',
+                title: t('reservations.stats.pending'),
                 value: formatCount(pendingCount),
                 change: '',
-                changeText: 'en cours',
+                changeText: t('reservations.stats.in_progress_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -263,10 +265,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-violet-400',
             },
             {
-                title: 'Revenu du mois',
+                title: t('reservations.stats.month_revenue'),
                 value: formatCurrency(currentMonthRevenue),
                 change: revenueChangeLabel,
-                changeText: 'vs mois dernier',
+                changeText: t('reservations.stats.vs_last_month'),
                 trendIcon: revenueTrend.icon,
                 trendClass: revenueTrend.className,
                 showTrend: revenueTrend.show,
@@ -276,10 +278,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-blue-400',
             },
             {
-                title: 'Revenu total',
+                title: t('reservations.stats.total_revenue'),
                 value: formatCurrency(totalRevenue),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -289,10 +291,10 @@ const statCards = computed(() => {
                 sparklineClass: 'stroke-emerald-400',
             },
             {
-                title: 'Parents differents',
+                title: t('reservations.stats.distinct_parents'),
                 value: formatCount(uniqueParents),
                 change: '',
-                changeText: 'au total',
+                changeText: t('reservations.stats.total_suffix'),
                 trendIcon: TrendingUp,
                 trendClass: 'text-muted-foreground/70',
                 showTrend: false,
@@ -306,10 +308,10 @@ const statCards = computed(() => {
 
     return [
         {
-            title: 'Reservations a venir',
+            title: t('reservations.stats.upcoming'),
             value: formatCount(upcomingCount),
             change: '',
-            changeText: 'planifiees',
+            changeText: t('reservations.stats.planned_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -319,10 +321,10 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-amber-400',
         },
         {
-            title: 'En attente',
+            title: t('reservations.stats.pending'),
             value: formatCount(pendingCount),
             change: '',
-            changeText: 'en cours',
+            changeText: t('reservations.stats.in_progress_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -332,10 +334,10 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-violet-400',
         },
         {
-            title: 'Depense du mois',
+            title: t('reservations.stats.month_spend'),
             value: formatCurrency(currentMonthRevenue),
             change: revenueChangeLabel,
-            changeText: 'vs mois dernier',
+            changeText: t('reservations.stats.vs_last_month'),
             trendIcon: revenueTrend.icon,
             trendClass: revenueTrend.className,
             showTrend: revenueTrend.show,
@@ -345,10 +347,10 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-blue-400',
         },
         {
-            title: 'Depense totale',
+            title: t('reservations.stats.total_spend'),
             value: formatCurrency(totalRevenue),
             change: '',
-            changeText: 'au total',
+            changeText: t('reservations.stats.total_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -358,10 +360,10 @@ const statCards = computed(() => {
             sparklineClass: 'stroke-emerald-400',
         },
         {
-            title: 'Babysitters differents',
+            title: t('reservations.stats.distinct_babysitters'),
             value: formatCount(uniqueBabysitters),
             change: '',
-            changeText: 'au total',
+            changeText: t('reservations.stats.total_suffix'),
             trendIcon: TrendingUp,
             trendClass: 'text-muted-foreground/70',
             showTrend: false,
@@ -375,12 +377,12 @@ const statCards = computed(() => {
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: isAdmin.value ? 'Reservations' : 'Mes reservations',
+        title: isAdmin.value ? t('reservations.title.admin') : t('reservations.title.user'),
         href: '/reservations',
     },
 ]);
 
-const pageTitle = computed(() => (isAdmin.value ? 'Reservations' : 'Mes reservations'));
+const pageTitle = computed(() => (isAdmin.value ? t('reservations.title.admin') : t('reservations.title.user')));
 
 </script>
 
@@ -421,15 +423,15 @@ const pageTitle = computed(() => (isAdmin.value ? 'Reservations' : 'Mes reservat
                 </div>
             </div>
 
-            <DataTable :columns="tableColumns" :data="reservations" search-placeholder="Rechercher une reservation..."
-                empty-message="Aucune reservation pour le moment.">
+            <DataTable :columns="tableColumns" :data="reservations" :search-placeholder="$t('reservations.table.search')"
+                :empty-message="$t('reservations.table.empty')">
                 <template #toolbar-filters="{ table }">
                     <Select
                         :model-value="(table.getColumn('status')?.getFilterValue() as string) ?? 'all'"
                         @update:model-value="value => table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)"
                     >
                         <SelectTrigger class="h-9 w-full sm:w-48">
-                            <SelectValue placeholder="Tous les statuts" />
+                            <SelectValue :placeholder="$t('reservations.status.all')" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem
@@ -445,7 +447,7 @@ const pageTitle = computed(() => (isAdmin.value ? 'Reservations' : 'Mes reservat
                 <template #toolbar-actions="{ table }">
                     <Button variant="outline" class="h-9 w-full sm:w-auto"
                         @click="table.resetColumnFilters()">
-                        Effacer
+                        {{ $t('common.actions.clear') }}
                     </Button>
                     <Button
                         v-if="!isAdmin"
@@ -455,7 +457,7 @@ const pageTitle = computed(() => (isAdmin.value ? 'Reservations' : 'Mes reservat
                     >
                         <Link :href="route('search.babysitter')">
                             <Plus class="mr-2 h-4 w-4" />
-                            Nouvelle reservation
+                            {{ $t('reservations.actions.new') }}
                         </Link>
                     </Button>
                 </template>

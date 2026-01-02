@@ -166,7 +166,7 @@ class AnnouncementController extends Controller
 
         $this->notifyMatchingBabysitters($announcement);
 
-        return back()->with('success', 'Annonce publiee.');
+        return back()->with('success', __('flash.announcement.published'));
     }
 
     public function update(Request $request, Announcement $announcement)
@@ -188,7 +188,7 @@ class AnnouncementController extends Controller
             'status' => $data['status'],
         ]);
 
-        return back()->with('success', 'Annonce mise a jour.');
+        return back()->with('success', __('flash.announcement.updated'));
     }
 
     public function destroy(Request $request, Announcement $announcement)
@@ -204,7 +204,7 @@ class AnnouncementController extends Controller
 
         $announcement->delete();
 
-        return back()->with('success', 'Annonce supprimee.');
+        return back()->with('success', __('flash.announcement.deleted'));
     }
 
     public function show(Request $request, Announcement $announcement)

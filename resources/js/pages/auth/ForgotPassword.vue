@@ -21,8 +21,8 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
-        <Head title="Forgot password" />
+    <AuthLayout :title="$t('auth.ui.forgot.title')" :description="$t('auth.ui.forgot.description')">
+        <Head :title="$t('auth.ui.forgot.head_title')" />
 
         <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
             {{ status }}
@@ -33,7 +33,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <FloatingInput
                         id="email"
-                        label="Email address"
+                        :label="$t('auth.ui.forgot.email')"
                         type="email"
                         name="email"
                         autocomplete="off"
@@ -46,14 +46,14 @@ const submit = () => {
                 <div class="my-6 flex items-center justify-start">
                     <Button class="w-full" :disabled="form.processing">
                         <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                        Email password reset link
+                        {{ $t('auth.ui.forgot.submit') }}
                     </Button>
                 </div>
             </form>
 
             <div class="space-x-1 text-center text-sm text-muted-foreground">
-                <span>Or, return to</span>
-                <TextLink :href="route('login')">log in</TextLink>
+                <span>{{ $t('auth.ui.forgot.return_to') }}</span>
+                <TextLink :href="route('login')">{{ $t('auth.ui.forgot.login') }}</TextLink>
             </div>
         </div>
     </AuthLayout>

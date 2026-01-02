@@ -19,7 +19,7 @@ class CompleteReservationController extends Controller
         $reservation = Reservation::with('details')->findOrFail($reservationId);
 
         if ($reservation->details?->status !== 'confirmed') {
-            return redirect()->back()->with('error', 'Reservation is not in a confirmed state.');
+            return redirect()->back()->with('error', __('flash.reservation.not_confirmed'));
         }
 
         $this->authorize('complete', $reservation);
@@ -34,6 +34,6 @@ class CompleteReservationController extends Controller
 
         $invoiceService->createFromReservation($reservation);
 
-        return redirect()->back()->with('success', 'Reservation terminee. Facture preparee.');
+        return redirect()->back()->with('success', __('flash.reservation.completed'));
     }
 }

@@ -5,11 +5,11 @@
 @endcomponent
 @endslot
 
-# Nouvelle candidature recue
+# {{ __('emails.announcements.application_received.heading') }}
 
-Bonjour{{ $parentName ? ' ' . $parentName : '' }},
+{{ __('emails.common.greeting', ['name' => $parentName ? ' ' . $parentName : '' ]) }}
 
-{{ $babysitterName }} s'est propose pour votre annonce.
+{{ __('emails.announcements.application_received.intro', ['babysitter' => $babysitterName]) }}
 
 @php
     $serviceList = $announcement?->resolveServices() ?? [];
@@ -17,22 +17,22 @@ Bonjour{{ $parentName ? ' ' . $parentName : '' }},
 @endphp
 
 @component('mail::panel')
-Titre : {{ $announcement?->title ?? '-' }}
-Service : {{ $serviceLabel }}
-Date : {{ $announcement?->start_date ?? '-' }}
-Heure : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
+{{ __('emails.announcements.labels.title') }} : {{ $announcement?->title ?? '-' }}
+{{ __('emails.announcements.labels.service') }} : {{ $serviceLabel }}
+{{ __('emails.announcements.labels.date') }} : {{ $announcement?->start_date ?? '-' }}
+{{ __('emails.announcements.labels.time') }} : {{ $announcement?->start_time ?? '-' }} - {{ $announcement?->end_time ?? '-' }}
 @if($application?->message)
-Message : {{ $application->message }}
+{{ __('emails.announcements.labels.message') }} : {{ $application->message }}
 @endif
 @endcomponent
 
 @component('mail::button', ['url' => route('announcements.show', $announcement?->id)])
-Voir les candidatures
+{{ __('emails.announcements.application_received.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import type { Preview } from '@/types';
 
 import FloatingInput from '@/components/FloatingInput.vue';
@@ -14,7 +15,7 @@ const props = withDefaults(defineProps<{
     maxPhotos?: number;
 }>(), {
     collectionName: '',
-    collectionLabel: 'Collection name',
+    collectionLabel: '',
     hideCollectionInput: false,
     maxPhotos: 5,
 });
@@ -30,6 +31,7 @@ const inputId = `media-file-input-${Math.random().toString(36).slice(2)}`;
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const mediaPreviews = ref<Preview[]>([]);
 const clientSideErrors = ref<string[]>([]);
+const { t } = useI18n();
 
 const inertiaForm = useForm({
     collection_name: props.collectionName ?? '',
@@ -41,7 +43,7 @@ const resolvedMaxPhotos = computed(() => {
     return Number.isFinite(value) && value > 0 ? value : 5;
 });
 
-const collectionLabel = computed(() => props.collectionLabel || 'Collection name');
+const collectionLabel = computed(() => props.collectionLabel || t('media.collection.label'));
 
 watch(
     () => props.collectionName,
@@ -141,23 +143,27 @@ const onFileChange = async (event: Event) => {
 
     for (const file of Array.from(files)) {
         if (mediaPreviews.value.length + newPreviewsToAdd.length >= resolvedMaxPhotos.value) {
-            currentClientErrors.push(`You can only upload up to ${resolvedMaxPhotos.value} photos.`);
+            currentClientErrors.push(t('media.errors.max_photos', { max: resolvedMaxPhotos.value }));
             break;
         }
         if (!file.type.startsWith('image/')) {
-            currentClientErrors.push(`File ${file.name} is not an image.`);
+            currentClientErrors.push(t('media.errors.invalid_type', { name: file.name }));
             continue;
         }
         let img: HTMLImageElement | null = null;
         try {
             img = await loadImageElement(file);
         } catch (error) {
-            currentClientErrors.push(`File ${file.name} could not be read as an image.`);
+            currentClientErrors.push(t('media.errors.invalid_image', { name: file.name }));
             continue;
         }
 
         if (img.naturalWidth < MIN_WIDTH || img.naturalHeight < MIN_HEIGHT) {
-            currentClientErrors.push(`Image ${file.name} dimensions must be at least ${MIN_WIDTH}x${MIN_HEIGHT}px.`);
+            currentClientErrors.push(t('media.errors.min_dimensions', {
+                name: file.name,
+                width: MIN_WIDTH,
+                height: MIN_HEIGHT,
+            }));
             continue;
         }
 
@@ -165,7 +171,7 @@ const onFileChange = async (event: Event) => {
         if (file.size > MAX_FILE_SIZE_BYTES) {
             const compressed = await compressImageToLimit(file, img);
             if (!compressed) {
-                currentClientErrors.push(`File ${file.name} exceeds the maximum size of ${MAX_FILE_SIZE_MB}MB.`);
+                currentClientErrors.push(t('media.errors.max_size', { name: file.name, size: MAX_FILE_SIZE_MB }));
                 continue;
             }
             fileToUse = compressed.file;
@@ -235,7 +241,7 @@ onUnmounted(() => {
 <template>
     <form @submit.prevent="upload" enctype="multipart/form-data" class="space-y-4">
         <h2 class="text-lg font-semibold text-foreground">
-            Upload Media
+            {{ t('media.upload.title') }}
         </h2>
         <div v-if="!props.hideCollectionInput" class="grid w-full max-w-sm items-center gap-1.5">
             <FloatingInput
@@ -253,7 +259,12 @@ onUnmounted(() => {
 
         <div>
             <p class="block mb-2 text-sm font-medium text-foreground">
-                Add photos (max {{ resolvedMaxPhotos }}, {{ MIN_WIDTH }}x{{ MIN_HEIGHT }}px min, {{ MAX_FILE_SIZE_MB }}MB max per image)
+                {{ t('media.add_photos', {
+                    max: resolvedMaxPhotos,
+                    min_width: MIN_WIDTH,
+                    min_height: MIN_HEIGHT,
+                    max_size: MAX_FILE_SIZE_MB,
+                }) }}
             </p>
             <div class="flex flex-wrap gap-2">
                 <label :for="inputId"
@@ -267,16 +278,16 @@ onUnmounted(() => {
 
                 <div v-for="(mp, idx) in mediaPreviews" :key="mp.preview"
                     class="relative w-32 h-32 rounded-xl overflow-hidden border border-border">
-                    <img :src="mp.preview" class="object-cover w-full h-full" :alt="`Preview ${idx + 1}`" />
+                    <img :src="mp.preview" class="object-cover w-full h-full" :alt="t('media.preview_alt', { index: idx + 1 })" />
                     <button type="button" @click="() => removePhoto(idx)" :disabled="inertiaForm.processing"
                         class="absolute top-1 right-1 p-1 bg-card rounded-full shadow-md hover:bg-muted"
-                        aria-label="Remove photo">
+                        :aria-label="t('media.actions.remove_photo')">
                         <XIcon class="w-4 h-4 text-muted-foreground" />
                     </button>
                 </div>
             </div>
             <p class="mt-2 text-xs text-muted-foreground">
-                Shoppers find images more helpful than text alone.
+                {{ t('media.helper.images_helpful') }}
             </p>
         </div>
 
@@ -300,11 +311,11 @@ onUnmounted(() => {
 
         <div class="flex mt-6 space-x-3">
             <Button type="submit" :disabled="!canUpload" :class="{ 'opacity-50 cursor-not-allowed': !canUpload }">
-                <span v-if="inertiaForm.processing">Uploading...</span>
-                <span v-else>Upload</span>
+                <span v-if="inertiaForm.processing">{{ t('common.actions.uploading') }}</span>
+                <span v-else>{{ t('common.actions.upload') }}</span>
             </Button>
             <Button type="button" variant="outline" @click="resetAllClientState" :disabled="inertiaForm.processing">
-                Reset
+                {{ t('common.actions.reset') }}
             </Button>
         </div>
     </form>

@@ -6,13 +6,15 @@ import { type Announcement, type BreadcrumbItem, type Stats, type User } from '@
 import { resolveChildPhoto } from '@/lib/childPhotos';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const breadcrumbs: BreadcrumbItem[] = [
+const { t, locale } = useI18n();
+const breadcrumbs = computed<BreadcrumbItem[]>(() => ([
     {
-        title: 'Tableau de bord',
+        title: t('dashboard.breadcrumb'),
         href: '/dashboard',
     },
-];
+]));
 
 type KpiFormat = 'currency' | 'number';
 
@@ -51,15 +53,18 @@ const needsEmailVerification = computed(() => {
     return Boolean(user && !user.email_verified_at);
 });
 const userName = computed(() => {
-    const name = auth.value?.user?.name ?? 'vous';
+    const fallback = t('dashboard.user.you');
+    const name = auth.value?.user?.name ?? fallback;
     const first = name.trim().split(' ')[0];
-    return first || 'vous';
+    return first || fallback;
 });
 
 const stats = computed(() => dashboard.value?.stats);
 const isBabysitter = computed(() => role.value === 'Babysitter');
 const isAdmin = computed(() => role.value === 'Admin' || role.value === 'SuperAdmin');
 const announcementItems = computed(() => announcementsPayload.value?.items ?? []);
+const resolvedLocale = computed(() => (locale.value === 'fr' ? 'fr-CA' : 'en-US'));
+const currencyCode = computed(() => page.props.currency ?? 'USD');
 
 const formatAnnouncementDate = (value?: string | null) => {
     if (!value) {
@@ -69,7 +74,7 @@ const formatAnnouncementDate = (value?: string | null) => {
     if (Number.isNaN(date.getTime())) {
         return '';
     }
-    return new Intl.DateTimeFormat('fr-CA', {
+    return new Intl.DateTimeFormat(resolvedLocale.value, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -110,37 +115,43 @@ const resolveAnnouncementServices = (announcement: Announcement) => {
 const childPhotoUrl = (child: { photo?: string | null; name?: string | null; age?: string | number | null }, index: number) =>
     resolveChildPhoto(child.photo, [child.name, child.age], index);
 
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-});
-const numberFormatter = new Intl.NumberFormat('en-US');
-const percentFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1, signDisplay: 'exceptZero' });
+const formatCurrency = (value: number | null | undefined) =>
+    new Intl.NumberFormat(resolvedLocale.value, {
+        style: 'currency',
+        currency: currencyCode.value,
+    }).format(Number(value ?? 0));
+const formatNumber = (value: number | null | undefined) =>
+    new Intl.NumberFormat(resolvedLocale.value).format(Number(value ?? 0));
+const formatPercent = (value: number | null | undefined) => {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    const formatted = new Intl.NumberFormat(resolvedLocale.value, {
+        maximumFractionDigits: 1,
+        signDisplay: 'exceptZero',
+    }).format(value);
+    return `${formatted}%`;
+};
 
-const formatCurrency = (value: number | null | undefined) => currencyFormatter.format(Number(value ?? 0));
-const formatNumber = (value: number | null | undefined) => numberFormatter.format(Number(value ?? 0));
-const formatPercent = (value: number | null | undefined) =>
-    value === null || value === undefined ? '' : `${percentFormatter.format(value)}%`;
-
-const welcomeTitle = computed(() => (isAdmin.value ? 'Tableau de bord' : 'Bon retour'));
+const welcomeTitle = computed(() => (isAdmin.value ? t('dashboard.welcome.title.admin') : t('dashboard.welcome.title.default')));
 const welcomeSummary = computed(() => {
     if (role.value === 'Babysitter') {
-        return 'Suivez vos missions, vos gains et les annonces qui vous correspondent.';
+        return t('dashboard.welcome.summary.babysitter');
     }
     if (isAdmin.value) {
-        return "Vue d'ensemble de l'activite des reservations, revenus et utilisateurs.";
+        return t('dashboard.welcome.summary.admin');
     }
-    return 'Suivez vos reservations et vos depenses.';
+    return t('dashboard.welcome.summary.parent');
 });
 
 const monthlyLabel = computed(() => {
     if (role.value === 'Babysitter') {
-        return 'Gains du mois';
+        return t('dashboard.monthly.label.babysitter');
     }
     if (isAdmin.value) {
-        return 'Revenu du mois';
+        return t('dashboard.monthly.label.admin');
     }
-    return 'Depenses du mois';
+    return t('dashboard.monthly.label.parent');
 });
 
 const monthlyValue = computed(() => formatCurrency(stats.value?.current_month_revenue ?? 0));
@@ -156,22 +167,22 @@ const monthlyCountChangeLabel = computed(() =>
 );
 const monthlyCountTrendUp = computed(() => (monthlyCountChange.value ?? 0) >= 0);
 
-const monthlyBars = [
-    { label: 'Jan', value: 12 },
-    { label: 'Fev', value: 16 },
-    { label: 'Mar', value: 20 },
-    { label: 'Avr', value: 24 },
-    { label: 'Mai', value: 18 },
-    { label: 'Juin', value: 15 },
-    { label: 'Juil', value: 17 },
-    { label: 'Aou', value: 14 },
-    { label: 'Sep', value: 11 },
-    { label: 'Oct', value: 13 },
-    { label: 'Nov', value: 9 },
-    { label: 'Dec', value: 7 },
-];
+const monthlyBars = computed(() => ([
+    { label: t('dashboard.months.jan'), value: 12 },
+    { label: t('dashboard.months.feb'), value: 16 },
+    { label: t('dashboard.months.mar'), value: 20 },
+    { label: t('dashboard.months.apr'), value: 24 },
+    { label: t('dashboard.months.may'), value: 18 },
+    { label: t('dashboard.months.jun'), value: 15 },
+    { label: t('dashboard.months.jul'), value: 17 },
+    { label: t('dashboard.months.aug'), value: 14 },
+    { label: t('dashboard.months.sep'), value: 11 },
+    { label: t('dashboard.months.oct'), value: 13 },
+    { label: t('dashboard.months.nov'), value: 9 },
+    { label: t('dashboard.months.dec'), value: 7 },
+]));
 
-const maxMonthly = Math.max(...monthlyBars.map((bar) => bar.value));
+const maxMonthly = computed(() => Math.max(...monthlyBars.value.map((bar) => bar.value)));
 
 const kpiToneClasses = {
     emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
@@ -201,34 +212,34 @@ const kpiMeta: Record<string, { icon: string; tone: keyof typeof kpiToneClasses 
     issued_invoices: { icon: 'IN', tone: 'cyan' },
 };
 
-const kpiLabelMap: Record<string, string> = {
-    total_revenue: 'Revenu total',
-    total_reservations: 'Reservations totales',
-    total_spend: 'Depenses totales',
-    total_jobs: 'Missions totales',
-    total_earnings: 'Gains totaux',
-    pending_reservations: 'Reservations en attente',
-    confirmed_reservations: 'Reservations confirmees',
-    upcoming_reservations: 'Reservations a venir',
-    upcoming_jobs: 'Missions a venir',
-    canceled_reservations: 'Reservations annulees',
-    canceled_jobs: 'Missions annulees',
-    active_babysitters: 'Babysitters actifs',
-    active_parents: 'Parents actifs',
-    open_announcements: 'Annonces ouvertes',
-    issued_invoices: 'Factures emises',
-};
+const kpiLabelMap = computed<Record<string, string>>(() => ({
+    total_revenue: t('dashboard.kpis.labels.total_revenue'),
+    total_reservations: t('dashboard.kpis.labels.total_reservations'),
+    total_spend: t('dashboard.kpis.labels.total_spend'),
+    total_jobs: t('dashboard.kpis.labels.total_jobs'),
+    total_earnings: t('dashboard.kpis.labels.total_earnings'),
+    pending_reservations: t('dashboard.kpis.labels.pending_reservations'),
+    confirmed_reservations: t('dashboard.kpis.labels.confirmed_reservations'),
+    upcoming_reservations: t('dashboard.kpis.labels.upcoming_reservations'),
+    upcoming_jobs: t('dashboard.kpis.labels.upcoming_jobs'),
+    canceled_reservations: t('dashboard.kpis.labels.canceled_reservations'),
+    canceled_jobs: t('dashboard.kpis.labels.canceled_jobs'),
+    active_babysitters: t('dashboard.kpis.labels.active_babysitters'),
+    active_parents: t('dashboard.kpis.labels.active_parents'),
+    open_announcements: t('dashboard.kpis.labels.open_announcements'),
+    issued_invoices: t('dashboard.kpis.labels.issued_invoices'),
+}));
 
-const kpiPeriodMap: Record<string, string> = {
-    'vs last month': 'vs mois dernier',
-    scheduled: 'planifiees',
-    pending: 'en attente',
-    confirmed: 'confirmees',
-    canceled: 'annulees',
-    open: 'ouvertes',
-    issued: 'emises',
-    'all time': 'au total',
-};
+const kpiPeriodMap = computed<Record<string, string>>(() => ({
+    'vs last month': t('dashboard.kpis.periods.vs_last_month'),
+    scheduled: t('dashboard.kpis.periods.scheduled'),
+    pending: t('dashboard.kpis.periods.pending'),
+    confirmed: t('dashboard.kpis.periods.confirmed'),
+    canceled: t('dashboard.kpis.periods.canceled'),
+    open: t('dashboard.kpis.periods.open'),
+    issued: t('dashboard.kpis.periods.issued'),
+    'all time': t('dashboard.kpis.periods.all_time'),
+}));
 
 const fallbackKpis = computed<DashboardKpi[]>(() => {
     const totalCount = stats.value?.total_count ?? 0;
@@ -236,12 +247,13 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
     const countChange = stats.value?.count_change_pct ?? null;
     const revenueChange = stats.value?.revenue_change_pct ?? null;
     const canceledCount = stats.value?.total_canceled_count ?? 0;
+    const labelMap = kpiLabelMap.value;
 
     if (isAdmin.value) {
         return [
             {
                 key: 'total_revenue',
-                label: 'Total Revenue',
+                label: labelMap.total_revenue,
                 value: totalRevenue,
                 format: 'currency',
                 change_pct: revenueChange,
@@ -249,7 +261,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'total_reservations',
-                label: 'Total Reservations',
+                label: labelMap.total_reservations,
                 value: totalCount,
                 format: 'number',
                 change_pct: countChange,
@@ -257,7 +269,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'pending_reservations',
-                label: 'Pending Reservations',
+                label: labelMap.pending_reservations,
                 value: stats.value?.pending_count ?? 0,
                 format: 'number',
                 change_pct: null,
@@ -265,7 +277,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'confirmed_reservations',
-                label: 'Confirmed Reservations',
+                label: labelMap.confirmed_reservations,
                 value: stats.value?.confirmed_count ?? 0,
                 format: 'number',
                 change_pct: null,
@@ -273,7 +285,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'canceled_reservations',
-                label: 'Canceled Reservations',
+                label: labelMap.canceled_reservations,
                 value: canceledCount,
                 format: 'number',
                 change_pct: null,
@@ -281,7 +293,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'active_babysitters',
-                label: 'Active Babysitters',
+                label: labelMap.active_babysitters,
                 value: 0,
                 format: 'number',
                 change_pct: null,
@@ -289,7 +301,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'active_parents',
-                label: 'Active Parents',
+                label: labelMap.active_parents,
                 value: 0,
                 format: 'number',
                 change_pct: null,
@@ -297,7 +309,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'open_announcements',
-                label: 'Open Announcements',
+                label: labelMap.open_announcements,
                 value: 0,
                 format: 'number',
                 change_pct: null,
@@ -305,7 +317,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'issued_invoices',
-                label: 'Issued Invoices',
+                label: labelMap.issued_invoices,
                 value: 0,
                 format: 'number',
                 change_pct: null,
@@ -318,7 +330,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
         return [
             {
                 key: 'total_jobs',
-                label: 'Total Jobs',
+                label: labelMap.total_jobs,
                 value: totalCount,
                 format: 'number',
                 change_pct: countChange,
@@ -326,7 +338,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'total_earnings',
-                label: 'Total Earnings',
+                label: labelMap.total_earnings,
                 value: totalRevenue,
                 format: 'currency',
                 change_pct: revenueChange,
@@ -334,7 +346,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'upcoming_jobs',
-                label: 'Upcoming Jobs',
+                label: labelMap.upcoming_jobs,
                 value: 0,
                 format: 'number',
                 change_pct: null,
@@ -342,7 +354,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
             },
             {
                 key: 'canceled_jobs',
-                label: 'Canceled Jobs',
+                label: labelMap.canceled_jobs,
                 value: canceledCount,
                 format: 'number',
                 change_pct: null,
@@ -354,7 +366,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
     return [
         {
             key: 'total_reservations',
-            label: 'Total Reservations',
+            label: labelMap.total_reservations,
             value: totalCount,
             format: 'number',
             change_pct: countChange,
@@ -362,7 +374,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
         },
         {
             key: 'total_spend',
-            label: 'Total Spend',
+            label: labelMap.total_spend,
             value: totalRevenue,
             format: 'currency',
             change_pct: revenueChange,
@@ -370,7 +382,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
         },
         {
             key: 'upcoming_reservations',
-            label: 'Upcoming',
+            label: labelMap.upcoming_reservations,
             value: 0,
             format: 'number',
             change_pct: null,
@@ -378,7 +390,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
         },
         {
             key: 'canceled_reservations',
-            label: 'Canceled',
+            label: labelMap.canceled_reservations,
             value: canceledCount,
             format: 'number',
             change_pct: null,
@@ -401,8 +413,8 @@ const kpiCards = computed(() => {
             : kpi.change_pct >= 0
                 ? 'up'
                 : 'down';
-        const label = kpiLabelMap[kpi.key] ?? kpi.label;
-        const period = kpi.period ? (kpiPeriodMap[kpi.period] ?? kpi.period) : '';
+        const label = kpiLabelMap.value[kpi.key] ?? kpi.label;
+        const period = kpi.period ? (kpiPeriodMap.value[kpi.period] ?? kpi.period) : '';
 
         return {
             ...kpi,
@@ -418,58 +430,58 @@ const kpiCards = computed(() => {
     });
 });
 
-const platforms = [
+const platforms = computed(() => ([
     {
-        name: 'Garde du soir',
-        orders: '18 demandes',
+        name: t('dashboard.platforms.items.evening'),
+        orders: t('dashboard.platforms.orders', { count: 18 }),
         progress: 52,
-        badge: 'Populaire',
+        badge: t('dashboard.platforms.badges.popular'),
         badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
         barClass: 'bg-emerald-500',
         iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
         icon: 'GS',
     },
     {
-        name: "Sortie d'ecole",
-        orders: '12 demandes',
+        name: t('dashboard.platforms.items.school'),
+        orders: t('dashboard.platforms.orders', { count: 12 }),
         progress: 38,
-        badge: 'Regulier',
+        badge: t('dashboard.platforms.badges.regular'),
         badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
         barClass: 'bg-sky-500',
         iconClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
         icon: 'SE',
     },
     {
-        name: 'Garde de nuit',
-        orders: '9 demandes',
+        name: t('dashboard.platforms.items.night'),
+        orders: t('dashboard.platforms.orders', { count: 9 }),
         progress: 28,
-        badge: 'Urgent',
+        badge: t('dashboard.platforms.badges.urgent'),
         badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
         barClass: 'bg-amber-500',
         iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
         icon: 'GN',
     },
     {
-        name: 'Garde weekend',
-        orders: '14 demandes',
+        name: t('dashboard.platforms.items.weekend'),
+        orders: t('dashboard.platforms.orders', { count: 14 }),
         progress: 34,
-        badge: 'En hausse',
+        badge: t('dashboard.platforms.badges.rising'),
         badgeClass: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
         barClass: 'bg-lime-500',
         iconClass: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-200',
         icon: 'GW',
     },
     {
-        name: 'Aide aux devoirs',
-        orders: '8 demandes',
+        name: t('dashboard.platforms.items.homework'),
+        orders: t('dashboard.platforms.orders', { count: 8 }),
         progress: 22,
-        badge: 'Nouveau',
+        badge: t('dashboard.platforms.badges.new'),
         badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
         barClass: 'bg-rose-500',
         iconClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
         icon: 'AD',
     },
-];
+]));
 
 const countries = [
     { name: 'Montreal', share: 68, code: 'MT', barClass: 'bg-sky-500' },
@@ -479,75 +491,75 @@ const countries = [
     { name: 'Terrebonne', share: 22, code: 'TB', barClass: 'bg-emerald-500' },
 ];
 
-const products = [
+const products = computed(() => ([
     {
-        name: 'Garde du soir',
-        category: 'Duree moyenne',
-        units: '4h',
-        revenue: '$72',
+        name: t('dashboard.platforms.items.evening'),
+        category: t('dashboard.products.category'),
+        hours: 4,
+        revenue: 72,
         badge: 'GS',
         badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
     },
     {
-        name: "Sortie d'ecole",
-        category: 'Duree moyenne',
-        units: '2h',
-        revenue: '$36',
+        name: t('dashboard.platforms.items.school'),
+        category: t('dashboard.products.category'),
+        hours: 2,
+        revenue: 36,
         badge: 'SE',
         badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
     },
     {
-        name: 'Garde de nuit',
-        category: 'Duree moyenne',
-        units: '8h',
-        revenue: '$160',
+        name: t('dashboard.platforms.items.night'),
+        category: t('dashboard.products.category'),
+        hours: 8,
+        revenue: 160,
         badge: 'GN',
         badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
     },
     {
-        name: 'Week-end',
-        category: 'Duree moyenne',
-        units: '5h',
-        revenue: '$90',
+        name: t('dashboard.platforms.items.weekend'),
+        category: t('dashboard.products.category'),
+        hours: 5,
+        revenue: 90,
         badge: 'WE',
         badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200',
     },
-];
+]));
 
-const customers = [
+const customers = computed(() => ([
     {
         name: 'Camille Morel',
-        type: 'Parent regulier',
-        orders: '12 reservations',
-        spend: '$320',
+        type: t('dashboard.customers.types.regular'),
+        ordersCount: 12,
+        spend: 320,
         badge: 'CM',
         badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
     },
     {
         name: 'Lucas Perrin',
-        type: 'Parent nouveau',
-        orders: '6 reservations',
-        spend: '$180',
+        type: t('dashboard.customers.types.new'),
+        ordersCount: 6,
+        spend: 180,
         badge: 'LP',
         badgeClass: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200',
     },
     {
         name: 'Sarah Leblanc',
-        type: 'Parent fidele',
-        orders: '9 reservations',
-        spend: '$240',
+        type: t('dashboard.customers.types.loyal'),
+        ordersCount: 9,
+        spend: 240,
         badge: 'SL',
         badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
     },
     {
         name: 'Nadia Roy',
-        type: 'Parent actif',
-        orders: '7 reservations',
-        spend: '$210',
+        type: t('dashboard.customers.types.active'),
+        ordersCount: 7,
+        spend: 210,
         badge: 'NR',
         badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-200',
     },
-];
+]));
 
 const quickTeam = [
     { initials: 'MP', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200' },
@@ -593,49 +605,40 @@ const orderTrendArea = computed(() => {
 </script>
 
 <template>
-    <Head title="Tableau de bord" />
+
+    <Head :title="$t('dashboard.breadcrumb')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="relative overflow-hidden">
             <div class="pointer-events-none absolute inset-0">
                 <div
-                    class="absolute -left-20 -top-24 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-500/15"
-                />
+                    class="absolute -left-20 -top-24 h-72 w-72 rounded-sm bg-amber-200/40 blur-3xl dark:bg-amber-500/15" />
                 <div
-                    class="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/15"
-                />
+                    class="absolute -bottom-24 right-0 h-80 w-80 rounded-sm bg-sky-200/40 blur-3xl dark:bg-sky-500/15" />
                 <div
-                    class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.8),_transparent_55%)] dark:bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.6),_transparent_55%)]"
-                />
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.8),_transparent_55%)] dark:bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.6),_transparent_55%)]" />
             </div>
 
             <div class="relative z-10 flex flex-col gap-6 p-4 lg:p-6">
-                <div
-                    v-if="needsEmailVerification"
-                    class="dashboard-card rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-amber-900 shadow-sm backdrop-blur dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
-                    style="animation-delay: 0ms"
-                >
+                <div v-if="needsEmailVerification"
+                    class="dashboard-card rounded-sm border border-amber-200/70 bg-amber-50/80 p-4 text-amber-900 shadow-sm backdrop-blur dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
+                    style="animation-delay: 0ms">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p class="text-sm font-semibold">Verifiez votre email</p>
+                            <p class="text-sm font-semibold">{{ $t('dashboard.verify.title') }}</p>
                             <p class="text-sm text-amber-900/80 dark:text-amber-100/80">
-                                Pour pouvoir reserver, confirmez votre adresse email.
+                                {{ $t('dashboard.verify.description') }}
                             </p>
                         </div>
-                        <Button
-                            size="sm"
-                            as-child
-                            class="bg-amber-600 text-white hover:bg-amber-500 dark:bg-amber-500 dark:text-amber-950 dark:hover:bg-amber-400"
-                        >
-                            <Link :href="route('verification.notice')">Verifier mon email</Link>
+                        <Button size="sm" as-child
+                            class="bg-amber-600 text-white hover:bg-amber-500 dark:bg-amber-500 dark:text-amber-950 dark:hover:bg-amber-400">
+                            <Link :href="route('verification.notice')">{{ $t('dashboard.verify.action') }}</Link>
                         </Button>
                     </div>
                 </div>
                 <section class="grid gap-6 lg:grid-cols-12">
-                    <div
-                        class="dashboard-card relative flex flex-col gap-5 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-4"
-                        style="animation-delay: 0ms"
-                    >
+                    <div class="dashboard-card relative flex flex-col gap-5 rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-4"
+                        style="animation-delay: 0ms">
                         <div class="flex flex-col gap-2">
                             <p class="text-sm font-medium text-muted-foreground">{{ welcomeTitle }}</p>
                             <h1 class="text-2xl font-semibold tracking-tight">
@@ -651,36 +654,24 @@ const orderTrendArea = computed(() => {
                                 <p class="text-3xl font-semibold">{{ monthlyValue }}</p>
                                 <div class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                                     <span>{{ monthlyLabel }}</span>
-                                    <span
-                                        v-if="monthlyChangeLabel"
-                                        class="inline-flex items-center gap-1"
-                                        :class="monthlyTrendUp ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'"
-                                    >
-                                        <svg
-                                            class="h-4 w-4"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                            :class="monthlyTrendUp ? '' : 'rotate-180'"
-                                        >
+                                    <span v-if="monthlyChangeLabel" class="inline-flex items-center gap-1"
+                                        :class="monthlyTrendUp ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'">
+                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
+                                            :class="monthlyTrendUp ? '' : 'rotate-180'">
                                             <path
-                                                d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z"
-                                            />
+                                                d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z" />
                                         </svg>
                                         {{ monthlyChangeLabel }}
                                     </span>
                                 </div>
                             </div>
-                            <Link
-                                href="/reservations"
-                                class="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90"
-                            >
-                                Voir les reservations
+                            <Link href="/reservations"
+                                class="inline-flex items-center justify-center rounded-sm bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90">
+                                {{ $t('dashboard.actions.view_reservations') }}
                             </Link>
                         </div>
 
-                        <div
-                            class="pointer-events-none absolute -bottom-6 right-4 hidden w-40 opacity-90 lg:block"
-                        >
+                        <div class="pointer-events-none absolute -bottom-6 right-4 hidden w-40 opacity-90 lg:block">
                             <svg viewBox="0 0 160 120" fill="none">
                                 <circle cx="24" cy="34" r="16" fill="#38BDF8" opacity="0.2" />
                                 <circle cx="52" cy="28" r="12" fill="#F59E0B" opacity="0.25" />
@@ -695,43 +686,35 @@ const orderTrendArea = computed(() => {
                         </div>
                     </div>
 
-                    <div
-                        class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-5"
-                        style="animation-delay: 80ms"
-                    >
+                    <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-5"
+                        style="animation-delay: 80ms">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h2 class="text-lg font-semibold">Resume des reservations</h2>
-                                <p class="text-sm text-muted-foreground">Evolution mensuelle des reservations</p>
+                                <h2 class="text-lg font-semibold">{{ $t('dashboard.monthly.summary_title') }}</h2>
+                                <p class="text-sm text-muted-foreground">{{ $t('dashboard.monthly.summary_description')
+                                    }}</p>
                             </div>
                             <button
-                                class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-                                type="button"
-                            >
-                                Ce mois
+                                class="inline-flex items-center gap-2 rounded-sm border border-border/60 bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                                type="button">
+                                {{ $t('dashboard.monthly.filter') }}
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path
-                                        d="M5.5 7.5a1 1 0 0 1 1.5-1.34l3 2.6 3-2.6a1 1 0 1 1 1.32 1.5l-3.66 3.2a1 1 0 0 1-1.32 0l-3.84-3.36Z"
-                                    />
+                                        d="M5.5 7.5a1 1 0 0 1 1.5-1.34l3 2.6 3-2.6a1 1 0 1 1 1.32 1.5l-3.66 3.2a1 1 0 0 1-1.32 0l-3.84-3.36Z" />
                                 </svg>
                             </button>
                         </div>
 
                         <div class="mt-6 grid grid-cols-12 gap-3">
-                            <div
-                                v-for="bar in monthlyBars"
-                                :key="bar.label"
-                                class="group flex flex-col items-center gap-2 text-xs text-muted-foreground"
-                            >
-                                <span class="font-medium text-foreground/80">{{ bar.value }} res</span>
+                            <div v-for="bar in monthlyBars" :key="bar.label"
+                                class="group flex flex-col items-center gap-2 text-xs text-muted-foreground">
+                                <span class="font-medium text-foreground/80">
+                                    {{ $t('dashboard.monthly.count_short', { count: bar.value }) }}
+                                </span>
                                 <div class="flex h-28 w-full items-end justify-center">
-                                    <div
-                                        class="w-3 rounded-full bg-muted/60"
-                                    >
-                                        <div
-                                            class="w-3 rounded-full bg-gradient-to-t from-emerald-500 to-sky-400 shadow-sm transition-all duration-300 group-hover:scale-110"
-                                            :style="{ height: `${Math.max(12, (bar.value / maxMonthly) * 100)}%` }"
-                                        />
+                                    <div class="w-3 rounded-sm bg-muted/60">
+                                        <div class="w-3 rounded-sm bg-gradient-to-t from-emerald-500 to-sky-400 shadow-sm transition-all duration-300 group-hover:scale-110"
+                                            :style="{ height: `${Math.max(12, (bar.value / maxMonthly) * 100)}%` }" />
                                     </div>
                                 </div>
                                 <span>{{ bar.label }}</span>
@@ -739,41 +722,31 @@ const orderTrendArea = computed(() => {
                         </div>
                     </div>
 
-                    <div
-                        class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-3"
-                        style="animation-delay: 140ms"
-                    >
+                    <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-3"
+                        style="animation-delay: 140ms">
                         <div class="flex items-center justify-between">
-                            <h2 class="text-lg font-semibold">Services demandes</h2>
-                            <span class="text-xs text-muted-foreground">30 derniers jours</span>
+                            <h2 class="text-lg font-semibold">{{ $t('dashboard.platforms.title') }}</h2>
+                            <span class="text-xs text-muted-foreground">{{ $t('dashboard.platforms.subtitle') }}</span>
                         </div>
 
                         <div class="mt-5 flex flex-col gap-4">
-                            <div
-                                v-for="platform in platforms"
-                                :key="platform.name"
-                                class="flex items-center gap-3"
-                            >
-                                <div
-                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold"
-                                    :class="platform.iconClass"
-                                >
+                            <div v-for="platform in platforms" :key="platform.name" class="flex items-center gap-3">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-sm text-sm font-semibold"
+                                    :class="platform.iconClass">
                                     {{ platform.icon }}
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between">
                                         <p class="text-sm font-semibold">{{ platform.name }}</p>
-                                        <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="platform.badgeClass">
+                                        <span class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                            :class="platform.badgeClass">
                                             {{ platform.badge }}
                                         </span>
                                     </div>
                                     <p class="text-xs text-muted-foreground">{{ platform.orders }}</p>
-                                    <div class="mt-2 h-1.5 w-full rounded-full bg-muted">
-                                        <div
-                                            class="h-1.5 rounded-full"
-                                            :class="platform.barClass"
-                                            :style="{ width: `${platform.progress}%` }"
-                                        />
+                                    <div class="mt-2 h-1.5 w-full rounded-sm bg-muted">
+                                        <div class="h-1.5 rounded-sm" :class="platform.barClass"
+                                            :style="{ width: `${platform.progress}%` }" />
                                     </div>
                                 </div>
                             </div>
@@ -782,38 +755,28 @@ const orderTrendArea = computed(() => {
                 </section>
 
                 <section class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <div
-                        v-for="kpi in kpiCards"
-                        :key="kpi.key"
-                        class="dashboard-card flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-5 shadow-sm backdrop-blur"
-                        :style="{ animationDelay: `${kpi.delay}ms` }"
-                    >
+                    <div v-for="kpi in kpiCards" :key="kpi.key"
+                        class="dashboard-card flex flex-col gap-4 rounded-sm border border-border/60 bg-card/80 p-5 shadow-sm backdrop-blur"
+                        :style="{ animationDelay: `${kpi.delay}ms` }">
                         <div class="flex items-start justify-between">
                             <div>
                                 <p class="text-sm font-medium text-muted-foreground">{{ kpi.label }}</p>
                                 <p class="mt-3 text-2xl font-semibold">{{ kpi.displayValue }}</p>
                             </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl text-xs font-semibold" :class="kpi.iconClass">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-sm text-xs font-semibold"
+                                :class="kpi.iconClass">
                                 {{ kpi.icon }}
                             </div>
                         </div>
                         <div class="flex items-center gap-2 text-sm">
-                            <span
-                                v-if="kpi.changeLabel"
-                                class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
-                                :class="kpi.trend === 'up'
+                            <span v-if="kpi.changeLabel"
+                                class="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-medium" :class="kpi.trend === 'up'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
-                                    : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200'"
-                            >
-                                <svg
-                                    class="h-3.5 w-3.5"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    :class="kpi.trend === 'down' ? 'rotate-180' : ''"
-                                >
+                                    : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200'">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
+                                    :class="kpi.trend === 'down' ? 'rotate-180' : ''">
                                     <path
-                                        d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z"
-                                    />
+                                        d="M5 10a1 1 0 0 1 1-1h6.586l-2.293-2.293a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 1 1-1.414-1.414L12.586 11H6a1 1 0 0 1-1-1Z" />
                                 </svg>
                                 {{ kpi.changeLabel }}
                             </span>
@@ -822,28 +785,21 @@ const orderTrendArea = computed(() => {
                     </div>
                 </section>
 
-                <section id="annonces" v-if="isBabysitter && announcementItems.length" class="grid gap-6 lg:grid-cols-12">
-                    <div
-                        class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-12"
-                        style="animation-delay: 360ms"
-                    >
+                <section id="annonces" v-if="isBabysitter && announcementItems.length"
+                    class="grid gap-6 lg:grid-cols-12">
+                    <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur lg:col-span-12"
+                        style="animation-delay: 360ms">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h2 class="text-lg font-semibold">
-                                    Annonces correspondantes
-                                </h2>
-                                <p class="text-sm text-muted-foreground">
-                                    Les demandes qui correspondent aux services que vous proposez.
+                                <h2 class="text-lg font-semibold">{{ $t('dashboard.announcements.title') }}</h2>
+                                <p class="text-sm text-muted-foreground">{{ $t('dashboard.announcements.description') }}
                                 </p>
                             </div>
                         </div>
 
                         <div class="mt-5 grid gap-3">
-                            <div
-                                v-for="announcement in announcementItems"
-                                :key="announcement.id"
-                                class="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/60 p-4"
-                            >
+                            <div v-for="announcement in announcementItems" :key="announcement.id"
+                                class="flex flex-col gap-3 rounded-sm border border-border/60 bg-background/60 p-4">
                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div class="space-y-2">
                                         <div class="flex flex-wrap items-center gap-2">
@@ -851,38 +807,36 @@ const orderTrendArea = computed(() => {
                                                 {{ announcement.title }}
                                             </p>
                                             <div class="flex flex-wrap items-center gap-2">
-                                                <Badge
-                                                    v-for="service in resolveAnnouncementServices(announcement)"
-                                                    :key="service"
-                                                    class="border-transparent bg-sky-100 text-sky-700"
-                                                >
+                                                <Badge v-for="service in resolveAnnouncementServices(announcement)"
+                                                    :key="service" class="border-transparent bg-sky-100 text-sky-700">
                                                     {{ service }}
                                                 </Badge>
-                                                <Badge
-                                                    v-if="!resolveAnnouncementServices(announcement).length"
-                                                    class="border-transparent bg-sky-100 text-sky-700"
-                                                >
+                                                <Badge v-if="!resolveAnnouncementServices(announcement).length"
+                                                    class="border-transparent bg-sky-100 text-sky-700">
                                                     -
                                                 </Badge>
                                             </div>
                                         </div>
                                         <p v-if="formatChildLabel(announcement)" class="text-xs text-muted-foreground">
-                                            Enfant: {{ formatChildLabel(announcement) }}
+                                            {{ $t('dashboard.announcements.child_label', {
+                                                name:
+                                                    formatChildLabel(announcement)
+                                            }) }}
                                         </p>
-                                        <div v-if="announcement.children?.length" class="flex flex-wrap items-center gap-2">
-                                            <div
-                                                v-for="(child, index) in announcement.children"
-                                                :key="child.id ?? `${child.name ?? 'child'}-${index}`"
-                                                class="flex items-center gap-2 rounded-full bg-muted/60 pr-2"
-                                            >
-                                                <div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">
-                                                    <img
-                                                        :src="childPhotoUrl(child, index)"
-                                                        :alt="child.name ?? 'Enfant'"
-                                                        class="h-full w-full object-cover"
-                                                    />
+                                        <div v-if="announcement.children?.length"
+                                            class="flex flex-wrap items-center gap-2">
+                                            <div v-for="(child, index) in announcement.children"
+                                                :key="child.id ?? `${child.name ?? $t('dashboard.announcements.child_fallback')}-${index}`"
+                                                class="flex items-center gap-2 rounded-sm bg-muted/60 pr-2">
+                                                <div
+                                                    class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-sm bg-slate-100 text-[10px] font-semibold text-slate-600">
+                                                    <img :src="childPhotoUrl(child, index)"
+                                                        :alt="child.name ?? $t('dashboard.announcements.child_fallback')"
+                                                        class="h-full w-full object-cover" />
                                                 </div>
-                                                <span class="text-xs text-muted-foreground">{{ child.name || 'Enfant' }}</span>
+                                                <span class="text-xs text-muted-foreground">
+                                                    {{ child.name || $t('dashboard.announcements.child_fallback') }}
+                                                </span>
                                             </div>
                                         </div>
                                         <p v-if="announcement.child_notes" class="text-sm text-muted-foreground">
@@ -895,16 +849,21 @@ const orderTrendArea = computed(() => {
                                     <div class="flex flex-col gap-2 text-xs text-muted-foreground sm:items-end">
                                         <div class="flex flex-col gap-1">
                                             <span v-if="announcement.parent">
-                                                Parent: {{ announcement.parent?.name }}
-                                                <span v-if="announcement.parent?.city">- {{ announcement.parent.city }}</span>
+                                                {{ $t('dashboard.announcements.parent_label', {
+                                                    name:
+                                                        announcement.parent?.name
+                                                }) }}
+                                                <span v-if="announcement.parent?.city">- {{ announcement.parent.city
+                                                    }}</span>
                                             </span>
                                             <span v-if="announcement.created_at">
                                                 {{ formatAnnouncementDate(announcement.created_at) }}
                                             </span>
                                         </div>
                                         <Button variant="outline" size="sm" as-child>
-                                            <Link :href="route('announcements.show', { announcement: announcement.id })">
-                                                Voir details
+                                            <Link
+                                                :href="route('announcements.show', { announcement: announcement.id })">
+                                                {{ $t('dashboard.actions.view_details') }}
                                             </Link>
                                         </Button>
                                     </div>
@@ -916,19 +875,20 @@ const orderTrendArea = computed(() => {
 
                 <section class="grid gap-6 lg:grid-cols-12">
                     <div class="lg:col-span-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        <div
-                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
-                            style="animation-delay: 460ms"
-                        >
+                        <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 460ms">
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Zones actives</h2>
-                                <button class="text-sm font-medium text-muted-foreground transition hover:text-foreground" type="button">
-                                    Tout voir
+                                <h2 class="text-lg font-semibold">{{ $t('dashboard.sections.active_zones') }}</h2>
+                                <button
+                                    class="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                                    type="button">
+                                    {{ $t('dashboard.actions.view_all') }}
                                 </button>
                             </div>
                             <div class="mt-5 flex flex-col gap-4">
                                 <div v-for="country in countries" :key="country.name" class="flex items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-xs font-semibold">
+                                    <div
+                                        class="flex h-9 w-9 items-center justify-center rounded-sm bg-muted text-xs font-semibold">
                                         {{ country.code }}
                                     </div>
                                     <div class="flex-1">
@@ -936,95 +896,92 @@ const orderTrendArea = computed(() => {
                                             <span>{{ country.name }}</span>
                                             <span class="text-muted-foreground">{{ country.share }}%</span>
                                         </div>
-                                        <div class="mt-2 h-1.5 w-full rounded-full bg-muted">
-                                            <div
-                                                class="h-1.5 rounded-full"
-                                                :class="country.barClass"
-                                                :style="{ width: `${country.share}%` }"
-                                            />
+                                        <div class="mt-2 h-1.5 w-full rounded-sm bg-muted">
+                                            <div class="h-1.5 rounded-sm" :class="country.barClass"
+                                                :style="{ width: `${country.share}%` }" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div
-                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
-                            style="animation-delay: 520ms"
-                        >
+                        <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 520ms">
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Tarifs moyens</h2>
-                                <span class="text-xs text-muted-foreground">Cette semaine</span>
+                                <h2 class="text-lg font-semibold">{{ $t('dashboard.sections.avg_rates') }}</h2>
+                                <span class="text-xs text-muted-foreground">{{ $t('dashboard.sections.this_week')
+                                    }}</span>
                             </div>
                             <div class="mt-5 flex flex-col gap-4">
                                 <div v-for="product in products" :key="product.name" class="flex items-center gap-3">
-                                    <div
-                                        class="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-semibold"
-                                        :class="product.badgeClass"
-                                    >
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-sm text-xs font-semibold"
+                                        :class="product.badgeClass">
                                         {{ product.badge }}
                                     </div>
                                     <div class="flex-1">
                                         <p class="text-sm font-semibold">{{ product.name }}</p>
                                         <p class="text-xs text-muted-foreground">
-                                            {{ product.category }} - {{ product.units }}
+                                            {{ product.category }} - {{ $t('dashboard.products.units', {
+                                                hours:
+                                                    product.hours
+                                            }) }}
                                         </p>
                                     </div>
-                                    <span class="text-sm font-semibold">{{ product.revenue }}</span>
+                                    <span class="text-sm font-semibold">{{ formatCurrency(product.revenue) }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div
-                            v-if="isAdmin"
-                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
-                            style="animation-delay: 580ms"
-                        >
+                        <div v-if="isAdmin"
+                            class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 580ms">
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Parents actifs</h2>
-                                <span class="text-xs text-muted-foreground">Ce mois-ci</span>
+                                <h2 class="text-lg font-semibold">{{ $t('dashboard.sections.active_parents') }}</h2>
+                                <span class="text-xs text-muted-foreground">{{ $t('dashboard.sections.this_month')
+                                    }}</span>
                             </div>
                             <div class="mt-5 flex flex-col gap-4">
                                 <div v-for="customer in customers" :key="customer.name" class="flex items-center gap-3">
-                                    <div
-                                        class="flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold"
-                                        :class="customer.badgeClass"
-                                    >
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-sm text-xs font-semibold"
+                                        :class="customer.badgeClass">
                                         {{ customer.badge }}
                                     </div>
                                     <div class="flex-1">
                                         <p class="text-sm font-semibold">{{ customer.name }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ customer.type }} - {{ customer.orders }}</p>
+                                        <p class="text-xs text-muted-foreground">
+                                            {{ customer.type }} - {{ $t('dashboard.customers.orders', {
+                                                count:
+                                                    customer.ordersCount
+                                            }) }}
+                                        </p>
                                     </div>
-                                    <span class="text-sm font-semibold">{{ customer.spend }}</span>
+                                    <span class="text-sm font-semibold">{{ formatCurrency(customer.spend) }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="lg:col-span-4 grid gap-6">
-                        <div
-                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
-                            style="animation-delay: 640ms"
-                        >
+                        <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 640ms">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-lg font-semibold">Reservations du mois</h2>
-                                    <p class="text-sm text-muted-foreground">Reservations ce mois</p>
+                                    <h2 class="text-lg font-semibold">{{ $t('dashboard.monthly.reservations.title') }}
+                                    </h2>
+                                    <p class="text-sm text-muted-foreground">{{
+                                        $t('dashboard.monthly.reservations.subtitle') }}</p>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-xl font-semibold">{{ monthlyCount }}</p>
-                                    <p
-                                        v-if="monthlyCountChangeLabel"
-                                        class="text-xs"
-                                        :class="monthlyCountTrendUp ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'"
-                                    >
-                                        {{ monthlyCountChangeLabel }} vs mois dernier
+                                    <p v-if="monthlyCountChangeLabel" class="text-xs"
+                                        :class="monthlyCountTrendUp ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'">
+                                        {{ monthlyCountChangeLabel }} {{ $t('dashboard.monthly.comparison') }}
                                     </p>
-                                    <p v-else class="text-xs text-muted-foreground">Pas de comparaison</p>
+                                    <p v-else class="text-xs text-muted-foreground">{{
+                                        $t('dashboard.monthly.no_comparison') }}</p>
                                 </div>
                             </div>
-                            <div class="mt-6 h-40 w-full rounded-2xl bg-muted/50 p-4">
+                            <div class="mt-6 h-40 w-full rounded-sm bg-muted/50 p-4">
                                 <svg :viewBox="`0 0 ${chartSize.width} ${chartSize.height}`" class="h-full w-full">
                                     <defs>
                                         <linearGradient id="orderTrend" x1="0" x2="0" y1="0" y2="1">
@@ -1033,46 +990,36 @@ const orderTrendArea = computed(() => {
                                         </linearGradient>
                                     </defs>
                                     <path :d="orderTrendArea" fill="url(#orderTrend)" />
-                                    <polyline
-                                        :points="orderTrendLine"
-                                        fill="none"
-                                        stroke="#0EA5E9"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
+                                    <polyline :points="orderTrendLine" fill="none" stroke="#0EA5E9" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                             </div>
                         </div>
 
-                        <div
-                            class="dashboard-card rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
-                            style="animation-delay: 700ms"
-                        >
+                        <div class="dashboard-card rounded-sm border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur"
+                            style="animation-delay: 700ms">
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-semibold">Contacts rapides</h2>
-                                <button class="text-sm text-muted-foreground transition hover:text-foreground" type="button">
-                                    Voir tout
+                                <h2 class="text-lg font-semibold">{{ $t('dashboard.sections.quick_contacts') }}</h2>
+                                <button class="text-sm text-muted-foreground transition hover:text-foreground"
+                                    type="button">
+                                    {{ $t('dashboard.actions.view_all') }}
                                 </button>
                             </div>
                             <div class="mt-5 flex items-center gap-3">
-                                <div
-                                    v-for="member in quickTeam"
-                                    :key="member.initials"
-                                    class="flex h-11 w-11 items-center justify-center rounded-full text-xs font-semibold"
-                                    :class="member.class"
-                                >
+                                <div v-for="member in quickTeam" :key="member.initials"
+                                    class="flex h-11 w-11 items-center justify-center rounded-sm text-xs font-semibold"
+                                    :class="member.class">
                                     {{ member.initials }}
                                 </div>
                                 <button
-                                    class="flex h-11 w-11 items-center justify-center rounded-full border border-dashed border-border text-sm font-semibold text-muted-foreground transition hover:text-foreground"
-                                    type="button"
-                                >
+                                    class="flex h-11 w-11 items-center justify-center rounded-sm border border-dashed border-border text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+                                    type="button">
                                     +
                                 </button>
                             </div>
-                            <div class="mt-6 rounded-2xl border border-border/60 bg-background/60 p-4 text-sm text-muted-foreground">
-                                Besoin d'un coup de main? Ajoutez des contacts pour partager vos reservations.
+                            <div
+                                class="mt-6 rounded-sm border border-border/60 bg-background/60 p-4 text-sm text-muted-foreground">
+                                {{ $t('dashboard.sections.need_help') }}
                             </div>
                         </div>
                     </div>
@@ -1093,6 +1040,7 @@ const orderTrendArea = computed(() => {
         opacity: 0;
         transform: translateY(14px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

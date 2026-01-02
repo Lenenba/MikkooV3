@@ -22,15 +22,15 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Create an account" description="Enter your details below to create your account">
-        <Head title="Register" />
+    <AuthBase :title="$t('auth.ui.register.title')" :description="$t('auth.ui.register.description')">
+        <Head :title="$t('auth.ui.register.head_title')" />
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
                     <FloatingInput
                         id="name"
-                        label="Name"
+                        :label="$t('auth.ui.register.name')"
                         type="text"
                         required
                         autofocus
@@ -44,7 +44,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <FloatingInput
                         id="email"
-                        label="Email address"
+                        :label="$t('auth.ui.register.email')"
                         type="email"
                         required
                         :tabindex="2"
@@ -57,7 +57,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <FloatingInput
                         id="password"
-                        label="Password"
+                        :label="$t('auth.ui.register.password')"
                         type="password"
                         required
                         :tabindex="3"
@@ -70,7 +70,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <FloatingInput
                         id="password_confirmation"
-                        label="Confirm password"
+                        :label="$t('auth.ui.register.password_confirm')"
                         type="password"
                         required
                         :tabindex="4"
@@ -82,13 +82,13 @@ const submit = () => {
 
                 <Button type="submit" class="mt-2 w-full" tabindex="5" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Create account
+                    {{ $t('auth.ui.register.submit') }}
                 </Button>
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
-                Already have an account?
-                <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="6">Log in</TextLink>
+                {{ $t('auth.ui.register.has_account') }}
+                <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="6">{{ $t('auth.ui.register.login') }}</TextLink>
             </div>
         </form>
     </AuthBase>

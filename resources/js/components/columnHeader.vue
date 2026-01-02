@@ -42,16 +42,16 @@ export default {
             <DropdownMenuContent align="start">
                 <DropdownMenuItem @click="column.toggleSorting(false)">
                     <ArrowUpIcon class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                    Asc
+                    {{ $t('common.table.sort_asc') }}
                 </DropdownMenuItem>
                 <DropdownMenuItem @click="column.toggleSorting(true)">
                     <ArrowDownIcon class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                    Desc
+                    {{ $t('common.table.sort_desc') }}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem @click="column.toggleVisibility(false)">
                     <EyeClosedIcon class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                    Hide
+                    {{ $t('common.table.hide') }}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

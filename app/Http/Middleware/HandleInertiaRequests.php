@@ -7,6 +7,7 @@ use Tighten\Ziggy\Ziggy;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Inspiring;
 use App\Http\Controllers\Traits\UtilsPhotoConverter;
+use App\Support\Translations;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -57,10 +58,17 @@ class HandleInertiaRequests extends Middleware
         $profilePhotoPath = $user?->media()->isProfilePicture()->first()?->file_path
             ?? $defaultAvatar;
 
+        $locale = app()->getLocale();
+        $availableLocales = config('app.available_locales', [$locale]);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'locale' => $locale,
+            'fallbackLocale' => config('app.fallback_locale'),
+            'availableLocales' => $availableLocales,
+            'translations' => Translations::forLocale($locale),
             'auth' => [
                 'user' => $request->user(),
                 'profilPicture' => $this->convertToWebp($profilePhotoPath),

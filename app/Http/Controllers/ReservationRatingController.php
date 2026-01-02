@@ -29,6 +29,6 @@ class ReservationRatingController extends Controller
             $rating->reviewee->notify(new RatingReceivedNotification($rating));
         }
 
-        return back()->with('success', __('Rating saved.'));
+        return back()->with('success', __('flash.reservation.rating_saved'));
     }
 }

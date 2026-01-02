@@ -5,22 +5,24 @@
 @endcomponent
 @endslot
 
-# Facture {{ $invoice->number ?? $invoice->id }}
+# {{ __('emails.invoices.issued.heading', ['number' => $invoice->number ?? $invoice->id]) }}
 
-Bonjour{{ $parentName ? ' ' . $parentName : '' }},
+{{ __('emails.common.greeting', ['name' => $parentName ? ' ' . $parentName : '' ]) }}
 
-Votre facture pour la periode du {{ optional($invoice->period_start)->format('d/m/Y') ?? '-' }}
-au {{ optional($invoice->period_end)->format('d/m/Y') ?? '-' }} est disponible.
+{{ __('emails.invoices.issued.intro', [
+    'start' => optional($invoice->period_start)->format('d/m/Y') ?? '-',
+    'end' => optional($invoice->period_end)->format('d/m/Y') ?? '-',
+]) }}
 
 @component('mail::panel')
-Babysitter : {{ $babysitterName }}
-Sous-total : {{ number_format((float) ($invoice->subtotal_amount ?? 0), 2) }} {{ $invoice->currency }}
-TVA ({{ number_format((float) $vatPercent, 2) }}%) : {{ number_format((float) ($invoice->tax_amount ?? 0), 2) }} {{ $invoice->currency }}
-Total : {{ number_format((float) ($invoice->total_amount ?? 0), 2) }} {{ $invoice->currency }}
+{{ __('common.roles.babysitter') }} : {{ $babysitterName }}
+{{ __('common.labels.subtotal') }} : {{ number_format((float) ($invoice->subtotal_amount ?? 0), 2) }} {{ $invoice->currency }}
+{{ __('emails.invoices.issued.tax_label', ['rate' => number_format((float) $vatPercent, 2)]) }} : {{ number_format((float) ($invoice->tax_amount ?? 0), 2) }} {{ $invoice->currency }}
+{{ __('common.labels.total') }} : {{ number_format((float) ($invoice->total_amount ?? 0), 2) }} {{ $invoice->currency }}
 @endcomponent
 
 @component('mail::table')
-| Prestation | Date | Total |
+| {{ __('emails.invoices.issued.table.service') }} | {{ __('emails.invoices.issued.table.date') }} | {{ __('emails.invoices.issued.table.total') }} |
 |:--|:--|--:|
 @foreach($invoice->items as $item)
 | {{ $item->description }} | {{ optional($item->service_date)->format('d/m/Y') ?? '-' }} | {{ number_format((float) ($item->total_amount ?? 0), 2) }} {{ $invoice->currency }} |
@@ -28,12 +30,12 @@ Total : {{ number_format((float) ($invoice->total_amount ?? 0), 2) }} {{ $invoic
 @endcomponent
 
 @component('mail::button', ['url' => route('invoices.index')])
-Voir mes factures
+{{ __('emails.invoices.issued.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

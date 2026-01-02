@@ -30,15 +30,15 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Reset password" description="Please enter your new password below">
-        <Head title="Reset password" />
+    <AuthLayout :title="$t('auth.ui.reset.title')" :description="$t('auth.ui.reset.description')">
+        <Head :title="$t('auth.ui.reset.head_title')" />
 
         <form @submit.prevent="submit">
             <div class="grid gap-6">
                 <div class="grid gap-2">
                     <FloatingInput
                         id="email"
-                        label="Email"
+                        :label="$t('auth.ui.reset.email')"
                         type="email"
                         name="email"
                         autocomplete="email"
@@ -51,7 +51,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <FloatingInput
                         id="password"
-                        label="Password"
+                        :label="$t('auth.ui.reset.password')"
                         type="password"
                         name="password"
                         autocomplete="new-password"
@@ -64,7 +64,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <FloatingInput
                         id="password_confirmation"
-                        label="Confirm Password"
+                        :label="$t('auth.ui.reset.password_confirm')"
                         type="password"
                         name="password_confirmation"
                         autocomplete="new-password"
@@ -75,7 +75,7 @@ const submit = () => {
 
                 <Button type="submit" class="mt-4 w-full" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Reset password
+                    {{ $t('auth.ui.reset.submit') }}
                 </Button>
             </div>
         </form>

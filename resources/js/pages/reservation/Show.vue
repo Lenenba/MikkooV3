@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ import { type SharedData, type BreadcrumbItem, type Reservation, type Details, t
 import { Star } from 'lucide-vue-next';
 
 const page = usePage<SharedData>();
+const { t } = useI18n();
 
 type ReservationShow = Reservation & {
     number?: string;
@@ -27,7 +29,7 @@ const ratings = computed<RatingsPayload | null>(() => page.props.ratings ?? null
 const canRate = computed(() => ratings.value?.can_rate ?? false);
 const myRating = computed(() => ratings.value?.mine ?? null);
 const otherRating = computed(() => ratings.value?.other ?? null);
-const ratingTargetName = computed(() => ratings.value?.target_name ?? 'this user');
+const ratingTargetName = computed(() => ratings.value?.target_name ?? t('reservations.show.rating_target_default'));
 const details = computed<Details | null>(() => {
     const raw = reservation.value?.details ?? null;
     return Array.isArray(raw) ? raw[0] ?? null : raw;
@@ -48,18 +50,18 @@ const status = computed(() =>
 const statusMeta = computed(() => {
     const current = status.value;
     if (current === 'confirmed') {
-        return { label: 'Confirmee', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { label: t('common.status.confirmed'), className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
     if (current === 'completed') {
-        return { label: 'Terminee', className: 'bg-sky-50 text-sky-700 border-sky-200' };
+        return { label: t('common.status.completed'), className: 'bg-sky-50 text-sky-700 border-sky-200' };
     }
     if (current === 'pending') {
-        return { label: 'En attente', className: 'bg-amber-50 text-amber-700 border-amber-200' };
+        return { label: t('common.status.pending'), className: 'bg-amber-50 text-amber-700 border-amber-200' };
     }
     if (current === 'canceled' || current === 'cancelled') {
-        return { label: 'Annulee', className: 'bg-red-50 text-red-700 border-red-200' };
+        return { label: t('common.status.canceled'), className: 'bg-red-50 text-red-700 border-red-200' };
     }
-    return { label: 'Inconnu', className: 'bg-muted text-muted-foreground border-border' };
+    return { label: t('common.misc.unknown'), className: 'bg-muted text-muted-foreground border-border' };
 });
 
 const canCancel = computed(() => {
@@ -104,7 +106,7 @@ const formatTime = (value: string | null | undefined) => {
 };
 
 const getServiceLabel = (service: Services) =>
-    service.description ?? (service as { name?: string }).name ?? 'Service';
+    service.description ?? (service as { name?: string }).name ?? t('common.labels.service');
 
 const getServicePivot = (service: Services) => {
     const pivot = (service as { pivot?: { price?: number; quantity?: number } | Array<{ price?: number; quantity?: number }> }).pivot;
@@ -147,7 +149,7 @@ const babysitterPhoto = computed(() => {
 
 const babysitterName = computed(() => {
     const fullName = [profile.value?.first_name, profile.value?.last_name].filter(Boolean).join(' ').trim();
-    return fullName || babysitter.value?.name || 'Babysitter';
+    return fullName || babysitter.value?.name || t('common.roles.babysitter');
 });
 
 const addressState = computed(() => {
@@ -171,11 +173,11 @@ const birthdateLabel = computed(() => formatDate(profile.value?.birthdate));
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Mes Reservations',
+        title: t('reservations.title.user'),
         href: '/reservations',
     },
     {
-        title: 'Ma reservation',
+        title: t('reservations.show.breadcrumb'),
         href: `/reservations/${reservation.value?.id ?? ''}/show`,
     },
 ];
@@ -202,7 +204,7 @@ const submitRating = () => {
 
 <template>
 
-    <Head title="reservation" />
+    <Head :title="$t('reservations.show.head_title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div v-if="reservation" class="mx-auto w-full lg:w-3/4">
@@ -214,7 +216,7 @@ const submitRating = () => {
                         <img v-if="babysitterPhoto" :src="babysitterPhoto" :alt="babysitterName"
                             class="w-full object-cover" />
                         <div v-else class="flex h-40 w-full items-center justify-center text-xs text-muted-foreground/70">
-                            Aucune photo
+                            {{ $t('reservations.show.no_photo') }}
                         </div>
                     </div>
                 </div>
@@ -225,22 +227,22 @@ const submitRating = () => {
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <h1 class="text-xl font-semibold text-foreground dark:text-green-100">
-                                Reservation pour {{ babysitterName }}
+                                {{ $t('reservations.show.title', { name: babysitterName }) }}
                             </h1>
                             <div class="mt-2 flex flex-wrap items-center gap-2">
                                 <Badge variant="outline" :class="statusMeta.className">
                                     {{ statusMeta.label }}
                                 </Badge>
-                                <span class="text-xs text-muted-foreground">Ref: {{ reservationNumber }}</span>
+                                <span class="text-xs text-muted-foreground">{{ $t('reservations.show.ref') }}: {{ reservationNumber }}</span>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <Button asChild variant="outline" size="sm">
-                                <Link :href="route('reservations.index')">Retour</Link>
+                                <Link :href="route('reservations.index')">{{ $t('common.actions.back') }}</Link>
                             </Button>
                             <Button v-if="canCancel && reservationId" asChild variant="destructive" size="sm">
                                 <Link :href="route('reservations.cancel', { reservationId })" method="post">
-                                    Annuler
+                                    {{ $t('common.actions.cancel') }}
                                 </Link>
                             </Button>
                         </div>
@@ -253,15 +255,16 @@ const submitRating = () => {
                             <div class="">
                                 <!-- Notes -->
                                 <div class="mb-8">
-                                    <Label for="note" class="font-semibold text-foreground mb-2">Notes pour la
-                                        reservation :</Label>
+                                    <Label for="note" class="font-semibold text-foreground mb-2">
+                                        {{ $t('reservations.show.notes_label') }}
+                                    </Label>
                                     <p>{{ reservation.notes ?? '-' }}</p>
                                 </div>
                                 <!-- Address & contact -->
                                 <div class="flex flex-col lg:flex-row lg:space-x-6">
                                     <!-- Property address -->
                                     <div class="flex-1">
-                                        <p class="font-semibold text-foreground">Property address</p>
+                                        <p class="font-semibold text-foreground">{{ $t('reservations.show.property_address') }}</p>
                                         <p class="text-xs text-muted-foreground">
                                             {{ addressLine1 || '-' }}
                                         </p>
@@ -274,7 +277,7 @@ const submitRating = () => {
                                     </div>
                                     <!-- Contact details -->
                                     <div class="flex-1">
-                                        <p class="font-semibold text-foreground">Contact details</p>
+                                        <p class="font-semibold text-foreground">{{ $t('reservations.show.contact_details') }}</p>
                                         <p class="text-xs text-muted-foreground">{{ contactEmail || '-' }}</p>
                                         <p class="text-xs text-muted-foreground">
                                             {{ birthdateLabel }}
@@ -289,27 +292,27 @@ const submitRating = () => {
 
                         <!-- Right side (1/3) -->
                         <div class="bg-card p-4 rounded col-span-2">
-                            <p class="font-semibold text-foreground mb-2">Reservation details</p>
+                            <p class="font-semibold text-foreground mb-2">{{ $t('reservations.show.details') }}</p>
                             <div class="text-xs text-muted-foreground flex justify-between">
-                                <span>Numero :</span>
+                                <span>{{ $t('reservations.show.number') }} :</span>
                                 <span>{{ reservationNumber }}</span>
                             </div>
 
                             <div class="my-2 flex flex-row justify-between">
-                                <p class="text-xs text-muted-foreground mb-1">Reservation date</p>
+                                <p class="text-xs text-muted-foreground mb-1">{{ $t('reservations.show.date') }}</p>
                                 <p class="text-xs text-muted-foreground mb-1">{{ formatDate(details?.date) }}</p>
                             </div>
                             <div class="my-2 flex flex-row justify-between">
-                                <p class="text-xs text-muted-foreground mb-1">Reservation heure de debut</p>
+                                <p class="text-xs text-muted-foreground mb-1">{{ $t('reservations.show.start_time') }}</p>
                                 <p class="text-xs text-muted-foreground mb-1">{{ formatTime(details?.start_time) }}</p>
                             </div>
                             <div class="my-2 flex flex-row justify-between">
-                                <p class="text-xs text-muted-foreground mb-1">Reservation heure de fin</p>
+                                <p class="text-xs text-muted-foreground mb-1">{{ $t('reservations.show.end_time') }}</p>
                                 <p class="text-xs text-muted-foreground mb-1">{{ formatTime(details?.end_time) }}</p>
                             </div>
                             <div v-if="canRate || myRating || otherRating" class="mt-3 border-t border-border pt-3">
                                 <div class="flex items-center justify-between text-xs text-muted-foreground">
-                                    <span>Rate {{ ratingTargetName }}:</span>
+                                    <span>{{ $t('reservations.show.rate', { name: ratingTargetName }) }}</span>
                                     <div class="flex items-center gap-1">
                                         <button
                                             v-for="value in ratingStars"
@@ -333,7 +336,7 @@ const submitRating = () => {
                                     <FloatingTextarea
                                         v-model="ratingForm.comment"
                                         rows="2"
-                                        label="Note"
+                                        :label="$t('reservations.show.rating_label')"
                                     />
                                     <div class="flex items-center justify-between">
                                         <span v-if="ratingForm.errors.rating" class="text-xs text-red-600">
@@ -345,13 +348,13 @@ const submitRating = () => {
                                             :disabled="ratingForm.processing || ratingForm.rating === 0"
                                             @click="submitRating"
                                         >
-                                            Submit rating
+                                            {{ $t('reservations.show.submit_rating') }}
                                         </Button>
                                     </div>
                                 </div>
 
                                 <div v-if="otherRating" class="mt-3 text-xs text-muted-foreground">
-                                    They rated you: {{ otherRating.rating }}/5
+                                    {{ $t('reservations.show.other_rating', { rating: otherRating.rating }) }}
                                 </div>
                             </div>
                         </div>
@@ -371,28 +374,28 @@ const submitRating = () => {
                                     <th scope="col" class="min-w-[430px] ">
                                         <div
                                             class="px-4 py-3 text-start flex items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                            Services
+                                            {{ $t('common.labels.services') }}
                                         </div>
                                     </th>
 
                                     <th scope="col">
                                         <div
                                             class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                            Nbre d'enfant (s)
+                                            {{ $t('reservations.table.children_count') }}
                                         </div>
                                     </th>
 
                                     <th scope="col">
                                         <div
                                             class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                            Unit price
+                                            {{ $t('common.labels.unit_price') }}
                                         </div>
                                     </th>
 
                                     <th scope="col">
                                         <div
                                             class="px-4 py-3 text-start items-center gap-x-1 text-sm font-medium text-foreground dark:text-neutral-200">
-                                            Total
+                                            {{ $t('common.labels.total') }}
                                         </div>
                                     </th>
                                 </tr>
@@ -431,7 +434,7 @@ const submitRating = () => {
                     <div class="py-4 grid grid-cols-2 gap-x-4  dark:border-neutral-700">
                         <div class="col-span-1">
                             <p class="text-sm text-muted-foreground dark:text-neutral-500">
-                                Subtotal:
+                                {{ $t('reservations.summary.subtotal') }}
                             </p>
                         </div>
                         <div class="col-span-1 flex justify-end">
@@ -444,7 +447,7 @@ const submitRating = () => {
                     <!-- Section des détails des taxes (affichée ou masquée) -->
                     <div class="space-y-2 py-4 border-t border-border dark:border-neutral-700">
                         <div class="flex justify-between font-bold">
-                            <p class="text-sm text-foreground dark:text-neutral-200">Total taxes :</p>
+                            <p class="text-sm text-foreground dark:text-neutral-200">{{ $t('reservations.summary.taxes') }}</p>
                              <p class="text-sm text-foreground dark:text-neutral-200">
                                  {{ formatCurrency(calculTax) }}
                              </p>
@@ -456,7 +459,7 @@ const submitRating = () => {
                     <div class="py-4 grid grid-cols-2 gap-x-4 border-t border-border dark:border-neutral-700">
                         <div class="col-span-1">
                             <p class="text-sm text-foreground font-bold dark:text-neutral-500">
-                                Total amount:
+                                {{ $t('reservations.summary.total_amount') }}
                             </p>
                         </div>
                         <div class="flex justify-end">
@@ -469,7 +472,7 @@ const submitRating = () => {
             </div>
         </div>
         <div v-else class="mx-auto w-full lg:w-3/4 rounded-sm border border-border bg-card p-6 text-sm text-muted-foreground">
-            Reservation introuvable.
+            {{ $t('reservations.show.not_found') }}
         </div>
     </AppLayout>
 </template>

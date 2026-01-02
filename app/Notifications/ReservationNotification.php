@@ -50,10 +50,10 @@ class ReservationNotification extends Notification implements ShouldQueue
 
         $status = $reservation->details?->status ?? 'updated';
         $subject = match ($status) {
-            'confirmed' => 'Reservation confirmee',
-            'completed' => 'Reservation terminee',
-            'canceled' => 'Reservation annulee',
-            default => 'Mise a jour de votre reservation',
+            'confirmed' => __('notifications.reservation.status_subject.confirmed'),
+            'completed' => __('notifications.reservation.status_subject.completed'),
+            'canceled' => __('notifications.reservation.status_subject.canceled'),
+            default => __('notifications.reservation.status_subject.updated'),
         };
 
         $recipientName = $this->resolveRecipientName($notifiable);

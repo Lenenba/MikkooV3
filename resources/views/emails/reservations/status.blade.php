@@ -6,32 +6,34 @@
 @endslot
 
 @php
-    $statusLabel = $status === 'confirmed'
-        ? 'confirmee'
-        : ($status === 'completed' ? 'terminee' : ($status === 'canceled' ? 'annulee' : 'mise a jour'));
+    $statusKey = $status ?? 'updated';
+    $statusLabels = __('emails.reservations.status.status_labels');
+    $statusLabel = is_array($statusLabels)
+        ? ($statusLabels[$statusKey] ?? ($statusLabels['updated'] ?? $statusKey))
+        : $statusKey;
 @endphp
 
-# Reservation {{ $statusLabel }}
+# {{ __('emails.reservations.status.heading', ['status' => $statusLabel]) }}
 
-Bonjour{{ $recipientName ? ' ' . $recipientName : '' }},
+{{ __('emails.common.greeting', ['name' => $recipientName ? ' ' . $recipientName : '' ]) }}
 
-Votre reservation {{ $reservation->number ?? $reservation->id }} a ete {{ $statusLabel }}.
+{{ __('emails.reservations.status.intro', ['reference' => $reservation->number ?? $reservation->id, 'status' => $statusLabel]) }}
 
 @component('mail::panel')
-Date : {{ $details?->date ?? '-' }}
-Heure : {{ $details?->start_time ?? '-' }} - {{ $details?->end_time ?? '-' }}
-Babysitter : {{ $reservation->babysitter?->babysitterProfile?->first_name ?? '' }} {{ $reservation->babysitter?->babysitterProfile?->last_name ?? '' }}
-Parent : {{ $reservation->parent?->parentProfile?->first_name ?? '' }} {{ $reservation->parent?->parentProfile?->last_name ?? '' }}
-Total : {{ number_format((float) ($reservation->total_amount ?? 0), 2) }}
+{{ __('common.labels.date') }} : {{ $details?->date ?? '-' }}
+{{ __('common.labels.time') }} : {{ $details?->start_time ?? '-' }} - {{ $details?->end_time ?? '-' }}
+{{ __('common.roles.babysitter') }} : {{ $reservation->babysitter?->babysitterProfile?->first_name ?? '' }} {{ $reservation->babysitter?->babysitterProfile?->last_name ?? '' }}
+{{ __('common.roles.parent') }} : {{ $reservation->parent?->parentProfile?->first_name ?? '' }} {{ $reservation->parent?->parentProfile?->last_name ?? '' }}
+{{ __('common.labels.total') }} : {{ number_format((float) ($reservation->total_amount ?? 0), 2) }}
 @endcomponent
 
 @component('mail::button', ['url' => route('reservations.show', $reservation->id)])
-Voir la reservation
+{{ __('emails.reservations.status.button') }}
 @endcomponent
 
 @slot('footer')
 @component('mail::footer')
-{{ date('Y') }} {{ config('app.name') }}. Tous droits reserves.
+{{ __('emails.common.footer', ['year' => date('Y'), 'app' => config('app.name')]) }}
 @endcomponent
 @endslot
 @endcomponent

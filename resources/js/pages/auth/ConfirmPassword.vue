@@ -20,15 +20,15 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Confirm your password" description="This is a secure area of the application. Please confirm your password before continuing.">
-        <Head title="Confirm password" />
+    <AuthLayout :title="$t('auth.ui.confirm.title')" :description="$t('auth.ui.confirm.description')">
+        <Head :title="$t('auth.ui.confirm.head_title')" />
 
         <form @submit.prevent="submit">
             <div class="space-y-6">
                 <div class="grid gap-2">
                     <FloatingInput
                         id="password"
-                        label="Password"
+                        :label="$t('auth.ui.confirm.password')"
                         type="password"
                         v-model="form.password"
                         required
@@ -42,7 +42,7 @@ const submit = () => {
                 <div class="flex items-center">
                     <Button class="w-full" :disabled="form.processing">
                         <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                        Confirm Password
+                        {{ $t('auth.ui.confirm.submit') }}
                     </Button>
                 </div>
             </div>
