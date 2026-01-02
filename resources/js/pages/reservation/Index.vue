@@ -451,7 +451,7 @@ const pageTitle = computed(() => (isAdmin.value ? 'Reservations' : 'Mes reservat
                         v-if="!isAdmin"
                         asChild
                         size="sm"
-                        class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
+                        class="h-9 w-full sm:w-auto"
                     >
                         <Link :href="route('search.babysitter')">
                             <Plus class="mr-2 h-4 w-4" />

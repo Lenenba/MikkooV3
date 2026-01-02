@@ -9,6 +9,12 @@ import InputError from '@/components/InputError.vue';
 import DataTable from '@/components/Reservation/data-table.vue';
 import { Button } from '@/components/ui/button';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
     Dialog,
     DialogClose,
     DialogContent,
@@ -22,6 +28,7 @@ import type { ColumnDef } from '@tanstack/vue-table';
 import {
     CalendarCheck,
     ClipboardList,
+    MoreHorizontal,
     Plus,
     Star,
     TrendingUp,
@@ -296,24 +303,52 @@ const columns: ColumnDef<ServiceItem>[] = [
         enableHiding: false,
         header: () => h('div', { class: ['text-right', headerClass] }, 'Actions'),
         cell: ({ row }) =>
-            h('div', { class: 'flex justify-end gap-2' }, [
+            h('div', { class: 'flex justify-end' }, [
                 h(
-                    Button,
+                    DropdownMenu,
+                    null,
                     {
-                        variant: 'outline',
-                        size: 'sm',
-                        onClick: () => startEdit(row.original),
-                    },
-                    { default: () => 'Modifier' }
-                ),
-                h(
-                    Button,
-                    {
-                        variant: 'destructive',
-                        size: 'sm',
-                        onClick: () => deleteService(row.original),
-                    },
-                    { default: () => 'Supprimer' }
+                        default: () => [
+                            h(
+                                DropdownMenuTrigger,
+                                { asChild: true },
+                                {
+                                    default: () =>
+                                        h(
+                                            Button,
+                                            {
+                                                variant: 'ghost',
+                                                size: 'icon',
+                                                class: 'h-8 w-8',
+                                            },
+                                            {
+                                                default: () => h(MoreHorizontal, { class: 'h-4 w-4' }),
+                                            }
+                                        ),
+                                }
+                            ),
+                            h(
+                                DropdownMenuContent,
+                                { align: 'end', class: 'w-40' },
+                                {
+                                    default: () => [
+                                        h(
+                                            DropdownMenuItem,
+                                            { onSelect: () => startEdit(row.original) },
+                                            { default: () => 'Modifier' }
+                                        ),
+                                        h(
+                                            DropdownMenuItem,
+                                            {
+                                                onSelect: () => deleteService(row.original),
+                                            },
+                                            { default: () => 'Supprimer' }
+                                        ),
+                                    ],
+                                }
+                            ),
+                        ],
+                    }
                 ),
             ]),
     },
@@ -358,6 +393,7 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
 </script>
 
 <template>
+
     <Head title="Services" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -440,24 +476,18 @@ const catalogColumns: ColumnDef<CatalogItem & { is_added: boolean }>[] = [
                         Selectionnez un service connu puis ajustez votre prix, ou creez votre propre service.
                     </p>
                 </div>
-                <DataTable
-                    :columns="catalogColumns"
-                    :data="catalogItems"
-                    search-column="name"
+                <DataTable :columns="catalogColumns" :data="catalogItems" search-column="name"
                     search-placeholder="Rechercher un service du catalogue..."
-                    empty-message="Aucun service catalogue disponible."
-                />
+                    empty-message="Aucun service catalogue disponible." />
             </div>
 
             <DataTable :columns="columns" :data="props.services" search-column="name"
                 search-placeholder="Rechercher un service..." empty-message="Aucun service ajoute pour le moment.">
                 <template #toolbar-actions="{ table }">
-                    <Button variant="outline" class="h-9 w-full sm:w-auto"
-                        @click="table.resetColumnFilters()">
+                    <Button variant="outline" class="h-9 w-full sm:w-auto" @click="table.resetColumnFilters()">
                         Effacer
                     </Button>
-                    <Button class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
-                        size="sm" @click="openCreateDialog">
+                    <Button class="h-9 w-full sm:w-auto" size="sm" @click="openCreateDialog">
                         <Plus class="mr-2 h-4 w-4" />
                         Nouveau service
                     </Button>
