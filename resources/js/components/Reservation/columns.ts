@@ -108,11 +108,12 @@ const getRoleKey = (role?: string) => (role ?? '').toString().toLowerCase()
 
 export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] => {
     const roleKey = getRoleKey(role)
+    const isAdmin = roleKey === 'superadmin' || roleKey === 'admin'
     const personColumn = roleKey === 'babysitter'
         ? getPersonColumn('parent', 'Parent')
         : getPersonColumn('babysitter', 'Babysitter')
 
-    return [
+    const columns: ColumnDef<Reservation>[] = [
         {
             accessorKey: 'ref',
             header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Reference', class: headerClass }),
@@ -121,7 +122,16 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
                 return h('span', { class: 'text-sm font-semibold text-foreground' }, `#${refValue ?? '-'}`)
             },
         },
-        personColumn,
+    ]
+
+    if (isAdmin) {
+        columns.push(getPersonColumn('parent', 'Parent'))
+        columns.push(getPersonColumn('babysitter', 'Babysitter'))
+    } else {
+        columns.push(personColumn)
+    }
+
+    columns.push(
         {
             id: 'details',
             header: () => h('span', { class: headerClass }, 'Date'),
@@ -176,7 +186,9 @@ export const getReservationColumns = (role?: string): ColumnDef<Reservation>[] =
             enableHiding: false,
             cell: ({ row }) => h('div', { class: 'flex justify-end' }, h(DropdownAction, { reservation: row.original })),
         },
-    ]
+    )
+
+    return columns
 }
 
 export const columns = getReservationColumns()

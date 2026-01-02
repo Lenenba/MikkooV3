@@ -23,7 +23,8 @@ class DevSeeder extends Seeder
     public function run(): void
     {
         // Create or retrieve roles
-        $adminRole      = Role::firstOrCreate(['name' => 'SuperAdmin']);
+        $superAdminRoleName = env('SUPER_ADMIN_ROLE_NAME', 'SuperAdmin');
+        $adminRole      = Role::firstOrCreate(['name' => $superAdminRoleName]);
         $parentRole     = Role::firstOrCreate(['name' => 'Parent']);
         $babysitterRole = Role::firstOrCreate(['name' => 'Babysitter']);
 
@@ -39,7 +40,7 @@ class DevSeeder extends Seeder
          * @param Role   $role
          * @return User
          */
-        $createUser = function (string $email, string $name, Role $role): User {
+        $createUser = function (string $email, string $name, Role $role) use ($superAdminRoleName): User {
             // Create or retrieve the user
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -59,8 +60,8 @@ class DevSeeder extends Seeder
                         ->for($user)
                         ->create();
                 }
-            } else {
-                // Parent or SuperAdmin get a ParentProfile
+            } elseif ($role->name !== $superAdminRoleName) {
+                // Parents get a ParentProfile
                 if (! $user->parentProfile()->exists()) {
                     ParentProfile::factory()
                         ->for($user)
@@ -77,7 +78,7 @@ class DevSeeder extends Seeder
             }
 
             // Create an address if none exists
-            if (! $user->address()->exists()) {
+            if ($role->name !== $superAdminRoleName && ! $user->address()->exists()) {
                 Address::factory()
                     ->for($user, 'addressable')
                     ->create();

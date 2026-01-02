@@ -28,7 +28,11 @@ const backHref = computed(() =>
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: viewerRole.value === 'Babysitter' ? 'Tableau de bord' : 'Mes annonces',
+        title: viewerRole.value === 'Babysitter'
+            ? 'Tableau de bord'
+            : viewerRole.value === 'SuperAdmin' || viewerRole.value === 'Admin'
+                ? 'Annonces'
+                : 'Mes annonces',
         href: backHref.value,
     },
     {
@@ -155,6 +159,8 @@ const scheduleMeta = computed(() => {
 
 const isBabysitter = computed(() => viewerRole.value === 'Babysitter');
 const isParent = computed(() => viewerRole.value === 'Parent');
+const isAdmin = computed(() => viewerRole.value === 'SuperAdmin' || viewerRole.value === 'Admin');
+const canReviewApplications = computed(() => isParent.value || isAdmin.value);
 const applicationStatus = computed(() => myApplication.value?.status ?? null);
 const canApply = computed(() => isBabysitter.value && !myApplication.value && (announcement.value?.status ?? 'open') === 'open');
 const canWithdraw = computed(() => isBabysitter.value && applicationStatus.value === 'pending');
@@ -340,7 +346,7 @@ const rejectApplication = (applicationId: number) => {
                         </p>
                     </div>
 
-                    <div v-if="isParent" class="rounded-sm border border-border bg-card p-5 shadow-sm">
+                    <div v-if="canReviewApplications" class="rounded-sm border border-border bg-card p-5 shadow-sm">
                         <div class="flex items-center justify-between gap-2">
                             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                 Candidatures
@@ -397,14 +403,14 @@ const rejectApplication = (applicationId: number) => {
 
                                 <div class="mt-4 flex flex-wrap items-center gap-2">
                                     <Button
-                                        v-if="application.status === 'pending' && announcement?.status === 'open'"
+                                        v-if="isParent && application.status === 'pending' && announcement?.status === 'open'"
                                         size="sm"
                                         @click="acceptApplication(application.id)"
                                     >
                                         Accepter
                                     </Button>
                                     <Button
-                                        v-if="application.status === 'pending' && announcement?.status === 'open'"
+                                        v-if="isParent && application.status === 'pending' && announcement?.status === 'open'"
                                         size="sm"
                                         variant="outline"
                                         @click="rejectApplication(application.id)"

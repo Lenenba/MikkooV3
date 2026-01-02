@@ -41,6 +41,17 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $user = $request->user();
+        $role = null;
+        if ($user) {
+            if ($user->isAdmin()) {
+                $role = 'SuperAdmin';
+            } elseif ($user->isBabysitter()) {
+                $role = 'Babysitter';
+            } elseif ($user->isParent()) {
+                $role = 'Parent';
+            }
+        }
+        $defaultAvatar = $user?->isBabysitter() ? 'bbsiter.png' : 'parent.png';
 
         return [
             ...parent::share($request),
@@ -50,9 +61,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'profilPicture' => $this->convertToWebp(
                     $user?->media()->isProfilePicture()->first()->file_path
-                        ?? ($user ? ($user->isBabysitter() ? 'bbsiter.png' : 'parent.png') : '')
+                        ?? ($user ? $defaultAvatar : '')
                 ),
-                'role' => $user?->isBabysitter() ? 'Babysitter' : 'Parent',
+                'role' => $role,
             ],
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),

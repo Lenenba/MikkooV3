@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Models\Invoice;
 use App\Models\Reservation;
 use App\Models\Service;
 use App\Models\User;
@@ -43,7 +44,7 @@ class DashboardController extends Controller
         }
 
         if ($user->isAdmin()) {
-            return 'Admin';
+            return 'SuperAdmin';
         }
 
         return $user->isBabysitter() ? 'Babysitter' : 'Parent';
@@ -61,7 +62,16 @@ class DashboardController extends Controller
         $revenueChange = $stats['revenue_change_pct'] ?? null;
         $canceledCount = (int) ($stats['total_canceled_count'] ?? 0);
 
-        if ($role === 'Admin') {
+        if ($role === 'SuperAdmin' || $role === 'Admin') {
+            $pendingCount = (int) ($stats['pending_count'] ?? 0);
+            $confirmedCount = (int) ($stats['confirmed_count'] ?? 0);
+            $openAnnouncements = (int) Announcement::query()
+                ->where('status', 'open')
+                ->count();
+            $issuedInvoices = (int) Invoice::query()
+                ->where('status', 'issued')
+                ->count();
+
             return [
                 [
                     'key' => 'total_revenue',
@@ -80,6 +90,30 @@ class DashboardController extends Controller
                     'period' => 'vs last month',
                 ],
                 [
+                    'key' => 'pending_reservations',
+                    'label' => 'Pending Reservations',
+                    'value' => $pendingCount,
+                    'format' => 'number',
+                    'change_pct' => null,
+                    'period' => 'pending',
+                ],
+                [
+                    'key' => 'confirmed_reservations',
+                    'label' => 'Confirmed Reservations',
+                    'value' => $confirmedCount,
+                    'format' => 'number',
+                    'change_pct' => null,
+                    'period' => 'confirmed',
+                ],
+                [
+                    'key' => 'canceled_reservations',
+                    'label' => 'Canceled Reservations',
+                    'value' => $canceledCount,
+                    'format' => 'number',
+                    'change_pct' => null,
+                    'period' => 'canceled',
+                ],
+                [
                     'key' => 'active_babysitters',
                     'label' => 'Active Babysitters',
                     'value' => User::babysitters()->count(),
@@ -94,6 +128,22 @@ class DashboardController extends Controller
                     'format' => 'number',
                     'change_pct' => null,
                     'period' => 'all time',
+                ],
+                [
+                    'key' => 'open_announcements',
+                    'label' => 'Open Announcements',
+                    'value' => $openAnnouncements,
+                    'format' => 'number',
+                    'change_pct' => null,
+                    'period' => 'open',
+                ],
+                [
+                    'key' => 'issued_invoices',
+                    'label' => 'Issued Invoices',
+                    'value' => $issuedInvoices,
+                    'format' => 'number',
+                    'change_pct' => null,
+                    'period' => 'issued',
                 ],
             ];
         }

@@ -209,7 +209,9 @@ class LaunchSeeder extends Seeder
             ?string $firstName = null,
             ?string $lastName = null
         ) use (
+            $adminRoleName,
             $babysitterRoleName,
+            $parentRoleName,
             $bioSnippets,
             $experienceSnippets,
             $makeEmail,
@@ -254,7 +256,7 @@ class LaunchSeeder extends Seeder
                         'payment_frequency' => $randomElement($paymentFrequencies),
                     ]);
                 }
-            } else {
+            } elseif ($role->name === $parentRoleName) {
                 if (! $user->parentProfile()->exists()) {
                     $user->parentProfile()->create([
                         'first_name' => $firstName,
@@ -265,7 +267,7 @@ class LaunchSeeder extends Seeder
                 }
             }
 
-            if (! $user->address()->exists()) {
+            if ($role->name !== $adminRoleName && ! $user->address()->exists()) {
                 $location = $pickLocation($country);
                 $user->address()->create([
                     'street' => $randomStreet(),

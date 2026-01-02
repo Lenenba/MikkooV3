@@ -19,9 +19,11 @@ const props = defineProps<{
         applications_count?: number | null
         pending_applications_count?: number | null
     }
+    readOnly?: boolean
 }>()
 
 const status = computed(() => (props.announcement.status ?? '').toString().toLowerCase())
+const isReadOnly = computed(() => props.readOnly ?? false)
 const canClose = computed(() => status.value !== 'closed')
 const hasApplications = computed(() => {
     const pending = Number(props.announcement.pending_applications_count ?? 0)
@@ -50,7 +52,7 @@ const deleteAnnouncement = () => {
     )
 }
 
-const viewApplications = () => {
+const viewAnnouncement = () => {
     router.get(route('announcements.show', { announcement: props.announcement.id }))
 }
 </script>
@@ -65,15 +67,15 @@ const viewApplications = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem v-if="hasApplications" @click="viewApplications">
-                Voir candidatures
+            <DropdownMenuItem @click="viewAnnouncement">
+                {{ isReadOnly ? 'Voir details' : hasApplications ? 'Voir candidatures' : 'Voir details' }}
             </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="hasApplications" />
-            <DropdownMenuItem v-if="canClose" @click="closeAnnouncement">
+            <DropdownMenuSeparator v-if="!isReadOnly && hasApplications" />
+            <DropdownMenuItem v-if="!isReadOnly && canClose" @click="closeAnnouncement">
                 Marquer comme pourvue
             </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="canClose" />
-            <DropdownMenuItem @click="deleteAnnouncement">
+            <DropdownMenuSeparator v-if="!isReadOnly && canClose" />
+            <DropdownMenuItem v-if="!isReadOnly" @click="deleteAnnouncement">
                 Supprimer l'annonce
             </DropdownMenuItem>
         </DropdownMenuContent>

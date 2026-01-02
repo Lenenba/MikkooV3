@@ -51,7 +51,9 @@ const announcements = computed(() => announcementsPayload.value?.items ?? [])
 const announcementSuggestions = computed(() => announcementsPayload.value?.suggestions ?? [])
 const availableChildren = computed(() => announcementsPayload.value?.children ?? [])
 
-const tableColumns = computed(() => getAnnouncementColumns())
+const role = computed(() => (page.props.auth?.role ?? '').toString().toLowerCase())
+const isAdmin = computed(() => role.value === 'superadmin' || role.value === 'admin')
+const tableColumns = computed(() => getAnnouncementColumns(role.value))
 
 const statusOptions = [
     { value: 'all', label: 'Tous les statuts' },
@@ -210,12 +212,14 @@ const statCards = computed(() => [
     },
 ])
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Mes annonces',
+        title: isAdmin.value ? 'Annonces' : 'Mes annonces',
         href: '/announcements',
     },
-]
+])
+
+const pageTitle = computed(() => (isAdmin.value ? 'Annonces' : 'Mes annonces'))
 
 const isAnnouncementDialogOpen = ref(false)
 const announcementForm = useForm({
@@ -391,7 +395,7 @@ const submitAnnouncement = () => {
 </script>
 
 <template>
-    <Head title="Mes annonces" />
+    <Head :title="pageTitle" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
@@ -463,6 +467,7 @@ const submitAnnouncement = () => {
                         Effacer
                     </Button>
                     <Button
+                        v-if="!isAdmin"
                         size="sm"
                         class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
                         @click="openAnnouncementDialog"
@@ -474,7 +479,7 @@ const submitAnnouncement = () => {
             </DataTable>
         </div>
 
-        <Dialog v-model:open="isAnnouncementDialogOpen">
+        <Dialog v-if="!isAdmin" v-model:open="isAnnouncementDialogOpen">
             <DialogContent class="rounded-2xl sm:max-w-xl">
                 <DialogHeader class="border-b border-border/60 pb-3">
                     <DialogTitle class="text-lg font-semibold text-foreground">

@@ -67,8 +67,9 @@ Artisan::command('superadmin:create {email} {password}', function () {
         return;
     }
 
+    $roleName = env('SUPER_ADMIN_ROLE_NAME', 'SuperAdmin');
     $role = Role::firstOrCreate(
-        ['name' => 'superadmin'],
+        ['name' => $roleName],
         ['description' => 'Superadmin role']
     );
 
@@ -82,21 +83,21 @@ Artisan::command('superadmin:create {email} {password}', function () {
         $user->update([
             'name' => $user->name ?: 'Super Admin',
             'password' => Hash::make($password),
-            'role_id' => $role->id,
             'email_verified_at' => $user->email_verified_at ?? now(),
         ]);
+        $user->roles()->syncWithoutDetaching([$role->id]);
 
         $this->info('Superadmin user updated.');
         return;
     }
 
-    User::create([
+    $user = User::create([
         'name' => 'Super Admin',
         'email' => $email,
         'password' => Hash::make($password),
-        'role_id' => $role->id,
         'email_verified_at' => now(),
     ]);
+    $user->roles()->syncWithoutDetaching([$role->id]);
 
     $this->info('Superadmin user created.');
 })->purpose('Create or update a superadmin user');

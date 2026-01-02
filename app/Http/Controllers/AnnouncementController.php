@@ -17,22 +17,29 @@ class AnnouncementController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->isParent()) {
+        if (!$user || (!$user->isParent() && !$user->isAdmin())) {
             abort(403);
         }
 
-        $items = Announcement::query()
-            ->where('parent_id', $user->id)
+        $itemsQuery = Announcement::query()
             ->withCount([
                 'applications',
                 'applications as pending_applications_count' => fn($query) => $query->where('status', 'pending'),
             ])
-            ->latest()
+            ->latest();
+
+        if ($user->isParent()) {
+            $itemsQuery->where('parent_id', $user->id);
+        } else {
+            $itemsQuery->with(['parent.address']);
+        }
+
+        $items = $itemsQuery
             ->get()
-            ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement))
+            ->map(fn(Announcement $announcement) => $this->formatAnnouncement($announcement, $user->isAdmin()))
             ->values();
 
-        $children = $this->getParentChildren($user);
+        $children = $user->isParent() ? $this->getParentChildren($user) : [];
 
         $suggestions = Service::query()
             ->select('name')
@@ -207,7 +214,9 @@ class AnnouncementController extends Controller
             abort(403);
         }
 
-        if ($user->isParent()) {
+        if ($user->isAdmin()) {
+            // Super admins can view any announcement.
+        } elseif ($user->isParent()) {
             if ((int) $announcement->parent_id !== (int) $user->id) {
                 abort(403);
             }
@@ -247,7 +256,7 @@ class AnnouncementController extends Controller
         $applicationsPayload = null;
         $myApplicationPayload = null;
 
-        if ($user->isParent()) {
+        if ($user->isParent() || $user->isAdmin()) {
             $applicationsPayload = AnnouncementApplication::query()
                 ->where('announcement_id', $announcement->id)
                 ->with([
@@ -274,7 +283,7 @@ class AnnouncementController extends Controller
 
         return Inertia::render('announcements/Show', [
             'announcement' => $this->formatAnnouncement($announcement, true),
-            'viewerRole' => $user->isBabysitter() ? 'Babysitter' : 'Parent',
+            'viewerRole' => $user->isBabysitter() ? 'Babysitter' : ($user->isAdmin() ? 'SuperAdmin' : 'Parent'),
             'applications' => $applicationsPayload,
             'myApplication' => $myApplicationPayload,
         ]);

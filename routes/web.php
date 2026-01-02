@@ -11,10 +11,12 @@ use App\Http\Controllers\SearchBabysitterController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AnnouncementApplicationController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\SuperAdmin\ConsultationsController;
 use App\Http\Controllers\AddressOnboardingController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
 use App\Http\Controllers\CompleteReservationController;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureUserHasAddress;
 
 Route::get('/', function () {
@@ -24,6 +26,11 @@ Route::get('/', function () {
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified', EnsureUserHasAddress::class])
     ->name('dashboard');
+
+Route::middleware(['auth', EnsureSuperAdmin::class])->group(function () {
+    Route::get('/superadmin/consultations', ConsultationsController::class)
+        ->name('superadmin.consultations');
+});
 
 Route::get('/onboarding', [OnboardingController::class, 'index'])
     ->name('onboarding.index');

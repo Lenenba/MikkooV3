@@ -17,6 +17,9 @@ class BabysitterProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
+        if (! $user || ! $user->isBabysitter()) {
+            abort(403);
+        }
 
         return Inertia::render('settings/BabysitterProfile', [
             'babysitterProfile' => $user->babysitterProfile,
@@ -34,6 +37,9 @@ class BabysitterProfileController extends Controller
     {
         $data = $request->validated();
         $user = Auth::user();
+        if (! $user || ! $user->isBabysitter()) {
+            abort(403);
+        }
 
         $profile = $user->babysitterProfile;
         if (! $profile) {

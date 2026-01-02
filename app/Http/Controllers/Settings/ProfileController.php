@@ -30,10 +30,15 @@ class ProfileController extends Controller
         $media = [];
 
         if ($user) {
-            $role = $user->isBabysitter() ? 'babysitter' : 'parent';
-            $parentProfile = $user->isParent() ? $user->parentProfile : null;
-            $babysitterProfile = $user->isBabysitter() ? $user->babysitterProfile : null;
-            $address = $user->address;
+            if ($user->isAdmin()) {
+                $role = 'superadmin';
+            } else {
+                $role = $user->isBabysitter() ? 'babysitter' : 'parent';
+                $parentProfile = $user->isParent() ? $user->parentProfile : null;
+                $babysitterProfile = $user->isBabysitter() ? $user->babysitterProfile : null;
+                $address = $user->address;
+            }
+
             $media = $user->media()
                 ->orderByDesc('created_at')
                 ->get()

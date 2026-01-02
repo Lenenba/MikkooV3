@@ -46,7 +46,15 @@ class ReservationController extends Controller
             });
 
         $reservations = Reservation::forUser($user)
-            ->with(['parent', 'babysitter', 'babysitter.media', 'babysitter.babysitterProfile', 'services', 'details'])
+            ->with([
+                'parent',
+                'parent.media',
+                'babysitter',
+                'babysitter.media',
+                'babysitter.babysitterProfile',
+                'services',
+                'details',
+            ])
             ->where(function ($query) {
                 $query
                     ->whereNull('announcement_id')

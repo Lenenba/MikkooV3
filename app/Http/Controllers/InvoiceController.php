@@ -68,7 +68,9 @@ class InvoiceController extends Controller
             abort(403);
         }
 
-        if ($user->isParent()) {
+        if ($user->isAdmin()) {
+            // Super admins can view all invoices.
+        } elseif ($user->isParent()) {
             if ((int) $invoice->parent_id !== (int) $user->id) {
                 abort(403);
             }
@@ -101,7 +103,9 @@ class InvoiceController extends Controller
             abort(403);
         }
 
-        if ($user->isParent()) {
+        if ($user->isAdmin()) {
+            // Super admins can download any invoice.
+        } elseif ($user->isParent()) {
             if ((int) $invoice->parent_id !== (int) $user->id) {
                 abort(403);
             }
@@ -205,6 +209,23 @@ class InvoiceController extends Controller
         }
 
         $currency = (clone $baseQuery)->value('currency') ?? config('billing.default_currency', 'USD');
+
+        if ($user->isAdmin()) {
+            $draftCount = (clone $baseQuery)->where('status', 'draft')->count();
+            $issuedCount = (clone $baseQuery)->where('status', 'issued')->count();
+            $paidCount = (clone $baseQuery)->where('status', 'paid')->count();
+            $issuedTotal = (float) (clone $baseQuery)->where('status', 'issued')->sum('total_amount');
+            $paidTotal = (float) (clone $baseQuery)->where('status', 'paid')->sum('total_amount');
+
+            return [
+                'currency' => $currency,
+                'draft_count' => $draftCount,
+                'issued_count' => $issuedCount,
+                'paid_count' => $paidCount,
+                'issued_total' => $issuedTotal,
+                'paid_total' => $paidTotal,
+            ];
+        }
 
         if ($user->isParent()) {
             $dueCount = (clone $baseQuery)->where('status', 'issued')->count();

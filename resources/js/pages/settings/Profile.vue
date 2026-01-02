@@ -49,7 +49,13 @@ const resolvedRole = computed(() => {
 });
 
 const isBabysitter = computed(() => resolvedRole.value === 'babysitter');
-const profile = computed(() => (isBabysitter.value ? props.babysitterProfile : props.parentProfile) ?? null);
+const isSuperAdmin = computed(() => resolvedRole.value === 'superadmin' || resolvedRole.value === 'admin');
+const profile = computed(() => {
+    if (isSuperAdmin.value) {
+        return null;
+    }
+    return (isBabysitter.value ? props.babysitterProfile : props.parentProfile) ?? null;
+});
 const profileSettings = computed(() => (profile.value?.settings ?? {}) as Record<string, any>);
 const mediaItems = computed(() => props.media ?? []);
 
@@ -122,52 +128,65 @@ const buildInitialChildren = () => {
 const initialChildren = buildInitialChildren();
 
 const detailsForm = useForm<any>(
-    isBabysitter.value
+    isSuperAdmin.value
         ? {
-            first_name: profile.value?.first_name ?? '',
-            last_name: profile.value?.last_name ?? '',
-            phone: profile.value?.phone ?? '',
-            birthdate: profile.value?.birthdate ?? '',
-            bio: profile.value?.bio ?? '',
-            experience: profile.value?.experience ?? '',
-            price_per_hour: profile.value?.price_per_hour ?? 0,
-            payment_frequency: profile.value?.payment_frequency ?? 'per_task',
-            services: profileSettings.value?.services ?? '',
-            availability: profileSettings.value?.availability ?? '',
-            availability_notes: profileSettings.value?.availability_notes ?? '',
-            address: props.address
-                ? { ...props.address }
-                : {
-                    street: '',
-                    city: '',
-                    province: '',
-                    country: '',
-                    postal_code: '',
-                    latitude: '',
-                    longitude: '',
-                },
+            address: {
+                street: '',
+                city: '',
+                province: '',
+                country: '',
+                postal_code: '',
+                latitude: '',
+                longitude: '',
+            },
+            children: [],
         }
-        : {
-            first_name: profile.value?.first_name ?? '',
-            last_name: profile.value?.last_name ?? '',
-            phone: profile.value?.phone ?? '',
-            birthdate: profile.value?.birthdate ?? '',
-            preferences: profileSettings.value?.preferences ?? '',
-            availability: profileSettings.value?.availability ?? '',
-            availability_notes: profileSettings.value?.availability_notes ?? '',
-            children: initialChildren,
-            address: props.address
-                ? { ...props.address }
-                : {
-                    street: '',
-                    city: '',
-                    province: '',
-                    country: '',
-                    postal_code: '',
-                    latitude: '',
-                    longitude: '',
-                },
-        }
+        : isBabysitter.value
+            ? {
+                first_name: profile.value?.first_name ?? '',
+                last_name: profile.value?.last_name ?? '',
+                phone: profile.value?.phone ?? '',
+                birthdate: profile.value?.birthdate ?? '',
+                bio: profile.value?.bio ?? '',
+                experience: profile.value?.experience ?? '',
+                price_per_hour: profile.value?.price_per_hour ?? 0,
+                payment_frequency: profile.value?.payment_frequency ?? 'per_task',
+                services: profileSettings.value?.services ?? '',
+                availability: profileSettings.value?.availability ?? '',
+                availability_notes: profileSettings.value?.availability_notes ?? '',
+                address: props.address
+                    ? { ...props.address }
+                    : {
+                        street: '',
+                        city: '',
+                        province: '',
+                        country: '',
+                        postal_code: '',
+                        latitude: '',
+                        longitude: '',
+                    },
+            }
+            : {
+                first_name: profile.value?.first_name ?? '',
+                last_name: profile.value?.last_name ?? '',
+                phone: profile.value?.phone ?? '',
+                birthdate: profile.value?.birthdate ?? '',
+                preferences: profileSettings.value?.preferences ?? '',
+                availability: profileSettings.value?.availability ?? '',
+                availability_notes: profileSettings.value?.availability_notes ?? '',
+                children: initialChildren,
+                address: props.address
+                    ? { ...props.address }
+                    : {
+                        street: '',
+                        city: '',
+                        province: '',
+                        country: '',
+                        postal_code: '',
+                        latitude: '',
+                        longitude: '',
+                    },
+            }
 );
 
 const addressModel = computed({
@@ -192,6 +211,9 @@ const addressModel = computed({
 });
 
 const submitDetails = () => {
+    if (isSuperAdmin.value) {
+        return;
+    }
     const routeName = isBabysitter.value ? 'babysitter.profile.update' : 'parent.profile.update';
     detailsForm
         .transform((data) => {
@@ -277,8 +299,15 @@ const selectDefaultChildPhoto = (photo: string) => {
 const tabItems = computed(() => {
     const items = [
         { value: 'account', label: 'Account' },
-        { value: 'address', label: 'Address' },
     ];
+
+    if (isSuperAdmin.value) {
+        items.push({ value: 'media', label: 'Media' });
+        items.push({ value: 'gallery', label: 'Gallery' });
+        return items;
+    }
+
+    items.push({ value: 'address', label: 'Address' });
 
     if (!isBabysitter.value) {
         items.push({ value: 'children', label: 'Children' });
@@ -364,7 +393,7 @@ const tabItems = computed(() => {
                         </form>
                     </div>
 
-                    <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
+                    <div v-if="!isSuperAdmin" class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Profile details" description="Update your personal profile information" />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-6">
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -450,7 +479,7 @@ const tabItems = computed(() => {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="address">
+                <TabsContent v-if="!isSuperAdmin" value="address">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Address" description="Update your address details" />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-6">
@@ -474,7 +503,7 @@ const tabItems = computed(() => {
                 </TabsContent>
 
 
-                <TabsContent v-if="!isBabysitter" value="children">
+                <TabsContent v-if="!isBabysitter && !isSuperAdmin" value="children">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
                         <HeadingSmall title="Children" description="Manage each child profile" />
                         <InputError :message="detailsForm.errors.children" />
@@ -598,7 +627,7 @@ const tabItems = computed(() => {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="availability">
+                <TabsContent v-if="!isSuperAdmin" value="availability">
                     <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
                         <HeadingSmall title="Availability" description="Update your availability details" />
                         <form @submit.prevent="submitDetails" class="mt-6 space-y-4">

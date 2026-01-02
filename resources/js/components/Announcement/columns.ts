@@ -92,35 +92,67 @@ const renderStatusCell = (announcement: Announcement) => {
     return h('span', { class: `rounded-full px-2.5 py-1 text-xs font-semibold ${mapped.classes}` }, mapped.text)
 }
 
-export const getAnnouncementColumns = (): ColumnDef<Announcement>[] => [
-    {
-        accessorKey: 'title',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Titre', class: headerClass }),
-        cell: ({ row }) => renderTitleCell(row.original),
-    },
-    {
-        accessorKey: 'child_name',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Enfant', class: headerClass }),
-        cell: ({ row }) => renderChildCell(row.original),
-    },
-    {
-        accessorKey: 'service',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Service', class: headerClass }),
-        cell: ({ row }) => renderServiceCell(row.original),
-    },
-    {
-        accessorKey: 'status',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
-        cell: ({ row }) => renderStatusCell(row.original),
-    },
-    {
-        accessorKey: 'created_at',
-        header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
-        cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, row.getValue('created_at') ?? '-'),
-    },
-    {
-        id: 'actions',
-        enableHiding: false,
-        cell: ({ row }) => h('div', { class: 'flex justify-end' }, h(DropdownAction, { announcement: row.original })),
-    },
-]
+const getRoleKey = (role?: string) => (role ?? '').toString().toLowerCase()
+
+const renderParentCell = (announcement: Announcement) => {
+    const parent = announcement.parent
+    const name = parent?.name ?? '-'
+    const city = parent?.city ?? '-'
+    return h('div', { class: 'flex flex-col' }, [
+        h('span', { class: 'text-sm font-medium text-foreground' }, name),
+        h('span', { class: 'text-xs text-muted-foreground' }, city),
+    ])
+}
+
+export const getAnnouncementColumns = (role?: string): ColumnDef<Announcement>[] => {
+    const roleKey = getRoleKey(role)
+    const isAdmin = roleKey === 'superadmin' || roleKey === 'admin'
+
+    const columns: ColumnDef<Announcement>[] = [
+        {
+            accessorKey: 'title',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Titre', class: headerClass }),
+            cell: ({ row }) => renderTitleCell(row.original),
+        },
+    ]
+
+    if (isAdmin) {
+        columns.push({
+            id: 'parent',
+            header: () => h('span', { class: headerClass }, 'Parent'),
+            cell: ({ row }) => renderParentCell(row.original),
+            enableSorting: false,
+        })
+    }
+
+    columns.push(
+        {
+            accessorKey: 'child_name',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Enfant', class: headerClass }),
+            cell: ({ row }) => renderChildCell(row.original),
+        },
+        {
+            accessorKey: 'service',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Service', class: headerClass }),
+            cell: ({ row }) => renderServiceCell(row.original),
+        },
+        {
+            accessorKey: 'status',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Statut', class: headerClass }),
+            cell: ({ row }) => renderStatusCell(row.original),
+        },
+        {
+            accessorKey: 'created_at',
+            header: ({ column }) => h(DataTableColumnHeader, { column, title: 'Cree le', class: headerClass }),
+            cell: ({ row }) => h('span', { class: 'text-sm text-muted-foreground' }, row.getValue('created_at') ?? '-'),
+        },
+        {
+            id: 'actions',
+            enableHiding: false,
+            cell: ({ row }) =>
+                h('div', { class: 'flex justify-end' }, h(DropdownAction, { announcement: row.original, readOnly: isAdmin })),
+        },
+    )
+
+    return columns
+}

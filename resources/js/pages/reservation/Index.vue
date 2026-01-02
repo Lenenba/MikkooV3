@@ -127,6 +127,7 @@ const statistique = computed<Stats>(
 
 const role = computed(() => (page.props.auth?.role ?? 'Parent').toString().toLowerCase());
 const isBabysitter = computed(() => role.value === 'babysitter');
+const isAdmin = computed(() => role.value === 'superadmin' || role.value === 'admin');
 const tableColumns = computed(() => getReservationColumns(role.value));
 
 const statusOptions = [
@@ -140,6 +141,7 @@ const statusOptions = [
 const statCards = computed(() => {
     const currentMonthRevenue = toNumber(statistique.value.current_month_revenue);
     const totalRevenue = toNumber(statistique.value.total_revenue);
+    const totalCount = toNumber(statistique.value.total_count);
     const pendingCount = toNumber(statistique.value.pending_count);
     const confirmedCount = toNumber(statistique.value.confirmed_count);
     const upcomingCount = toNumber(statistique.value.upcoming_count);
@@ -148,6 +150,89 @@ const statCards = computed(() => {
     const revenueChange = statistique.value.revenue_change_pct;
     const revenueTrend = getTrendMeta(revenueChange);
     const revenueChangeLabel = revenueChange === null ? '' : formatPercent(revenueChange);
+
+    if (isAdmin.value) {
+        return [
+            {
+                title: 'Reservations totales',
+                value: formatCount(totalCount),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-muted-foreground/70',
+                showTrend: false,
+                icon: ClipboardList,
+                iconClass: 'bg-violet-100 text-violet-600',
+                sparkline: buildTrendSeries(Math.max(0, totalCount - 1), totalCount),
+                sparklineClass: 'stroke-violet-400',
+            },
+            {
+                title: 'En attente',
+                value: formatCount(pendingCount),
+                change: '',
+                changeText: 'en cours',
+                trendIcon: TrendingUp,
+                trendClass: 'text-muted-foreground/70',
+                showTrend: false,
+                icon: CalendarCheck,
+                iconClass: 'bg-amber-100 text-amber-600',
+                sparkline: buildTrendSeries(Math.max(0, pendingCount - 1), pendingCount),
+                sparklineClass: 'stroke-amber-400',
+            },
+            {
+                title: 'Confirmees',
+                value: formatCount(confirmedCount),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-muted-foreground/70',
+                showTrend: false,
+                icon: CalendarCheck,
+                iconClass: 'bg-emerald-100 text-emerald-600',
+                sparkline: buildTrendSeries(Math.max(0, confirmedCount - 1), confirmedCount),
+                sparklineClass: 'stroke-emerald-400',
+            },
+            {
+                title: 'Revenu total',
+                value: formatCurrency(totalRevenue),
+                change: revenueChangeLabel,
+                changeText: 'vs mois dernier',
+                trendIcon: revenueTrend.icon,
+                trendClass: revenueTrend.className,
+                showTrend: revenueTrend.show,
+                icon: Wallet,
+                iconClass: 'bg-blue-100 text-blue-600',
+                sparkline: buildTrendSeries(statistique.value.previous_month_revenue, currentMonthRevenue),
+                sparklineClass: 'stroke-blue-400',
+            },
+            {
+                title: 'Babysitters actifs',
+                value: formatCount(uniqueBabysitters),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-muted-foreground/70',
+                showTrend: false,
+                icon: Users,
+                iconClass: 'bg-sky-100 text-sky-600',
+                sparkline: buildTrendSeries(Math.max(0, uniqueBabysitters - 1), uniqueBabysitters),
+                sparklineClass: 'stroke-sky-400',
+            },
+            {
+                title: 'Parents actifs',
+                value: formatCount(uniqueParents),
+                change: '',
+                changeText: 'au total',
+                trendIcon: TrendingUp,
+                trendClass: 'text-muted-foreground/70',
+                showTrend: false,
+                icon: Users,
+                iconClass: 'bg-emerald-100 text-emerald-600',
+                sparkline: buildTrendSeries(Math.max(0, uniqueParents - 1), uniqueParents),
+                sparklineClass: 'stroke-emerald-400',
+            },
+        ];
+    }
 
     if (isBabysitter.value) {
         return [
@@ -288,18 +373,20 @@ const statCards = computed(() => {
     ];
 });
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Mes reservations',
+        title: isAdmin.value ? 'Reservations' : 'Mes reservations',
         href: '/reservations',
     },
-];
+]);
+
+const pageTitle = computed(() => (isAdmin.value ? 'Reservations' : 'Mes reservations'));
 
 </script>
 
 <template>
 
-    <Head title="Mes reservations" />
+    <Head :title="pageTitle" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
@@ -360,7 +447,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                         @click="table.resetColumnFilters()">
                         Effacer
                     </Button>
-                    <Button asChild size="sm" class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto">
+                    <Button
+                        v-if="!isAdmin"
+                        asChild
+                        size="sm"
+                        class="h-9 w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
+                    >
                         <Link :href="route('search.babysitter')">
                             <Plus class="mr-2 h-4 w-4" />
                             Nouvelle reservation

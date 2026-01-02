@@ -17,6 +17,9 @@ class ParentProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
+        if (! $user || ! $user->isParent()) {
+            abort(403);
+        }
 
         return Inertia::render('settings/ParentProfile', [
             'parentProfile' => $user->parentProfile,
@@ -34,6 +37,9 @@ class ParentProfileController extends Controller
     {
         $data = $request->validated();
         $user = Auth::user();
+        if (! $user || ! $user->isParent()) {
+            abort(403);
+        }
 
         $profile = $user->parentProfile;
         if (! $profile) {

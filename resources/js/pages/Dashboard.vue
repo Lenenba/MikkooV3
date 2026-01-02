@@ -54,7 +54,7 @@ const userName = computed(() => {
 
 const stats = computed(() => dashboard.value?.stats);
 const isBabysitter = computed(() => role.value === 'Babysitter');
-const isAdmin = computed(() => role.value === 'Admin');
+const isAdmin = computed(() => role.value === 'Admin' || role.value === 'SuperAdmin');
 const announcementItems = computed(() => announcementsPayload.value?.items ?? []);
 
 const formatAnnouncementDate = (value?: string | null) => {
@@ -118,12 +118,12 @@ const formatNumber = (value: number | null | undefined) => numberFormatter.forma
 const formatPercent = (value: number | null | undefined) =>
     value === null || value === undefined ? '' : `${percentFormatter.format(value)}%`;
 
-const welcomeTitle = computed(() => (role.value === 'Admin' ? 'Tableau de bord' : 'Bon retour'));
+const welcomeTitle = computed(() => (isAdmin.value ? 'Tableau de bord' : 'Bon retour'));
 const welcomeSummary = computed(() => {
     if (role.value === 'Babysitter') {
         return 'Suivez vos missions, vos gains et les annonces qui vous correspondent.';
     }
-    if (role.value === 'Admin') {
+    if (isAdmin.value) {
         return "Vue d'ensemble de l'activite des reservations, revenus et utilisateurs.";
     }
     return 'Suivez vos reservations et vos depenses.';
@@ -133,7 +133,7 @@ const monthlyLabel = computed(() => {
     if (role.value === 'Babysitter') {
         return 'Gains du mois';
     }
-    if (role.value === 'Admin') {
+    if (isAdmin.value) {
         return 'Revenu du mois';
     }
     return 'Depenses du mois';
@@ -185,12 +185,16 @@ const kpiMeta: Record<string, { icon: string; tone: keyof typeof kpiToneClasses 
     total_spend: { icon: 'SP', tone: 'emerald' },
     total_jobs: { icon: 'JB', tone: 'sky' },
     total_earnings: { icon: 'ER', tone: 'emerald' },
+    pending_reservations: { icon: 'PN', tone: 'amber' },
+    confirmed_reservations: { icon: 'CF', tone: 'emerald' },
     upcoming_reservations: { icon: 'UP', tone: 'amber' },
     upcoming_jobs: { icon: 'UP', tone: 'amber' },
     canceled_reservations: { icon: 'CN', tone: 'rose' },
     canceled_jobs: { icon: 'CN', tone: 'rose' },
     active_babysitters: { icon: 'BS', tone: 'lime' },
     active_parents: { icon: 'PR', tone: 'cyan' },
+    open_announcements: { icon: 'AN', tone: 'sky' },
+    issued_invoices: { icon: 'IN', tone: 'cyan' },
 };
 
 const kpiLabelMap: Record<string, string> = {
@@ -199,17 +203,26 @@ const kpiLabelMap: Record<string, string> = {
     total_spend: 'Depenses totales',
     total_jobs: 'Missions totales',
     total_earnings: 'Gains totaux',
+    pending_reservations: 'Reservations en attente',
+    confirmed_reservations: 'Reservations confirmees',
     upcoming_reservations: 'Reservations a venir',
     upcoming_jobs: 'Missions a venir',
     canceled_reservations: 'Reservations annulees',
     canceled_jobs: 'Missions annulees',
     active_babysitters: 'Babysitters actifs',
     active_parents: 'Parents actifs',
+    open_announcements: 'Annonces ouvertes',
+    issued_invoices: 'Factures emises',
 };
 
 const kpiPeriodMap: Record<string, string> = {
     'vs last month': 'vs mois dernier',
     scheduled: 'planifiees',
+    pending: 'en attente',
+    confirmed: 'confirmees',
+    canceled: 'annulees',
+    open: 'ouvertes',
+    issued: 'emises',
     'all time': 'au total',
 };
 
@@ -220,7 +233,7 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
     const revenueChange = stats.value?.revenue_change_pct ?? null;
     const canceledCount = stats.value?.total_canceled_count ?? 0;
 
-    if (role.value === 'Admin') {
+    if (isAdmin.value) {
         return [
             {
                 key: 'total_revenue',
@@ -239,6 +252,30 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
                 period: 'vs last month',
             },
             {
+                key: 'pending_reservations',
+                label: 'Pending Reservations',
+                value: stats.value?.pending_count ?? 0,
+                format: 'number',
+                change_pct: null,
+                period: 'pending',
+            },
+            {
+                key: 'confirmed_reservations',
+                label: 'Confirmed Reservations',
+                value: stats.value?.confirmed_count ?? 0,
+                format: 'number',
+                change_pct: null,
+                period: 'confirmed',
+            },
+            {
+                key: 'canceled_reservations',
+                label: 'Canceled Reservations',
+                value: canceledCount,
+                format: 'number',
+                change_pct: null,
+                period: 'canceled',
+            },
+            {
                 key: 'active_babysitters',
                 label: 'Active Babysitters',
                 value: 0,
@@ -253,6 +290,22 @@ const fallbackKpis = computed<DashboardKpi[]>(() => {
                 format: 'number',
                 change_pct: null,
                 period: 'all time',
+            },
+            {
+                key: 'open_announcements',
+                label: 'Open Announcements',
+                value: 0,
+                format: 'number',
+                change_pct: null,
+                period: 'open',
+            },
+            {
+                key: 'issued_invoices',
+                label: 'Issued Invoices',
+                value: 0,
+                format: 'number',
+                change_pct: null,
+                period: 'issued',
             },
         ];
     }

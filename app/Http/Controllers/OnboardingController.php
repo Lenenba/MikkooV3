@@ -8,14 +8,17 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class OnboardingController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user = $request->user();
         $step = (int) $request->query('step', 0);
+
+        if ($user && $user->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
 
         if (! $user) {
             $step = 1;
@@ -57,6 +60,9 @@ class OnboardingController extends Controller
         $user = $request->user();
         if (! $user) {
             return redirect()->route('login');
+        }
+        if ($user->isAdmin()) {
+            abort(403);
         }
 
         $payload = $request->validated();
@@ -129,6 +135,9 @@ class OnboardingController extends Controller
         $user = $request->user();
         if (! $user) {
             return redirect()->route('login');
+        }
+        if ($user->isAdmin()) {
+            abort(403);
         }
 
         $payload = $request->validated();

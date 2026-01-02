@@ -18,6 +18,10 @@ class EnsureUserHasAddress
             return $next($request);
         }
 
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
+
         if ($user->address()->exists()) {
             return $next($request);
         }

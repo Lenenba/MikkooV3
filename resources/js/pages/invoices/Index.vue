@@ -19,6 +19,7 @@ const page = usePage<SharedData>()
 
 const invoices = computed<Invoice[]>(() => page.props.invoices?.data ?? [])
 const role = computed(() => (page.props.auth?.role ?? '').toString().toLowerCase())
+const isAdmin = computed(() => role.value === 'superadmin' || role.value === 'admin')
 const tableColumns = computed(() => getInvoiceColumns(role.value))
 const stats = computed(() => (page.props as { stats?: Record<string, number | string> }).stats ?? {})
 
@@ -47,6 +48,35 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 const statCards = computed(() => {
+    if (isAdmin.value) {
+        return [
+            {
+                title: 'Brouillons',
+                value: formatCount(stats.value.draft_count as number),
+                icon: ClipboardList,
+                iconClass: 'bg-amber-100 text-amber-600',
+            },
+            {
+                title: 'Factures emises',
+                value: formatCount(stats.value.issued_count as number),
+                icon: CreditCard,
+                iconClass: 'bg-sky-100 text-sky-600',
+            },
+            {
+                title: 'Factures payees',
+                value: formatCount(stats.value.paid_count as number),
+                icon: CheckCircle,
+                iconClass: 'bg-emerald-100 text-emerald-600',
+            },
+            {
+                title: 'Total encaisse',
+                value: formatCurrency(stats.value.paid_total as number),
+                icon: Wallet,
+                iconClass: 'bg-emerald-100 text-emerald-600',
+            },
+        ]
+    }
+
     if (role.value === 'babysitter') {
         return [
             {

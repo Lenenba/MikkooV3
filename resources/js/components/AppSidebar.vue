@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { BookOpen, Briefcase, Calendar, LayoutGrid, Megaphone, Receipt } from 'lucide-vue-next';
+import { BookOpen, Briefcase, Calendar, ClipboardList, LayoutGrid, Megaphone, Receipt } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage();
@@ -16,6 +16,36 @@ const role = computed(() => {
 });
 
 const mainNavItems = computed(() => {
+    if (role.value === 'superadmin' || role.value === 'admin') {
+        return [
+            {
+                title: 'Tableau de bord',
+                href: '/dashboard',
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Consultations',
+                href: '/superadmin/consultations',
+                icon: ClipboardList,
+            },
+            {
+                title: 'Reservations',
+                href: '/reservations',
+                icon: Calendar,
+            },
+            {
+                title: 'Factures',
+                href: '/invoices',
+                icon: Receipt,
+            },
+            {
+                title: 'Annonces',
+                href: '/announcements',
+                icon: Megaphone,
+            },
+        ];
+    }
+
     const items: NavItem[] = [
         {
             title: 'Tableau de bord',
