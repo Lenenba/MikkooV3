@@ -27,6 +27,29 @@ class Translations
             }
         }
 
-        return $messages;
+        return self::convertPlaceholders($messages);
+    }
+
+    /**
+     * Convert Laravel-style placeholders (:name) to Vue i18n placeholders ({name}).
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private static function convertPlaceholders(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            $converted = [];
+            foreach ($value as $key => $item) {
+                $converted[$key] = self::convertPlaceholders($item);
+            }
+            return $converted;
+        }
+
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return preg_replace('/(^|[^A-Za-z0-9_]):([A-Za-z0-9_]+)/', '$1{$2}', $value);
     }
 }

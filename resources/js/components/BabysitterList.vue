@@ -72,10 +72,7 @@ const getLocation = (babysitter: Babysitter) => {
 
 const getPrice = (babysitter: Babysitter) => getProfile(babysitter)?.price_per_hour ?? 0;
 
-const getPriceLabel = (babysitter: Babysitter) => {
-    const label = t('search.babysitter.per_hour'); // ":price / h"
-    return label.replace(':price', formatCurrency(getPrice(babysitter)));
-};
+const getPriceLabel = (babysitter: Babysitter) => t('search.babysitter.per_hour', { price: formatCurrency(getPrice(babysitter)) });
 
 const getBio = (babysitter: Babysitter) =>
     getProfile(babysitter)?.bio ?? t('search.babysitter.no_description');
@@ -200,7 +197,7 @@ const truncate = (value: string, max = 120) => {
                                                     <Star class="h-3 w-3 text-amber-500" />
                                                     {{ formatRating(getRatingAverage(babysitter)) }}
                                                     <span class="text-muted-foreground">({{ getRatingCount(babysitter)
-                                                        }})</span>
+                                                    }})</span>
                                                 </span>
                                             </div>
                                         </div>
@@ -282,7 +279,7 @@ const truncate = (value: string, max = 120) => {
 
                                 <div>
                                     <h4 class="text-sm font-semibold text-foreground">{{ $t('search.babysitter.about')
-                                        }}</h4>
+                                    }}</h4>
                                     <p class="mt-2 text-sm text-muted-foreground">
                                         {{ getBio(babysitter) }}
                                     </p>
