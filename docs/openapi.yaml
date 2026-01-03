@@ -1,0 +1,1595 @@
+openapi: 3.0.3
+info:
+  title: Mikoo API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Onboarding
+  - name: Search
+  - name: Reservations
+  - name: Announcements
+  - name: Settings
+  - name: Media
+  - name: Invoices
+  - name: Dashboard
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login and get token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current token
+      responses:
+        '204':
+          description: Logged out
+  /me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Send password reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Link sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/email/verification-notification:
+    post:
+      tags: [Auth]
+      summary: Resend verification email
+      responses:
+        '200':
+          description: Sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+  /auth/verify-email/{id}/{hash}:
+    get:
+      tags: [Auth]
+      security: []
+      summary: Verify email (signed link)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: hash
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '403':
+          description: Invalid link
+  /onboarding:
+    get:
+      tags: [Onboarding]
+      summary: Get onboarding state
+      responses:
+        '200':
+          description: Onboarding state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingState'
+  /onboarding/profile:
+    post:
+      tags: [Onboarding]
+      summary: Save profile step
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingProfileRequest'
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextStepResponse'
+  /onboarding/address/search:
+    get:
+      tags: [Onboarding]
+      summary: Search address
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+  /onboarding/address:
+    post:
+      tags: [Onboarding]
+      summary: Save address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  address:
+                    $ref: '#/components/schemas/Address'
+                  next_step:
+                    type: integer
+  /onboarding/availability:
+    post:
+      tags: [Onboarding]
+      summary: Save availability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilityRequest'
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextStepResponse'
+  /onboarding/finish:
+    post:
+      tags: [Onboarding]
+      summary: Finish onboarding
+      responses:
+        '200':
+          description: Finished
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  redirect:
+                    type: string
+  /search/babysitters:
+    get:
+      tags: [Search]
+      summary: Search babysitters
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+        - in: query
+          name: city
+          schema:
+            type: string
+        - in: query
+          name: country
+          schema:
+            type: string
+        - in: query
+          name: service
+          schema:
+            type: string
+        - in: query
+          name: min_price
+          schema:
+            type: number
+        - in: query
+          name: max_price
+          schema:
+            type: number
+        - in: query
+          name: min_rating
+          schema:
+            type: number
+        - in: query
+          name: payment_frequency
+          schema:
+            type: string
+        - in: query
+          name: sort
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  meta:
+                    type: object
+                  service_options:
+                    type: array
+                    items:
+                      type: string
+  /services/search:
+    get:
+      tags: [Search]
+      summary: Search services
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: babysitter_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+  /reservations:
+    get:
+      tags: [Reservations]
+      summary: List reservations
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reservation'
+                  meta:
+                    type: object
+    post:
+      tags: [Reservations]
+      summary: Create reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservation:
+                    $ref: '#/components/schemas/Reservation'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /reservations/{id}:
+    get:
+      tags: [Reservations]
+      summary: Get reservation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reservation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservation:
+                    $ref: '#/components/schemas/Reservation'
+  /reservations/{id}/accept:
+    post:
+      tags: [Reservations]
+      summary: Accept reservation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationActionResponse'
+  /reservations/{id}/cancel:
+    post:
+      tags: [Reservations]
+      summary: Cancel reservation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationActionResponse'
+  /reservations/{id}/complete:
+    post:
+      tags: [Reservations]
+      summary: Complete reservation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationActionResponse'
+  /reservations/{id}/ratings:
+    post:
+      tags: [Reservations]
+      summary: Rate reservation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingRequest'
+      responses:
+        '200':
+          description: Rated
+          content:
+            application/json:
+              schema:
+                type: object
+  /announcements:
+    get:
+      tags: [Announcements]
+      summary: List announcements
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Announcement'
+    post:
+      tags: [Announcements]
+      summary: Create announcement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  announcement:
+                    $ref: '#/components/schemas/Announcement'
+  /announcements/{id}:
+    get:
+      tags: [Announcements]
+      summary: Show announcement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Announcement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  announcement:
+                    $ref: '#/components/schemas/Announcement'
+    patch:
+      tags: [Announcements]
+      summary: Update announcement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [open, closed]
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Announcements]
+      summary: Delete announcement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted
+  /announcements/{id}/apply:
+    post:
+      tags: [Announcements]
+      summary: Apply to announcement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        '201':
+          description: Applied
+  /announcements/{id}/applications/{applicationId}/accept:
+    post:
+      tags: [Announcements]
+      summary: Accept application
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Accepted
+  /announcements/{id}/applications/{applicationId}/reject:
+    post:
+      tags: [Announcements]
+      summary: Reject application
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rejected
+  /announcements/{id}/applications/{applicationId}/withdraw:
+    post:
+      tags: [Announcements]
+      summary: Withdraw application
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Withdrawn
+  /settings/profile:
+    get:
+      tags: [Settings]
+      summary: Get profile
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  role:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+    patch:
+      tags: [Settings]
+      summary: Update profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+  /settings/password:
+    put:
+      tags: [Settings]
+      summary: Update password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+  /settings/parent/profile:
+    patch:
+      tags: [Settings]
+      summary: Update parent profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+  /settings/babysitter/profile:
+    patch:
+      tags: [Settings]
+      summary: Update babysitter profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BabysitterProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+  /settings/services:
+    get:
+      tags: [Settings]
+      summary: List services
+      responses:
+        '200':
+          description: Services
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      tags: [Settings]
+      summary: Create service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+      responses:
+        '201':
+          description: Created
+  /settings/services/{id}:
+    patch:
+      tags: [Settings]
+      summary: Update service
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Settings]
+      summary: Delete service
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted
+  /settings/media:
+    get:
+      tags: [Media]
+      summary: List media
+      responses:
+        '200':
+          description: Media
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  media:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Media'
+    post:
+      tags: [Media]
+      summary: Upload media
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                collection_name:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Uploaded
+  /settings/media/set-profile:
+    post:
+      tags: [Media]
+      summary: Set profile photo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                media_id:
+                  type: integer
+      responses:
+        '200':
+          description: Updated
+  /settings/media/{id}:
+    delete:
+      tags: [Media]
+      summary: Delete media
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+  /invoices:
+    get:
+      tags: [Invoices]
+      summary: List invoices
+      responses:
+        '200':
+          description: Invoices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invoice'
+                  stats:
+                    type: object
+  /invoices/{id}:
+    get:
+      tags: [Invoices]
+      summary: Show invoice
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoice:
+                    $ref: '#/components/schemas/Invoice'
+    patch:
+      tags: [Invoices]
+      summary: Update invoice (draft)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+  /invoices/{id}/download:
+    get:
+      tags: [Invoices]
+      summary: Download invoice PDF
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PDF
+  /dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Dashboard data
+      responses:
+        '200':
+          description: Dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    NextStepResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        next_step:
+          type: integer
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+    RegisterRequest:
+      type: object
+      required: [first_name, last_name, email, password, password_confirmation, role]
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        password_confirmation:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [parent, babysitter]
+        device_name:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        device_name:
+          type: string
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    ResetPasswordRequest:
+      type: object
+      required: [email, token, password, password_confirmation]
+      properties:
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+        password:
+          type: string
+        password_confirmation:
+          type: string
+    OnboardingState:
+      type: object
+      properties:
+        step:
+          type: integer
+        role:
+          type: string
+        account:
+          type: object
+        address:
+          $ref: '#/components/schemas/Address'
+        profile:
+          oneOf:
+            - $ref: '#/components/schemas/ParentProfile'
+            - $ref: '#/components/schemas/BabysitterProfile'
+    OnboardingProfileRequest:
+      type: object
+      properties:
+        bio:
+          type: string
+        experience:
+          type: string
+        price_per_hour:
+          type: number
+        payment_frequency:
+          type: string
+          enum: [per_task, daily, weekly, biweekly, monthly]
+        services:
+          type: string
+        children:
+          type: array
+          items:
+            type: object
+        preferences:
+          type: string
+    AvailabilityRequest:
+      type: object
+      properties:
+        availability:
+          type: string
+        availability_notes:
+          type: string
+    ProfileUpdateRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    PasswordUpdateRequest:
+      type: object
+      required: [current_password, password, password_confirmation]
+      properties:
+        current_password:
+          type: string
+        password:
+          type: string
+        password_confirmation:
+          type: string
+    ParentProfileUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        phone:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        preferences:
+          type: string
+        availability:
+          type: string
+        availability_notes:
+          type: string
+        children:
+          type: array
+          items:
+            type: object
+    BabysitterProfileUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        phone:
+          type: string
+        bio:
+          type: string
+        experience:
+          type: string
+        price_per_hour:
+          type: number
+        payment_frequency:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        services:
+          type: string
+        availability:
+          type: string
+        availability_notes:
+          type: string
+    ServiceCreateRequest:
+      type: object
+      required: [name, price]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+    ReservationCreateRequest:
+      type: object
+      required: [babysitter_id, schedule_type, start_date, start_time, end_time, services]
+      properties:
+        babysitter_id:
+          type: integer
+        schedule_type:
+          type: string
+          enum: [single, recurring]
+        start_date:
+          type: string
+          format: date
+        start_time:
+          type: string
+        end_time:
+          type: string
+        recurrence_frequency:
+          type: string
+        recurrence_interval:
+          type: integer
+        recurrence_days:
+          type: array
+          items:
+            type: integer
+        recurrence_end_date:
+          type: string
+          format: date
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              quantity:
+                type: integer
+        notes:
+          type: string
+    ReservationActionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        reservation:
+          $ref: '#/components/schemas/Reservation'
+    RatingRequest:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+        comment:
+          type: string
+    AnnouncementCreateRequest:
+      type: object
+      required: [title, child_ids, schedule_type, start_date, start_time, end_time]
+      properties:
+        title:
+          type: string
+        services:
+          type: array
+          items:
+            type: string
+        service:
+          type: string
+        child_ids:
+          type: array
+          items:
+            type: integer
+        child_notes:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        schedule_type:
+          type: string
+        start_date:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        recurrence_frequency:
+          type: string
+        recurrence_interval:
+          type: integer
+        recurrence_days:
+          type: array
+          items:
+            type: integer
+        recurrence_end_date:
+          type: string
+    InvoiceUpdateRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              description:
+                type: string
+              service_date:
+                type: string
+                format: date
+              quantity:
+                type: number
+              unit_price:
+                type: number
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        email_verified_at:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        address:
+          $ref: '#/components/schemas/Address'
+        parent_profile:
+          $ref: '#/components/schemas/ParentProfile'
+        babysitter_profile:
+          $ref: '#/components/schemas/BabysitterProfile'
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+        rating_avg:
+          type: number
+          nullable: true
+        rating_count:
+          type: integer
+          nullable: true
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        province:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        postal_code:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+    ParentProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        birthdate:
+          type: string
+          nullable: true
+        settings:
+          type: object
+          nullable: true
+    BabysitterProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        birthdate:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        experience:
+          type: string
+          nullable: true
+        price_per_hour:
+          type: number
+        payment_frequency:
+          type: string
+        settings:
+          type: object
+          nullable: true
+    Media:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          nullable: true
+        file_path:
+          type: string
+          nullable: true
+        collection_name:
+          type: string
+        mime_type:
+          type: string
+        is_profile:
+          type: boolean
+        created_at:
+          type: string
+          nullable: true
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        user_id:
+          type: integer
+          nullable: true
+    ReservationDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        date:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        completed_at:
+          type: string
+          nullable: true
+        schedule_type:
+          type: string
+        recurrence_frequency:
+          type: string
+          nullable: true
+        recurrence_interval:
+          type: integer
+          nullable: true
+        recurrence_days:
+          type: array
+          items:
+            type: integer
+        recurrence_end_date:
+          type: string
+          nullable: true
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        total_amount:
+          type: number
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        parent:
+          $ref: '#/components/schemas/User'
+        babysitter:
+          $ref: '#/components/schemas/User'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+        details:
+          $ref: '#/components/schemas/ReservationDetail'
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        service:
+          type: string
+        services:
+          type: array
+          items:
+            type: string
+        children:
+          type: array
+          items:
+            type: object
+        child_name:
+          type: string
+          nullable: true
+        child_age:
+          type: string
+          nullable: true
+        child_notes:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        start_date:
+          type: string
+          nullable: true
+        start_time:
+          type: string
+          nullable: true
+        end_time:
+          type: string
+          nullable: true
+        schedule_type:
+          type: string
+        recurrence_frequency:
+          type: string
+          nullable: true
+        recurrence_interval:
+          type: integer
+          nullable: true
+        recurrence_days:
+          type: array
+          items:
+            type: integer
+        recurrence_end_date:
+          type: string
+          nullable: true
+        status:
+          type: string
+        created_at:
+          type: string
+          nullable: true
+        applications_count:
+          type: integer
+          nullable: true
+        pending_applications_count:
+          type: integer
+          nullable: true
+    AnnouncementApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        message:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        expires_at:
+          type: string
+          nullable: true
+        reservation_id:
+          type: integer
+          nullable: true
+        reservation_status:
+          type: string
+          nullable: true
+        babysitter:
+          $ref: '#/components/schemas/User'
+    InvoiceItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        reservation_id:
+          type: integer
+          nullable: true
+        description:
+          type: string
+        service_date:
+          type: string
+          nullable: true
+        quantity:
+          type: number
+        unit_price:
+          type: number
+        subtotal_amount:
+          type: number
+        vat_rate:
+          type: number
+        tax_amount:
+          type: number
+        total_amount:
+          type: number
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+          nullable: true
+        status:
+          type: string
+        currency:
+          type: string
+        vat_rate:
+          type: number
+        subtotal_amount:
+          type: number
+        tax_amount:
+          type: number
+        total_amount:
+          type: number
+        period_start:
+          type: string
+          nullable: true
+        period_end:
+          type: string
+          nullable: true
+        issued_at:
+          type: string
+          nullable: true
+        due_at:
+          type: string
+          nullable: true
+        paid_at:
+          type: string
+          nullable: true
+        parent:
+          $ref: '#/components/schemas/User'
+        babysitter:
+          $ref: '#/components/schemas/User'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceItem'
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
