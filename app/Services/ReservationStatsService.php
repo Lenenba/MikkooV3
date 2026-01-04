@@ -100,7 +100,7 @@ class ReservationStatsService
             ->count();
 
         $confirmedCount = (clone $baseQuery)
-            ->whereHas('details', fn($q) => $q->whereIn('status', ['confirmed', 'completed']))
+            ->whereHas('details', fn($q) => $q->whereIn('status', ['confirmed', 'in_progress', 'completed']))
             ->count();
 
         $countCanceled = (clone $baseQuery)

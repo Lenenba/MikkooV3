@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\GeneratesSequentialNumber;
+use App\Models\Media;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Reservation extends Model
 {
@@ -104,6 +106,14 @@ class Reservation extends Model
         return $this->belongsToMany(Service::class, 'reservation_services')
             ->withPivot('quantity', 'total')
             ->withTimestamps();
+    }
+
+    /**
+     * Media attached to this reservation (photos/videos).
+     */
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediaable');
     }
     /**
      * Obtient les détails (date, heure, statut) de la réservation.

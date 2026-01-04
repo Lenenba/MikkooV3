@@ -42,6 +42,18 @@ class ReservationPolicy
     }
 
     /**
+     * Determine whether the user can start the reservation.
+     */
+    public function start(User $user, Reservation $reservation): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->id === $reservation->babysitter_id;
+    }
+
+    /**
      * Determine whether the user can mark the reservation as completed.
      */
     public function complete(User $user, Reservation $reservation): bool

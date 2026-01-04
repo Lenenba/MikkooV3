@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\Service;
 use App\Models\User;
 use App\Support\Billing;
+use App\Services\ReservationStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -61,6 +62,7 @@ class ReservationController extends Controller
 
         $reservation = Reservation::forUser($user)->with([
             'parent',
+            'parent.media',
             'babysitter',
             'babysitter.babysitterProfile',
             'babysitter.media',

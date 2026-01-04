@@ -4,6 +4,7 @@ return [
     'reservation' => [
         'not_pending' => "La reservation n'est pas en attente.",
         'confirmed' => 'Reservation confirmee avec succes.',
+        'in_progress' => 'Reservation en cours.',
         'not_confirmed' => "La reservation n'est pas confirmee.",
         'completed' => 'Reservation terminee. Facture preparee.',
         'already_canceled' => 'Cette reservation est deja annulee.',

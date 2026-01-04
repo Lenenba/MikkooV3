@@ -10,12 +10,14 @@ use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\Auth\VerifyEmailController;
+use App\Http\Controllers\Api\BabysitterServiceController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\OnboardingAddressController;
 use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\ReservationActionController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\ReservationMediaController;
 use App\Http\Controllers\Api\ReservationRatingController;
 use App\Http\Controllers\Api\SearchBabysitterController;
 use App\Http\Controllers\Api\Settings\BabysitterProfileController as SettingsBabysitterProfileController;
@@ -54,14 +56,18 @@ Route::prefix('v1')->group(function () {
 
         Route::get('search/babysitters', SearchBabysitterController::class);
         Route::get('services/search', ServicesSearchController::class);
+        Route::get('babysitters/{babysitter}/services', BabysitterServiceController::class);
 
         Route::get('reservations', [ReservationController::class, 'index']);
         Route::get('reservations/{id}', [ReservationController::class, 'show']);
         Route::post('reservations', [ReservationController::class, 'store']);
         Route::post('reservations/{reservationId}/accept', [ReservationActionController::class, 'accept']);
         Route::post('reservations/{reservationId}/cancel', [ReservationActionController::class, 'cancel']);
+        Route::post('reservations/{reservationId}/start', [ReservationActionController::class, 'start']);
         Route::post('reservations/{reservationId}/complete', [ReservationActionController::class, 'complete']);
         Route::post('reservations/{reservation}/ratings', [ReservationRatingController::class, 'store']);
+        Route::get('reservations/{reservation}/media', [ReservationMediaController::class, 'index']);
+        Route::post('reservations/{reservation}/media', [ReservationMediaController::class, 'store']);
 
         Route::get('announcements', [AnnouncementController::class, 'index']);
         Route::post('announcements', [AnnouncementController::class, 'store']);

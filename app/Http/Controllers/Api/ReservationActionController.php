@@ -64,11 +64,36 @@ class ReservationActionController extends Controller
         ]);
     }
 
-    public function complete(Request $request, int $reservationId, InvoiceService $invoiceService): JsonResponse
+    public function start(Request $request, int $reservationId): JsonResponse
     {
         $reservation = Reservation::with('details')->findOrFail($reservationId);
 
         if ($reservation->details?->status !== 'confirmed') {
+            return response()->json(['message' => __('flash.reservation.not_confirmed')], 422);
+        }
+
+        $this->authorize('start', $reservation);
+
+        $reservation->details()->update([
+            'status' => 'in_progress',
+        ]);
+
+        $reservation->loadMissing(['details', 'parent', 'babysitter', 'services']);
+
+        $reservation->parent?->notify(new ReservationNotification($reservation));
+        $reservation->babysitter?->notify(new ReservationNotification($reservation));
+
+        return response()->json([
+            'message' => __('flash.reservation.in_progress'),
+            'reservation' => new ReservationResource($reservation),
+        ]);
+    }
+
+    public function complete(Request $request, int $reservationId, InvoiceService $invoiceService): JsonResponse
+    {
+        $reservation = Reservation::with('details')->findOrFail($reservationId);
+
+        if (! in_array($reservation->details?->status, ['confirmed', 'in_progress'], true)) {
             return response()->json(['message' => __('flash.reservation.not_confirmed')], 422);
         }
 
