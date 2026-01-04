@@ -38,7 +38,8 @@ class ReservationPolicy
             return true;
         }
 
-        return $user->id === $reservation->babysitter_id;
+        return $user->id === $reservation->babysitter_id
+            || $user->id === $reservation->parent_id;
     }
 
     /**

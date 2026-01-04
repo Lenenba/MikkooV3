@@ -31,6 +31,22 @@ class UserResource extends JsonResource
             'media' => MediaResource::collection($this->whenLoaded('media')),
             'rating_avg' => $this->rating_avg ?? null,
             'rating_count' => $this->rating_count ?? null,
+            'received_ratings' => $this->whenLoaded('receivedRatings', function () {
+                return $this->receivedRatings->map(function ($rating) {
+                    return [
+                        'id' => $rating->id,
+                        'rating' => $rating->rating,
+                        'comment' => $rating->comment,
+                        'created_at' => $rating->created_at?->toISOString(),
+                        'reviewer' => $rating->reviewer
+                            ? [
+                                'id' => $rating->reviewer->id,
+                                'name' => $rating->reviewer->name,
+                            ]
+                            : null,
+                    ];
+                });
+            }),
         ];
     }
 }
