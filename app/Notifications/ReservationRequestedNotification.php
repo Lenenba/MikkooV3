@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class ReservationRequestedNotification extends Notification implements ShouldQueue
 {
@@ -22,7 +23,7 @@ class ReservationRequestedNotification extends Notification implements ShouldQue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -53,6 +54,33 @@ class ReservationRequestedNotification extends Notification implements ShouldQue
                 'babysitterName' => $babysitterName,
                 'serviceNames' => $serviceNames,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $reservation = $this->reservation->loadMissing([
+            'parent.parentProfile',
+            'babysitter.babysitterProfile',
+            'details',
+            'services',
+        ]);
+
+        $parentName = $this->resolveParentName($reservation->parent);
+        $reference = $reservation->number ?? (string) $reservation->id;
+
+        return [
+            'title' => __('notifications.reservation.requested_subject'),
+            'body' => __('emails.reservations.request.intro', ['parent' => $parentName]),
+            'data' => [
+                'type' => 'reservation',
+                'id' => $reservation->id,
+                'reference' => $reference,
+                'action' => 'requested',
+            ],
+        ];
     }
 
     protected function resolveParentName(?User $user): string

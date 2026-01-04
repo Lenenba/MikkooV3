@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import FloatingTextarea from '@/components/FloatingTextarea.vue';
-import { Head, usePage, Link, useForm } from '@inertiajs/vue3';
+import { Head, usePage, Link, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type SharedData, type BreadcrumbItem, type Reservation, type Details, type Services, type Babysitter, type Address, type RatingsPayload } from '@/types';
+import { type SharedData, type BreadcrumbItem, type Reservation, type Details, type Services, type Babysitter, type Address, type RatingsPayload, type ReservationMediaItem, type ReservationMediaRequest } from '@/types';
 import { Star } from 'lucide-vue-next';
 
 const page = usePage<SharedData>();
@@ -26,6 +26,20 @@ const reservationId = computed(() => reservation.value?.id ?? null);
 const currency = computed(() => (page.props as { currency?: string }).currency ?? 'USD');
 const taxRate = computed(() => Number((page.props as { tax_rate?: number }).tax_rate ?? 0));
 const ratings = computed<RatingsPayload | null>(() => page.props.ratings ?? null);
+const reservationMedia = computed<ReservationMediaItem[]>(() => {
+    const payload = (page.props as { reservation_media?: { data?: ReservationMediaItem[] } | ReservationMediaItem[] }).reservation_media;
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+    if (payload && Array.isArray(payload.data)) {
+        return payload.data;
+    }
+    return [];
+});
+const mediaRequests = computed<ReservationMediaRequest[]>(() => (page.props as { media_requests?: ReservationMediaRequest[] }).media_requests ?? []);
+const role = computed(() => (page.props.auth as { role?: string }).role ?? '');
+const isParent = computed(() => role.value === 'Parent');
+const isBabysitter = computed(() => role.value === 'Babysitter');
 const canRate = computed(() => ratings.value?.can_rate ?? false);
 const myRating = computed(() => ratings.value?.mine ?? null);
 const otherRating = computed(() => ratings.value?.other ?? null);
@@ -46,11 +60,20 @@ const reservationNumber = computed(() =>
 const status = computed(() =>
     (details.value?.status ?? reservation.value?.status ?? 'unknown').toString().toLowerCase()
 );
+const canUploadMedia = computed(() =>
+    (isParent.value || isBabysitter.value) && ['in_progress', 'completed'].includes(status.value)
+);
+const canRequestMedia = computed(() =>
+    isParent.value && status.value === 'in_progress'
+);
 
 const statusMeta = computed(() => {
     const current = status.value;
     if (current === 'confirmed') {
         return { label: t('common.status.confirmed'), className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    }
+    if (current === 'in_progress') {
+        return { label: t('common.status.in_progress'), className: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
     }
     if (current === 'completed') {
         return { label: t('common.status.completed'), className: 'bg-sky-50 text-sky-700 border-sky-200' };
@@ -188,6 +211,13 @@ const ratingForm = useForm({
     rating: myRating.value?.rating ?? 0,
     comment: myRating.value?.comment ?? '',
 });
+const mediaForm = useForm({
+    media: [] as File[],
+});
+const mediaInputRef = ref<HTMLInputElement | null>(null);
+const mediaRequestForm = useForm({
+    note: '',
+});
 
 const displayRating = computed(() => ratingHover.value ?? ratingForm.rating);
 const isStarActive = (value: number) => displayRating.value >= value;
@@ -199,6 +229,74 @@ const submitRating = () => {
     ratingForm.post(route('reservations.ratings.store', { reservation: reservationId.value }), {
         preserveScroll: true,
     });
+};
+
+const onMediaChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    mediaForm.media = files;
+};
+
+const uploadReservationMedia = () => {
+    if (!reservationId.value || mediaForm.processing) {
+        return;
+    }
+    mediaForm.post(route('reservations.media.store', { reservation: reservationId.value }), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            mediaForm.reset();
+            if (mediaInputRef.value) {
+                mediaInputRef.value.value = '';
+            }
+        },
+    });
+};
+
+const sendMediaRequest = () => {
+    if (!reservationId.value || mediaRequestForm.processing) {
+        return;
+    }
+    mediaRequestForm.post(route('reservations.media-requests.store', { reservation: reservationId.value }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            mediaRequestForm.reset();
+        },
+    });
+};
+
+const cancelMediaRequest = (requestId: number) => {
+    if (!reservationId.value) {
+        return;
+    }
+    router.post(route('reservations.media-requests.cancel', { reservation: reservationId.value, mediaRequest: requestId }), {
+        preserveScroll: true,
+    });
+};
+
+const formatDateTime = (value?: string | null) => {
+    if (!value) {
+        return '-';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(parsed);
+};
+
+const mediaRequestLabel = (value?: string | null) => {
+    const statusValue = (value ?? '').toLowerCase();
+    if (statusValue === 'pending') {
+        return t('reservations.media_requests.pending');
+    }
+    if (statusValue === 'fulfilled') {
+        return t('reservations.media_requests.fulfilled');
+    }
+    if (statusValue === 'canceled') {
+        return t('reservations.media_requests.canceled');
+    }
+    return statusValue || t('common.misc.unknown');
 };
 </script>
 
@@ -359,6 +457,109 @@ const submitRating = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="p-5 grid gap-4 lg:grid-cols-2 bg-card border border-border rounded-sm shadow-sm xl:shadow-none">
+                <div class="space-y-3">
+                    <div>
+                        <h2 class="text-lg font-semibold text-foreground">{{ $t('reservations.media.title') }}</h2>
+                        <p class="text-xs text-muted-foreground">{{ $t('reservations.media.upload_hint') }}</p>
+                    </div>
+
+                    <div v-if="reservationMedia.length" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div v-for="item in reservationMedia" :key="`media-${item.id}`" class="border border-border rounded-md overflow-hidden bg-muted">
+                            <video
+                                v-if="item.mime_type && item.mime_type.startsWith('video/')"
+                                :src="item.url || item.file_path"
+                                class="h-32 w-full object-cover"
+                                controls
+                                preload="metadata"
+                            />
+                            <img
+                                v-else
+                                :src="item.url || item.file_path"
+                                class="h-32 w-full object-cover"
+                                :alt="`media-${item.id}`"
+                            />
+                        </div>
+                    </div>
+                    <p v-else class="text-xs text-muted-foreground">{{ $t('reservations.media.empty') }}</p>
+
+                    <form v-if="canUploadMedia" @submit.prevent="uploadReservationMedia" enctype="multipart/form-data" class="space-y-2">
+                        <input
+                            ref="mediaInputRef"
+                            type="file"
+                            multiple
+                            accept="image/*,video/mp4"
+                            @change="onMediaChange"
+                            class="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-border file:bg-card file:px-3 file:py-2 file:text-sm file:font-semibold file:text-foreground"
+                        />
+                        <div v-if="mediaForm.hasErrors" class="text-xs text-red-600 space-y-1">
+                            <div v-for="(err, key) in mediaForm.errors" :key="`media-err-${key}`">{{ err }}</div>
+                        </div>
+                        <Button type="submit" size="sm" :disabled="mediaForm.processing || !mediaForm.media.length">
+                            <span v-if="mediaForm.processing">{{ $t('common.actions.uploading') }}</span>
+                            <span v-else>{{ $t('reservations.media.upload_label') }}</span>
+                        </Button>
+                    </form>
+                    <p v-else class="text-xs text-muted-foreground">{{ $t('reservations.media.restricted') }}</p>
+                </div>
+
+                <div class="space-y-3 lg:border-l lg:border-border lg:pl-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-foreground">{{ $t('reservations.media_requests.title') }}</h2>
+                        <p class="text-xs text-muted-foreground">{{ $t('reservations.media_requests.subtitle') }}</p>
+                    </div>
+
+                    <form v-if="canRequestMedia" @submit.prevent="sendMediaRequest" class="space-y-2">
+                        <FloatingTextarea
+                            v-model="mediaRequestForm.note"
+                            rows="3"
+                            :label="$t('reservations.media_requests.note_label')"
+                        />
+                        <div v-if="mediaRequestForm.hasErrors" class="text-xs text-red-600 space-y-1">
+                            <div v-for="(err, key) in mediaRequestForm.errors" :key="`request-err-${key}`">{{ err }}</div>
+                        </div>
+                        <Button type="submit" size="sm" :disabled="mediaRequestForm.processing">
+                            {{ $t('reservations.media_requests.submit') }}
+                        </Button>
+                    </form>
+                    <p v-else-if="isParent" class="text-xs text-muted-foreground">{{ $t('reservations.media_requests.only_in_progress') }}</p>
+
+                    <div v-if="mediaRequests.length" class="space-y-3">
+                        <div
+                            v-for="request in mediaRequests"
+                            :key="`request-${request.id}`"
+                            class="rounded-md border border-border p-3"
+                        >
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-semibold text-foreground">
+                                    {{ mediaRequestLabel(request.status) }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{ formatDateTime(request.created_at) }}
+                                </p>
+                            </div>
+                            <p v-if="request.note" class="text-xs text-muted-foreground mt-2">{{ request.note }}</p>
+                            <p v-if="request.requester" class="text-xs text-muted-foreground mt-2">
+                                {{ request.requester.name }}
+                            </p>
+                            <p v-if="request.fulfiller" class="text-xs text-muted-foreground mt-2">
+                                {{ request.fulfiller.name }} · {{ formatDateTime(request.fulfilled_at) }}
+                            </p>
+                            <Button
+                                v-if="isParent && request.status === 'pending'"
+                                variant="outline"
+                                size="sm"
+                                class="mt-3"
+                                @click="cancelMediaRequest(request.id)"
+                            >
+                                {{ $t('reservations.media_requests.cancel') }}
+                            </Button>
+                        </div>
+                    </div>
+                    <p v-else class="text-xs text-muted-foreground">{{ $t('reservations.media_requests.empty') }}</p>
                 </div>
             </div>
             <div

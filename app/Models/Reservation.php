@@ -115,6 +115,14 @@ class Reservation extends Model
     {
         return $this->morphMany(Media::class, 'mediaable');
     }
+
+    /**
+     * Media requests linked to this reservation.
+     */
+    public function mediaRequests(): HasMany
+    {
+        return $this->hasMany(ReservationMediaRequest::class);
+    }
     /**
      * Obtient les détails (date, heure, statut) de la réservation.
      * Une réservation peut avoir plusieurs entrées de détails si cela représente des créneaux ou une historisation.

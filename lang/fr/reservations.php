@@ -35,6 +35,7 @@ return [
     'actions' => [
         'new' => 'Nouvelle reservation',
         'confirm' => 'Confirmer reservation',
+        'start' => 'Demarrer la reservation',
         'complete' => 'Marquer comme effectue',
         'cancel' => 'Annuler reservation',
         'view' => 'Voir details reservation',
@@ -74,6 +75,33 @@ return [
         'other_rating' => 'Il/elle vous a note: :rating/5',
         'not_found' => 'Reservation introuvable.',
         'rating_target_default' => 'cet utilisateur',
+    ],
+    'media' => [
+        'title' => 'Galerie',
+        'upload_label' => 'Ajouter photos/videos',
+        'upload_hint' => 'Formats: jpg, png, webp, mp4. 25 MB max. 10 medias.',
+        'empty' => 'Aucun media pour le moment.',
+        'restricted' => 'Disponible quand la reservation est en cours ou terminee.',
+        'errors' => [
+            'not_allowed' => "La reservation n'est pas eligible pour la galerie.",
+            'limit_reached' => 'Limite de medias atteinte.',
+        ],
+    ],
+    'media_requests' => [
+        'title' => 'Demande de media',
+        'subtitle' => 'Demandez des photos ou videos.',
+        'note_label' => 'Message',
+        'submit' => 'Envoyer la demande',
+        'pending' => 'En attente',
+        'fulfilled' => 'Recue',
+        'canceled' => 'Annulee',
+        'empty' => 'Aucune demande pour le moment.',
+        'only_in_progress' => 'Disponible pendant une reservation en cours.',
+        'cancel' => 'Annuler la demande',
+        'errors' => [
+            'not_allowed' => "La demande est disponible uniquement pendant une reservation en cours.",
+            'pending_exists' => 'Une demande est deja en attente.',
+        ],
     ],
     'summary' => [
         'subtotal' => 'Sous-total:',

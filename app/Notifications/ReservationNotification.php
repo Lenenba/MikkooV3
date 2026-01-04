@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class ReservationNotification extends Notification implements ShouldQueue
 {
@@ -33,7 +34,7 @@ class ReservationNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     /**
@@ -51,6 +52,7 @@ class ReservationNotification extends Notification implements ShouldQueue
         $status = $reservation->details?->status ?? 'updated';
         $subject = match ($status) {
             'confirmed' => __('notifications.reservation.status_subject.confirmed'),
+            'in_progress' => __('notifications.reservation.status_subject.in_progress'),
             'completed' => __('notifications.reservation.status_subject.completed'),
             'canceled' => __('notifications.reservation.status_subject.canceled'),
             default => __('notifications.reservation.status_subject.updated'),
@@ -66,6 +68,50 @@ class ReservationNotification extends Notification implements ShouldQueue
                 'status' => $status,
                 'recipientName' => $recipientName,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $reservation = $this->reservation->loadMissing([
+            'parent.parentProfile',
+            'babysitter.babysitterProfile',
+            'details',
+            'services',
+        ]);
+
+        $status = $reservation->details?->status ?? 'updated';
+        $subject = match ($status) {
+            'confirmed' => __('notifications.reservation.status_subject.confirmed'),
+            'in_progress' => __('notifications.reservation.status_subject.in_progress'),
+            'completed' => __('notifications.reservation.status_subject.completed'),
+            'canceled' => __('notifications.reservation.status_subject.canceled'),
+            default => __('notifications.reservation.status_subject.updated'),
+        };
+
+        $statusLabelKey = "emails.reservations.status.status_labels.{$status}";
+        $statusLabel = __($statusLabelKey);
+        if ($statusLabel === $statusLabelKey) {
+            $statusLabel = $status;
+        }
+
+        $reference = $reservation->number ?? (string) $reservation->id;
+        $body = __('emails.reservations.status.intro', [
+            'reference' => $reference,
+            'status' => $statusLabel,
+        ]);
+
+        return [
+            'title' => $subject,
+            'body' => $body,
+            'data' => [
+                'type' => 'reservation',
+                'id' => $reservation->id,
+                'status' => $status,
+            ],
+        ];
     }
 
     protected function resolveRecipientName(object $notifiable): string

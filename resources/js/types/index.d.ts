@@ -29,6 +29,23 @@ export interface MediaItem {
     mime_type: string;
     is_profile: boolean;
 }
+export interface ReservationMediaItem {
+    id: number;
+    url?: string | null;
+    file_path?: string | null;
+    mime_type?: string | null;
+    collection_name?: string | null;
+    created_at?: string | null;
+}
+export interface ReservationMediaRequest {
+    id: number;
+    status: string;
+    note?: string | null;
+    created_at?: string | null;
+    fulfilled_at?: string | null;
+    requester?: { id: number; name: string } | null;
+    fulfiller?: { id: number; name: string } | null;
+}
 export interface Reservation {
     id: number;
     babysitter: Babysitter | User;

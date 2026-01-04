@@ -136,6 +136,7 @@ const statusOptions = computed(() => [
     { value: 'all', label: t('reservations.status.all') },
     { value: 'pending', label: t('common.status.pending') },
     { value: 'confirmed', label: t('common.status.confirmed') },
+    { value: 'in_progress', label: t('common.status.in_progress') },
     { value: 'completed', label: t('common.status.completed') },
     { value: 'canceled', label: t('common.status.canceled') },
 ]);

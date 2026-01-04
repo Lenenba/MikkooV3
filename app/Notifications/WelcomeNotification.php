@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class WelcomeNotification extends Notification implements ShouldQueue
 {
@@ -21,7 +22,7 @@ class WelcomeNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -34,6 +35,24 @@ class WelcomeNotification extends Notification implements ShouldQueue
                 'user' => $this->user,
                 'name' => $name,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $name = $this->resolveName($this->user);
+        $body = __('emails.welcome.intro', ['app' => config('app.name')]);
+
+        return [
+            'title' => __('notifications.welcome.subject'),
+            'body' => $body,
+            'data' => [
+                'type' => 'welcome',
+                'name' => $name,
+            ],
+        ];
     }
 
     protected function resolveName(User $user): ?string

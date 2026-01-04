@@ -11,6 +11,9 @@ return [
         'canceled' => 'Reservation canceled successfully.',
         'created' => 'Reservation created successfully.',
         'rating_saved' => 'Rating saved.',
+        'media_uploaded' => 'Media uploaded.',
+        'media_request_sent' => 'Media request sent.',
+        'media_request_canceled' => 'Media request canceled.',
     ],
     'announcement' => [
         'published' => 'Announcement published.',

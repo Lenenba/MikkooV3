@@ -171,6 +171,10 @@ export const getReservationColumns = (role?: string, t?: Translator): ColumnDef<
                         text: translate('common.status.confirmed'),
                         classes: 'bg-emerald-50 text-emerald-700',
                     },
+                    in_progress: {
+                        text: translate('common.status.in_progress'),
+                        classes: 'bg-indigo-50 text-indigo-700',
+                    },
                     completed: {
                         text: translate('common.status.completed'),
                         classes: 'bg-sky-50 text-sky-700',

@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ReservationRatingController;
+use App\Http\Controllers\ReservationMediaController;
+use App\Http\Controllers\ReservationMediaRequestController;
 use App\Http\Controllers\ServicesSearchController;
 use App\Http\Controllers\SearchBabysitterController;
 use App\Http\Controllers\AnnouncementController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\AddressOnboardingController;
 use App\Http\Controllers\AcceptReservationController;
 use App\Http\Controllers\CancelReservationController;
 use App\Http\Controllers\CompleteReservationController;
+use App\Http\Controllers\StartReservationController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureUserHasAddress;
 
@@ -73,8 +76,16 @@ Route::middleware(['auth', EnsureUserHasAddress::class])->group(
             ->name('reservations.accept');
         Route::post('/reservations/{reservationId}/cancel', CancelReservationController::class)
             ->name('reservations.cancel');
+        Route::post('/reservations/{reservationId}/start', StartReservationController::class)
+            ->name('reservations.start');
         Route::post('/reservations/{reservationId}/complete', CompleteReservationController::class)
             ->name('reservations.complete');
+        Route::post('/reservations/{reservation}/media', [ReservationMediaController::class, 'store'])
+            ->name('reservations.media.store');
+        Route::post('/reservations/{reservation}/media-requests', [ReservationMediaRequestController::class, 'store'])
+            ->name('reservations.media-requests.store');
+        Route::post('/reservations/{reservation}/media-requests/{mediaRequest}/cancel', [ReservationMediaRequestController::class, 'cancel'])
+            ->name('reservations.media-requests.cancel');
         Route::get('/reservations/{id}/create', [ReservationController::class, 'create'])
             ->middleware('verified')
             ->name('reservations.create');

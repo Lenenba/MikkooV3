@@ -1,56 +1,32 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\MediaResource;
 use App\Models\Reservation;
-use App\Models\User;
 use App\Notifications\ReservationMediaRequestNotification;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ReservationMediaController extends Controller
 {
-    public function index(Reservation $reservation): JsonResponse
+    public function store(Request $request, Reservation $reservation): RedirectResponse
     {
         $user = Auth::user();
         if (! $user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return redirect()->back();
         }
 
         if (! $this->canAccess($user, $reservation)) {
-            return response()->json(['message' => 'Forbidden.'], 403);
-        }
-
-        $media = $reservation->media()
-            ->where('collection_name', 'reservation')
-            ->orderByDesc('created_at')
-            ->get();
-
-        return response()->json([
-            'media' => MediaResource::collection($media),
-        ]);
-    }
-
-    public function store(Request $request, Reservation $reservation): JsonResponse
-    {
-        $user = Auth::user();
-        if (! $user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
-        if (! $this->canAccess($user, $reservation)) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403);
         }
 
         $reservation->loadMissing('details');
         $status = $reservation->details?->status;
         if (! in_array($status, ['in_progress', 'completed'], true)) {
-            return response()->json([
-                'message' => 'Reservation not eligible for gallery upload.',
-            ], 422);
+            return redirect()->back()->withErrors([
+                'media' => __('reservations.media.errors.not_allowed'),
+            ]);
         }
 
         $request->validate([
@@ -65,15 +41,14 @@ class ReservationMediaController extends Controller
             ->count();
 
         if ($existingCount + $incomingCount > 10) {
-            return response()->json([
-                'message' => 'Media limit reached.',
-            ], 422);
+            return redirect()->back()->withErrors([
+                'media' => __('reservations.media.errors.limit_reached'),
+            ]);
         }
 
-        $created = [];
         foreach ($files as $file) {
             $path = $file->store('reservation-media', 'public');
-            $created[] = $reservation->media()->create([
+            $reservation->media()->create([
                 'file_path' => $path,
                 'file_name' => $file->getClientOriginalName(),
                 'mime_type' => $file->getClientMimeType(),
@@ -105,12 +80,10 @@ class ReservationMediaController extends Controller
             }
         }
 
-        return response()->json([
-            'media' => MediaResource::collection(collect($created)),
-        ], 201);
+        return redirect()->back()->with('success', __('flash.reservation.media_uploaded'));
     }
 
-    protected function canAccess(User $user, Reservation $reservation): bool
+    protected function canAccess($user, Reservation $reservation): bool
     {
         if ($user->isParent()) {
             return (int) $reservation->parent_id === (int) $user->id;

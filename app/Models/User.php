@@ -240,6 +240,26 @@ class User extends Authenticatable implements MustVerifyEmailContract
     }
 
     /**
+     * Expo push tokens registered for this user.
+     *
+     * @return HasMany
+     */
+    public function pushTokens(): HasMany
+    {
+        return $this->hasMany(PushToken::class);
+    }
+
+    /**
+     * Route notifications for Expo push.
+     *
+     * @return array<int, string>
+     */
+    public function routeNotificationForExpoPush(): array
+    {
+        return $this->pushTokens()->pluck('token')->all();
+    }
+
+    /**
      * Scope a query to only include parents.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query

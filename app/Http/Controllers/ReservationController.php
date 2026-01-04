@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ReservationRequest;
+use App\Http\Resources\MediaResource;
 use App\Services\ReservationStatsService;
 use App\Notifications\ReservationRequestedNotification;
 use App\Support\Billing;
@@ -98,9 +99,35 @@ class ReservationController extends Controller
             'babysitter.media',
             'babysitter.address',
             'services',
-            'details'
+            'details',
+            'mediaRequests.requester',
+            'mediaRequests.fulfiller',
         ])
             ->findOrFail($id);
+
+        $reservationMedia = $reservation->media()
+            ->where('collection_name', 'reservation')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $mediaRequests = $reservation->mediaRequests()
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($request) => [
+                'id' => $request->id,
+                'status' => $request->status,
+                'note' => $request->note,
+                'created_at' => $request->created_at?->toISOString(),
+                'fulfilled_at' => $request->fulfilled_at?->toISOString(),
+                'requester' => $request->requester ? [
+                    'id' => $request->requester->id,
+                    'name' => $request->requester->name,
+                ] : null,
+                'fulfiller' => $request->fulfiller ? [
+                    'id' => $request->fulfiller->id,
+                    'name' => $request->fulfiller->name,
+                ] : null,
+            ]);
 
         $taxRate = Billing::vatRateForCountry($reservation->babysitter?->address?->country);
         $currency = Billing::currencyForCountry($reservation->babysitter?->address?->country);
@@ -144,6 +171,8 @@ class ReservationController extends Controller
 
         return Inertia::render('reservation/Show', [
             'reservation' => $reservation,
+            'reservation_media' => MediaResource::collection($reservationMedia),
+            'media_requests' => $mediaRequests,
             'ratings' => $ratingsPayload,
             'tax_rate' => $taxRate,
             'currency' => $currency,

@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class AnnouncementApplicationStatusNotification extends Notification implements ShouldQueue
 {
@@ -21,7 +22,7 @@ class AnnouncementApplicationStatusNotification extends Notification implements 
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -55,6 +56,47 @@ class AnnouncementApplicationStatusNotification extends Notification implements 
                 'parentName' => $parentName,
                 'babysitterName' => $babysitterName,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $application = $this->application->loadMissing([
+            'announcement.parent.parentProfile',
+            'babysitter.babysitterProfile',
+        ]);
+
+        $announcement = $application->announcement;
+        $parentName = $this->resolveParentName($announcement?->parent);
+        $statusKey = strtolower(trim($this->status));
+
+        $subject = match ($statusKey) {
+            'accepted' => __('notifications.announcement.application_status_subject.accepted'),
+            'rejected' => __('notifications.announcement.application_status_subject.rejected'),
+            'expired' => __('notifications.announcement.application_status_subject.expired'),
+            'withdrawn' => __('notifications.announcement.application_status_subject.withdrawn'),
+            default => __('notifications.announcement.application_status_subject.updated'),
+        };
+
+        $bodyKey = "emails.announcements.application_status.message.{$statusKey}";
+        $body = __($bodyKey, ['parent' => $parentName]);
+        if ($body === $bodyKey) {
+            $body = __('emails.announcements.application_status.message.updated');
+        }
+
+        return [
+            'title' => $subject,
+            'body' => $body,
+            'data' => [
+                'type' => 'announcement',
+                'id' => $announcement?->id,
+                'application_id' => $application->id,
+                'status' => $statusKey,
+                'action' => 'application_status',
+            ],
+        ];
     }
 
     protected function resolveParentName(?User $user): string

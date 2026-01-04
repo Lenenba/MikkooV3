@@ -4,29 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Notifications\ReservationNotification;
-use App\Services\InvoiceService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-class CompleteReservationController extends Controller
+class StartReservationController extends Controller
 {
     use AuthorizesRequests;
 
     /**
-     * Mark a reservation as completed and generate an invoice.
+     * Mark a reservation as in progress.
      */
-    public function __invoke(int $reservationId, InvoiceService $invoiceService)
+    public function __invoke(int $reservationId)
     {
         $reservation = Reservation::with('details')->findOrFail($reservationId);
 
-        if (! in_array($reservation->details?->status, ['confirmed', 'in_progress'], true)) {
+        if ($reservation->details?->status !== 'confirmed') {
             return redirect()->back()->with('error', __('flash.reservation.not_confirmed'));
         }
 
-        $this->authorize('complete', $reservation);
+        $this->authorize('start', $reservation);
 
         $reservation->details()->update([
-            'status' => 'completed',
-            'completed_at' => now(),
+            'status' => 'in_progress',
         ]);
 
         $reservation->load('details');
@@ -34,8 +32,6 @@ class CompleteReservationController extends Controller
         $reservation->parent?->notify(new ReservationNotification($reservation));
         $reservation->babysitter?->notify(new ReservationNotification($reservation));
 
-        $invoiceService->createFromReservation($reservation);
-
-        return redirect()->back()->with('success', __('flash.reservation.completed'));
+        return redirect()->back()->with('success', __('flash.reservation.in_progress'));
     }
 }

@@ -35,6 +35,7 @@ return [
     'actions' => [
         'new' => 'New reservation',
         'confirm' => 'Confirm reservation',
+        'start' => 'Start reservation',
         'complete' => 'Mark as completed',
         'cancel' => 'Cancel reservation',
         'view' => 'View reservation details',
@@ -74,6 +75,33 @@ return [
         'other_rating' => 'They rated you: :rating/5',
         'not_found' => 'Reservation not found.',
         'rating_target_default' => 'this user',
+    ],
+    'media' => [
+        'title' => 'Gallery',
+        'upload_label' => 'Add photos/videos',
+        'upload_hint' => 'Formats: jpg, png, webp, mp4. 25 MB max. 10 media.',
+        'empty' => 'No media yet.',
+        'restricted' => 'Available once the reservation is in progress or completed.',
+        'errors' => [
+            'not_allowed' => 'Reservation is not eligible for the gallery.',
+            'limit_reached' => 'Media limit reached.',
+        ],
+    ],
+    'media_requests' => [
+        'title' => 'Media request',
+        'subtitle' => 'Ask for photos or videos.',
+        'note_label' => 'Message',
+        'submit' => 'Send request',
+        'pending' => 'Pending',
+        'fulfilled' => 'Received',
+        'canceled' => 'Canceled',
+        'empty' => 'No requests yet.',
+        'only_in_progress' => 'Available during an in-progress reservation.',
+        'cancel' => 'Cancel request',
+        'errors' => [
+            'not_allowed' => 'Requests are only available during an in-progress reservation.',
+            'pending_exists' => 'A request is already pending.',
+        ],
     ],
     'summary' => [
         'subtotal' => 'Subtotal:',

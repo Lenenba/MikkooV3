@@ -38,6 +38,7 @@ return [
             'button' => 'View reservation',
             'status_labels' => [
                 'confirmed' => 'confirmed',
+                'in_progress' => 'in progress',
                 'completed' => 'completed',
                 'canceled' => 'canceled',
                 'updated' => 'updated',

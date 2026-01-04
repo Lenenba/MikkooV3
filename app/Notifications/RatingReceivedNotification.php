@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class RatingReceivedNotification extends Notification implements ShouldQueue
 {
@@ -22,7 +23,7 @@ class RatingReceivedNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -44,6 +45,33 @@ class RatingReceivedNotification extends Notification implements ShouldQueue
                 'reservationNumber' => $reservationNumber,
                 'comment' => $comment,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $rating = $this->rating->loadMissing([
+            'reviewer',
+            'reservation',
+        ]);
+
+        $reviewerName = $this->resolveUserName($rating->reviewer);
+        $reservationNumber = $rating->reservation?->number ?? (string) $rating->reservation_id;
+
+        return [
+            'title' => __('notifications.rating.received_subject'),
+            'body' => __('emails.ratings.received.intro', [
+                'reviewer' => $reviewerName,
+                'reference' => $reservationNumber,
+            ]),
+            'data' => [
+                'type' => 'reservation',
+                'id' => $rating->reservation_id,
+                'action' => 'rating',
+            ],
+        ];
     }
 
     protected function resolveUserName(?User $user): string

@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class InvoiceIssuedNotification extends Notification implements ShouldQueue
 {
@@ -22,7 +23,7 @@ class InvoiceIssuedNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -47,6 +48,38 @@ class InvoiceIssuedNotification extends Notification implements ShouldQueue
                 'babysitterName' => $babysitterName,
                 'vatPercent' => $vatPercent,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $invoice = $this->invoice->loadMissing([
+            'parent.parentProfile',
+            'babysitter.babysitterProfile',
+            'items',
+        ]);
+
+        $subject = __('notifications.invoice.issued_subject', [
+            'number' => $invoice->number ?? $invoice->id,
+        ]);
+
+        $start = $invoice->period_start?->toDateString() ?? $invoice->issued_at?->toDateString();
+        $end = $invoice->period_end?->toDateString() ?? $invoice->issued_at?->toDateString();
+        $body = __('emails.invoices.issued.intro', [
+            'start' => $start ?? '',
+            'end' => $end ?? '',
+        ]);
+
+        return [
+            'title' => $subject,
+            'body' => $body,
+            'data' => [
+                'type' => 'invoice',
+                'id' => $invoice->id,
+            ],
+        ];
     }
 
     private function resolveName(?User $user, string $fallback = ''): string

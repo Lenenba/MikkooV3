@@ -11,6 +11,9 @@ return [
         'canceled' => 'Reservation annulee avec succes.',
         'created' => 'Reservation creee avec succes.',
         'rating_saved' => 'Note enregistree.',
+        'media_uploaded' => 'Media televerse.',
+        'media_request_sent' => 'Demande de media envoyee.',
+        'media_request_canceled' => 'Demande de media annulee.',
     ],
     'announcement' => [
         'published' => 'Annonce publiee.',

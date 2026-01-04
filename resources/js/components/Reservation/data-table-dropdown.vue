@@ -19,7 +19,8 @@ const role = computed(() => (page.props.auth as { role?: string }).role ?? 'Pare
 const status = computed(() => (props.reservation.status ?? '').toString().toLowerCase())
 const isBabysitter = computed(() => role.value === 'Babysitter')
 const canAccept = computed(() => isBabysitter.value && status.value === 'pending')
-const canComplete = computed(() => isBabysitter.value && status.value === 'confirmed')
+const canStart = computed(() => isBabysitter.value && status.value === 'confirmed')
+const canComplete = computed(() => isBabysitter.value && status.value === 'in_progress')
 const canCancel = computed(() => isBabysitter.value && !['canceled', 'completed'].includes(status.value))
 const canRate = computed(() => role.value === 'Babysitter' || role.value === 'Parent')
 const rateLabel = computed(() =>
@@ -36,6 +37,9 @@ function actionReservation(id: number | string, event: string) {
     }
     if (event === 'cancel') {
         router.post(`/reservations/${id}/cancel`)
+    }
+    if (event === 'start') {
+        router.post(`/reservations/${id}/start`)
     }
     if (event === 'complete') {
         router.post(`/reservations/${id}/complete`)
@@ -63,13 +67,16 @@ function actionReservation(id: number | string, event: string) {
             <DropdownMenuItem v-if="canAccept" @click="actionReservation(props.reservation.id, 'accept')">
                 {{ $t('reservations.actions.confirm') }}
             </DropdownMenuItem>
+            <DropdownMenuItem v-if="canStart" @click="actionReservation(props.reservation.id, 'start')">
+                {{ $t('reservations.actions.start') }}
+            </DropdownMenuItem>
             <DropdownMenuItem v-if="canComplete" @click="actionReservation(props.reservation.id, 'complete')">
                 {{ $t('reservations.actions.complete') }}
             </DropdownMenuItem>
             <DropdownMenuItem v-if="canCancel" @click="actionReservation(props.reservation.id, 'cancel')">
                 {{ $t('reservations.actions.cancel') }}
             </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="canAccept || canComplete || canCancel" />
+            <DropdownMenuSeparator v-if="canAccept || canStart || canComplete || canCancel" />
             <DropdownMenuItem @click="actionReservation(props.reservation.id, 'view')">
                 {{ $t('reservations.actions.view') }}
             </DropdownMenuItem>

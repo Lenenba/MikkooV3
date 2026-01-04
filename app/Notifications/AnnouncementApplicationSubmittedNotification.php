@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Notifications\Channels\ExpoPushChannel;
 
 class AnnouncementApplicationSubmittedNotification extends Notification implements ShouldQueue
 {
@@ -19,7 +20,7 @@ class AnnouncementApplicationSubmittedNotification extends Notification implemen
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', ExpoPushChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -43,6 +44,28 @@ class AnnouncementApplicationSubmittedNotification extends Notification implemen
                 'parentName' => $parentName,
                 'babysitterName' => $babysitterName,
             ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toExpoPush(object $notifiable): array
+    {
+        $application = $this->application->loadMissing([
+            'announcement.parent.parentProfile',
+            'babysitter.babysitterProfile',
+        ]);
+
+        return [
+            'title' => __('notifications.announcement.application_submitted_subject'),
+            'body' => __('emails.announcements.application_submitted.intro'),
+            'data' => [
+                'type' => 'announcement',
+                'id' => $application->announcement?->id,
+                'application_id' => $application->id,
+                'action' => 'application_submitted',
+            ],
+        ];
     }
 
     protected function resolveParentName(?User $user): string

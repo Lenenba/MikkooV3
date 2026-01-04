@@ -17,6 +17,14 @@ class Media extends Model
     /** @use HasFactory<\Database\Factories\MediaFactory> */
     use HasFactory,  SoftDeletes;
 
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'custom_properties' => 'array',
+        'is_profile_picture' => 'boolean',
+    ];
+
 
     /**
      * The attributes that are NOT mass assignable.

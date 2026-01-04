@@ -121,6 +121,7 @@ return [
     'status' => [
         'pending' => 'En attente',
         'confirmed' => 'Confirmee',
+        'in_progress' => 'En cours',
         'completed' => 'Terminee',
         'canceled' => 'Annulee',
         'active' => 'Actif',
