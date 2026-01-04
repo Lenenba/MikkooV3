@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\ReservationActionController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\ReservationMediaController;
+use App\Http\Controllers\Api\ReservationMediaRequestController;
 use App\Http\Controllers\Api\ReservationRatingController;
 use App\Http\Controllers\Api\SearchBabysitterController;
 use App\Http\Controllers\Api\PushTokenController;
@@ -69,6 +70,9 @@ Route::prefix('v1')->group(function () {
         Route::post('reservations/{reservation}/ratings', [ReservationRatingController::class, 'store']);
         Route::get('reservations/{reservation}/media', [ReservationMediaController::class, 'index']);
         Route::post('reservations/{reservation}/media', [ReservationMediaController::class, 'store']);
+        Route::get('reservations/{reservation}/media-requests', [ReservationMediaRequestController::class, 'index']);
+        Route::post('reservations/{reservation}/media-requests', [ReservationMediaRequestController::class, 'store']);
+        Route::post('reservations/{reservation}/media-requests/{mediaRequest}/cancel', [ReservationMediaRequestController::class, 'cancel']);
 
         Route::post('push-tokens', [PushTokenController::class, 'store']);
         Route::delete('push-tokens', [PushTokenController::class, 'destroy']);

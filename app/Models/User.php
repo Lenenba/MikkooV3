@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Notifications\Notification;
 
 /**
  * User model.
@@ -254,7 +255,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
      *
      * @return array<int, string>
      */
-    public function routeNotificationForExpoPush(): array
+    public function routeNotificationForExpoPush(?Notification $notification = null): array
     {
         return $this->pushTokens()->pluck('token')->all();
     }

@@ -69,6 +69,8 @@ class ReservationController extends Controller
             'babysitter.address',
             'services',
             'details',
+            'mediaRequests.requester',
+            'mediaRequests.fulfiller',
         ])->findOrFail($id);
 
         $taxRate = Billing::vatRateForCountry($reservation->babysitter?->address?->country);
@@ -109,8 +111,28 @@ class ReservationController extends Controller
                 : $parentName;
         }
 
+        $mediaRequests = $reservation->mediaRequests()
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($request) => [
+                'id' => $request->id,
+                'status' => $request->status,
+                'note' => $request->note,
+                'created_at' => $request->created_at?->toISOString(),
+                'fulfilled_at' => $request->fulfilled_at?->toISOString(),
+                'requester' => $request->requester ? [
+                    'id' => $request->requester->id,
+                    'name' => $request->requester->name,
+                ] : null,
+                'fulfiller' => $request->fulfiller ? [
+                    'id' => $request->fulfiller->id,
+                    'name' => $request->fulfiller->name,
+                ] : null,
+            ]);
+
         return response()->json([
             'reservation' => new ReservationResource($reservation),
+            'media_requests' => $mediaRequests,
             'ratings' => $ratingsPayload,
             'tax_rate' => $taxRate,
             'currency' => $currency,
